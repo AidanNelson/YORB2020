@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<title>
+		Three.js Multiplayer Client
+	</title>
+
+	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+	<!--Scoket.io-->
+	<script src="js/socket.io.js"></script>
+
+	<!--Client Side CSS-->
+	<link rel="stylesheet" href="css/client.css" />
+	<script src="js/libs/three.js"></script>
+	<script src="js/libs/firstPersonControls.js"></script>
+	<script src="js/libs/improvedNoise.js"></script>
+	<script src="js/libs/socket.io.js"></script>
+
+
+</head>
+
+<body>
+
+	<!--  from  https://github.com/Miczeq22/simple-chat-app -->
+	<div class="container">
+		<div class="content-container">
+			<div class="active-users-panel" id="active-user-container">
+				<h3 class="panel-title">Active Users:</h3>
+			</div>
+			<div class="video-chat-container">
+				<h2 class="talk-info" id="talking-with-info">
+					Select active user on the left menu.
+				</h2>
+				<div class="video-container">
+					remote video:
+					<br />
+					<video autoplay class="remote-video" id="remote-video" width="160" height="120"></video>
+					<canvas id="remoteVideoImage" width="160" height="120" style="visibility: hidden; float:left;" class="remote"></canvas>
+					<br />
+					local video:
+					<br />
+					<video autoplay muted class="local-video" id="local-video" width="160" height="120"></video>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- WebGL context -->
+	<div id="gl_context"></div>
+
+	<!-- Client side JS bundle -->
+	<!-- <script src="js/bundle.js"></script> -->
+	<script src="js/scene.js"></script>
+	<script src="js/index.js"></script>
+
+
+</body>
+
+</html>
