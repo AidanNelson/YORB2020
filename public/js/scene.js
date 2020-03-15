@@ -6,6 +6,10 @@
 * with terrain from https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_terrain.html
 *
 */
+let clients = new Object();
+
+let playerMesh;
+
 
 class Scene {
 	constructor(domElement = document.getElementById('gl_context'),
@@ -25,8 +29,23 @@ class Scene {
 		this.width = _width;
 		this.height = _height;
 
+		// PLayer Mesh (for 3rd Person):
+		playerMesh = new THREE.Mesh(
+			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.MeshNormalMaterial()
+		);
+
+		playerMesh.position.set(0,0,0);
+
+		this.scene.add(playerMesh);
+
 		//THREE Camera
-		this.camera = new THREE.PerspectiveCamera(80, this.width / this.height, 0.1, 5000);
+		this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 5000);
+		this.camera.position.set(0,5,10);
+
+		playerMesh.add(this.camera); // add camera watching playerMesh
+		this.camera.lookAt(playerMesh.position)
+		// console.log(this.playerMesh);
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
@@ -35,21 +54,24 @@ class Scene {
 
 		this.renderer.setClearColor(new THREE.Color(clearColor));
 
+		// add controls:
+		document.addEventListener("keydown", this.playerControls, false);
+
+
+
 		this.renderer.setSize(this.width, this.height);
 
 		// add terrain
-		var worldWidth = 128, worldDepth = 128;
+		var worldWidth = 512, worldDepth = 512;
 
 		var data = generateHeight(worldWidth, worldDepth);
-
 
 		let texture = new THREE.CanvasTexture(generateTexture(data, worldWidth, worldDepth));
 		texture.wrapS = THREE.ClampToEdgeWrapping;
 		texture.wrapT = THREE.ClampToEdgeWrapping;
 
-		var geometry = new THREE.PlaneBufferGeometry(500, 500, worldWidth - 1, worldDepth - 1);
+		var geometry = new THREE.PlaneBufferGeometry(5000, 5000, worldWidth - 1, worldDepth - 1);
 		geometry.rotateX(- Math.PI / 2);
-
 
 		var vertices = geometry.attributes.position.array;
 
@@ -59,19 +81,18 @@ class Scene {
 
 		}
 
-
 		let mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
-		mesh.position.y = -10;
+		mesh.position.y = -50;
 		this.scene.add(mesh);
 
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
 
-		if (hasControls) {
-			this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
-			this.controls.lookSpeed = 0.05;
-		}
+		// if (hasControls) {
+		// 	this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
+		// 	this.controls.lookSpeed =0.1;
+		// }
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
@@ -79,7 +100,7 @@ class Scene {
 		domElement.addEventListener('mouseleave', e => this.onLeaveCanvas(e), false);
 		window.addEventListener('keydown', e => this.onKeyDown(e), false);
 
-		this.helperGrid = new THREE.GridHelper(20, 10);
+		this.helperGrid = new THREE.GridHelper(100, 100);
 		this.helperGrid.position.y = -0.5;
 		this.scene.add(this.helperGrid);
 		this.clock = new THREE.Clock();
@@ -87,6 +108,23 @@ class Scene {
 		this.update();
 
 	}
+
+	playerControls(event) {
+		
+		var keyCode = event.which;
+		var speed = 1;
+		if (keyCode == 87) {
+			playerMesh.position.z -= speed;
+		} else if (keyCode == 83) {
+			playerMesh.position.z += speed;
+		} else if (keyCode == 65) {
+			playerMesh.position.x -= speed;
+		} else if (keyCode == 68) {
+			playerMesh.position.x += speed;
+		} else if (keyCode == 32) {
+			playerMesh.position.set(0, 0, 0);
+		}
+	};
 
 	drawUsers(positions, id) {
 		for (let i = 0; i < Object.keys(positions).length; i++) {
@@ -100,20 +138,43 @@ class Scene {
 
 	update() {
 		requestAnimationFrame(() => this.update());
-		this.controls.update(this.clock.getDelta());
-		this.controls.target = new THREE.Vector3(0, 0, 0);
+		// this.controls.update(this.clock.getDelta());
+		// this.controls.target = new THREE.Vector3(0, 0, 0);
 		this.render();
 	}
 
+
+
 	render() {
-		//update remote video
-		if (rvideo) {
-			if (rvideo.readyState === rvideo.HAVE_ENOUGH_DATA) {
-				rvideoImageContext.drawImage(rvideo, 0, 0, rvideoImage.width, rvideoImage.height);
-				if (rvideoTexture)
-					rvideoTexture.needsUpdate = true;
+		for (let _id in clients) {
+			// console.log('Attempting to update video canvas for id: ' + _id);
+			if (_id != id) {
+				if (clients[_id].videoCanvasCreated) {
+
+					// video DOM element
+					let remoteVideo = document.getElementById(_id);
+					// video canvas DOM element
+					let remoteVideoCanvas = document.getElementById(_id + "_canvas");
+					// video canvas DOM element drawing context
+					let remoteVideoImageContext = remoteVideoCanvas.getContext('2d');
+
+
+					if (remoteVideo) {
+						if (remoteVideo.readyState === remoteVideo.HAVE_ENOUGH_DATA) {
+							// console.log('Updating canvas for id: ' + _id);
+							remoteVideoImageContext.drawImage(remoteVideo, 0, 0, remoteVideoCanvas.width, remoteVideoCanvas.height);
+							if (clients[_id].tex) {
+								clients[_id].tex.needsUpdate = true;
+							}
+						}
+					} else {
+						console.log('No remote video element found!');
+					}
+
+				}
 			}
 		}
+
 		this.renderer.render(this.scene, this.camera);
 	}
 
@@ -126,13 +187,13 @@ class Scene {
 	}
 
 	onLeaveCanvas(e) {
-		this.controls.enabled = false;
+		// this.controls.enabled = false;
 	}
 	onEnterCanvas(e) {
-		this.controls.enabled = true;
+		// this.controls.enabled = true;
 	}
 	onKeyDown(e) {
-		socket.emit('move', [glScene.camera.position.x, glScene.camera.position.y, glScene.camera.position.z]);
+		socket.emit('move', [playerMesh.position.x, playerMesh.position.y, playerMesh.position.z]);
 	}
 }
 

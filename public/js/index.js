@@ -11,108 +11,152 @@
 //A socket.io instance
 const socket = io();
 
+// https://github.com/Miczeq22/simple-chat-app
+let isAlreadyCalling = false;
+// let getCalled = false;
+const { RTCPeerConnection, RTCSessionDescription } = window;
+
+//One WebGL context to rule them all !
+let glScene = new Scene();
+let id;
+
+// let clients = new Object(); // move this to scene.js for hacky reasons
+
+// set video width / height here:
+const videoWidth = 160;
+const videoHeight = 120;
+const videoFrameRate = 15;
+
 // Get access to local media stream (i.e. webcam and microphone stream)
 let stream = null;
+
+// set constraints on local audio/video stream
+// is there a better place to do this?
+// what should constraints be to allow for many streams...?
+let constraints = {
+	audio: true,
+	video: {
+		width: videoWidth,
+		height: videoHeight,
+		frameRate: videoFrameRate
+	}
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-async function getMedia(constraints) {
+async function getMedia(_constraints) {
 	try {
 		/* use the stream */
-		stream = await navigator.mediaDevices.getUserMedia(constraints);
-		const localVideo = document.getElementById("local-video");
-		if (localVideo) {
-			localVideo.srcObject = stream;
-		}
-		stream.getTracks().forEach(track => {
-			for (let id in clients) {
-				clients[id].peerConnection.addTrack(track, stream)
+		if (stream == null) {
+			stream = await navigator.mediaDevices.getUserMedia(_constraints);
+			const localVideo = document.getElementById("local-video");
+			if (localVideo) {
+				localVideo.srcObject = stream;
 			}
-		});
-
+		}
+		for (let id in clients) {
+			// addStreamToPeerConnection(stream, clients[id]);
+			if (!clients[id].streamAdded) {
+				stream.getTracks().forEach(track => {
+					clients[id].peerConnection.addTrack(track, stream)
+				});
+				clients[id].streamAdded = true;
+			}
+		}
 	} catch (err) {
 		console.warn(err);
 		/* handle the error */
 	}
 }
 
-//One WebGL context to rule them all !
-let glScene = new Scene();
-let id;
-let instances = [];
-let clients = new Object();
+getMedia(constraints);
 
-const videoWidth = 160;
-const videoHeight = 120;
+// this should add the stream to the peer connection
+// function addStreamToPeerConnection(_stream, _peerConnection) {
+// 	console.log('Stream initialized? ' + streamInitialized);
+// 	if (stream != null) {
+// 		console.log("Adding stream to peer connection!");
+// 		_stream.getTracks().forEach(track => {
+// 			_peerConnection.addTrack(track, stream)
+// 		});
+// 	} else {
+// 		console.log("Cannot add stream to peer connection.  Stream not yet initialized.");
+// 	}
+// }
 
-// glScene.on('userMoved', () => {
-//   socket.emit('move', [glScene.camera.position.x, glScene.camera.position.y, glScene.camera.position.z]);
-// });
 
+// Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
+function addClient(_id) {
+	console.log("Adding client with id " + _id);
+	// create a video element for client:
+	const remoteVideo = document.createElement("video");
+	remoteVideo.id = _id;
+	remoteVideo.autoplay = true;
+	document.body.appendChild(remoteVideo);
+
+	// create a peer connection for  client:
+	let pc = new RTCPeerConnection();
+
+	// add ontrack listener for peer connection
+	pc.ontrack = function ({ streams: [stream] }) {
+		console.log("On track!");
+		const remoteVideo = document.getElementById(_id);
+		if (remoteVideo) {
+			remoteVideo.srcObject = stream;
+		} else {
+			console.warn("No video element found for ID: " + _id);
+		}
+	};
+
+	// add new client to clients object
+	clients[_id] = {
+		mesh: new THREE.Mesh(
+			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.MeshNormalMaterial()
+		),
+		peerConnection: pc,
+		streamAdded: false,
+		isAlreadyCalling: false,
+		videoCanvasCreated: false
+	}
+}
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// SOCKET SET UP ///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 //On connection server sends the client his ID and a list of all keys
 socket.on('introduction', (_id, _clientNum, _ids) => {
+	// keep a local copy of my ID:
+	id = _id;
+	console.log('My ID is: ' + id);
 
 	for (let i = 0; i < _ids.length; i++) {
 		if (_ids[i] != _id) {
 
-			// create a peer connection for each client:
-			let pc = new RTCPeerConnection();
+			addClient(_ids[i]);
 
-			clients[_ids[i]] = {
-				mesh: new THREE.Mesh(
-					new THREE.BoxGeometry(1, 1, 1),
-					new THREE.MeshNormalMaterial()
-				),
-				peerConnection: pc
-			}
-
-			// create a video element for each client:
-			const remoteVideo = document.createElement("video");
-			remoteVideo.id = _id;
-			remoteVideo.autoplay = true;
-			document.body.appendChild(remoteVideo);
-
-			// set peer connection 'ontrack' listener to stream video to DOM element
-			clients[_ids[i]].peerConnection.ontrack = function ({ streams: [stream] }) {
-				console.log("On track!");
-				// const remoteVideo = document.getElementById("remote-video");
-				const remoteVideo = document.getElementById(_id);
-				if (remoteVideo) {
-					remoteVideo.srcObject = stream;
-				} else {
-					console.warn("No video element found for ID: " + _id);
-				}
-			};
-
+			setTimeout(() => callUser(_ids[i]), 5000);
 
 			//Add initial users to the scene
 			glScene.scene.add(clients[_ids[i]].mesh);
 		}
 	}
 
-	console.log("Introduction of clients: ");
-	console.log(clients);
-
-	// set constraints on local audio/video stream
-	// is there a better place to do this?
-	// what should constraints be to allow for many streams...?
-	let constraints = {
-		audio: true,
-		video: {
-			width: videoWidth,
-			height: videoHeight,
-			frameRate: 15
-		}
-	}
-	getMedia(constraints);
-
-
-	// keep a local copy of my ID:
-	id = _id;
-	console.log('My ID is: ' + id);
 
 });
 
+// when a new user has entered the server
 socket.on('newUserConnected', (clientCount, _id, _ids) => {
 	console.log(clientCount + ' clients connected');
+
 	let alreadyHasUser = false;
 	for (let i = 0; i < Object.keys(clients).length; i++) {
 		if (Object.keys(clients)[i] == _id) {
@@ -120,56 +164,28 @@ socket.on('newUserConnected', (clientCount, _id, _ids) => {
 			break;
 		}
 	}
+
 	if (_id != id && !alreadyHasUser) {
 		console.log('A new user connected with the id: ' + _id);
 
-		// add a peerConnection for each user
-		let pc = new RTCPeerConnection();
+		addClient(_id);
 
-		clients[_id] = {
-			mesh: new THREE.Mesh(
-				new THREE.BoxGeometry(10, 10, 10),
-				new THREE.MeshNormalMaterial()
-			),
-			peerConnection: pc
-		}
-
-		// create a video element for each client:
-		const remoteVideo = document.createElement("video");
-		remoteVideo.id = _id;
-		remoteVideo.autoplay = true;
-		document.body.appendChild(remoteVideo);
-
-		// set peer connection 'ontrack' listener to stream video to DOM element
-		clients[_id].peerConnection.ontrack = function ({ streams: [stream] }) {
-			// const remoteVideo = document.getElementById("remote-video");
-			const remoteVideo = document.getElementById(_id);
-			if (remoteVideo) {
-				remoteVideo.srcObject = stream;
-			} else {
-				console.warn("No video element found for ID: " + _id);
-			}
-		};
-
-		// set the new peerConnection to use our local stream
-		stream.getTracks().forEach(track => {
-			clients[_id].peerConnection.addTrack(track, stream)
-		});
-
-		callUser(_id);
-
-		//Add initial users to the scene
+		// add new user to the scene
 		glScene.scene.add(clients[_id].mesh);
 	}
 
 });
 
 socket.on('userDisconnected', (clientCount, _id, _ids) => {
-	//Update the data from the server
+	// Update the data from the server
 	// document.getElementById('numUsers').textContent = clientCount;
 
 	if (_id != id) {
 		console.log('A user disconnected with the id: ' + _id);
+		let videoEl = document.getElementById(_id).remove();
+		if (videoEl != null) { videoEl.remove(); }
+		let canvasEl = document.getElementById(_id + "_canvas");
+		if (canvasEl != null) { canvasEl.remove(); }
 		glScene.scene.remove(clients[_id].mesh);
 		delete clients[_id];
 	}
@@ -177,7 +193,7 @@ socket.on('userDisconnected', (clientCount, _id, _ids) => {
 
 socket.on('connect', () => { });
 
-//Update when one of the users moves in space
+// Update when one of the users moves in space
 socket.on('userPositions', _clientProps => {
 	// console.log('Positions of all users are ', _clientProps, id);
 	// console.log(Object.keys(_clientProps)[0] == id);
@@ -185,258 +201,182 @@ socket.on('userPositions', _clientProps => {
 		if (Object.keys(_clientProps)[i] != id) {
 
 			//Store the values
-			let oldPos = clients[Object.keys(_clientProps)[i]].mesh.position;
+			// let oldPos = clients[Object.keys(_clientProps)[i]].mesh.position;
 			let newPos = _clientProps[Object.keys(_clientProps)[i]].position;
 
 			//Create a vector 3 and lerp the new values with the old values
-			let lerpedPos = new THREE.Vector3();
-			lerpedPos.x = THREE.Math.lerp(oldPos.x, newPos[0], 0.3);
-			lerpedPos.y = THREE.Math.lerp(oldPos.y, newPos[1], 0.3);
-			lerpedPos.z = THREE.Math.lerp(oldPos.z, newPos[2], 0.3);
+			// let lerpedPos = new THREE.Vector3();
+			// lerpedPos.x = THREE.Math.lerp(oldPos.x, newPos[0], 1);
+			// lerpedPos.y = THREE.Math.lerp(oldPos.y, newPos[1], 1);
+			// lerpedPos.z = THREE.Math.lerp(oldPos.z, newPos[2], 1);
 
 			//Set the position
-			clients[Object.keys(_clientProps)[i]].mesh.position.set(lerpedPos.x, lerpedPos.y, lerpedPos.z);
+			// clients[Object.keys(_clientProps)[i]].mesh.position.set(lerpedPos.x, lerpedPos.y, lerpedPos.z);
+			let newPositionVec3 = new THREE.Vector3(newPos[0],newPos[1],newPos[2]);
+			clients[Object.keys(_clientProps)[i]].mesh.position = newPositionVec3;
 		}
 	}
 });
 
-function createNewClient(id) {
-
-}
-
-// https://github.com/Miczeq22/simple-chat-app
-let isAlreadyCalling = false;
-let getCalled = false;
-const existingCalls = [];
-const { RTCPeerConnection, RTCSessionDescription } = window;
-const peerConnection = new RTCPeerConnection();
 
 
-// function unselectUsersFromList() {
-//   const alreadySelectedUser = document.querySelectorAll(
-//     ".active-user.active-user--selected"
-//   );
 
-//   alreadySelectedUser.forEach(el => {
-//     el.setAttribute("class", "active-user");
-//   });
-// }
-
-// function createUserItemContainer(socketId) {
-//   const userContainerEl = document.createElement("div");
-
-//   const usernameEl = document.createElement("p");
-
-//   userContainerEl.setAttribute("class", "active-user");
-//   userContainerEl.setAttribute("id", socketId);
-//   usernameEl.setAttribute("class", "username");
-//   usernameEl.innerHTML = `Socket: ${socketId}`;
-
-//   userContainerEl.appendChild(usernameEl);
-
-//   userContainerEl.addEventListener("click", () => {
-//     unselectUsersFromList();
-//     userContainerEl.setAttribute("class", "active-user active-user--selected");
-//     const talkingWithInfo = document.getElementById("talking-with-info");
-//     talkingWithInfo.innerHTML = `Talking with: "Socket: ${socketId}"`;
-//     callUser(socketId);
-//   });
-
-//   return userContainerEl;
-// }
+////////////////////////////////////////////////////////////////////////////////
+// RTC Setup //
+////////////////////////////////////////////////////////////////////////////////
 
 async function callUser(id) {
+	if (clients.hasOwnProperty(id)) {
 
-	// if (stream != null) {
-	// 	stream.getTracks().forEach(track => {
-	// 		clients[id].peerConnection.addTrack(track, stream)
-	// 	});
-	// } else {
-	// 	console.warn('no stream present!');
-	// }
-	// getMedia({ video: true, audio: true });
+		console.log('Calling user ' + id);
 
+		// make sure we've set up the stream for this client's peerConnection
+		getMedia(constraints);
 
-	console.log('Calling user ' + id);
+		// https://blog.carbonfive.com/2014/10/16/webrtc-made-simple/
+		// create offer with session description
+		const offer = await clients[id].peerConnection.createOffer();
+		await clients[id].peerConnection.setLocalDescription(new RTCSessionDescription(offer));
 
-	const offer = await clients[id].peerConnection.createOffer();
-	await clients[id].peerConnection.setLocalDescription(new RTCSessionDescription(offer));
-	// const offer = await peerConnection.createOffer();
-	// await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
-
-	socket.emit("call-user", {
-		offer,
-		to: id
-	});
+		socket.emit("call-user", {
+			offer,
+			to: id
+		});
+	}
 }
 
-// function updateUserList(socketIds) {
-//   const activeUserContainer = document.getElementById("active-user-container");
-
-//   socketIds.forEach(socketId => {
-//     const alreadyExistingUser = document.getElementById(socketId);
-//     if (!alreadyExistingUser) {
-//       const userContainerEl = createUserItemContainer(socketId);
-
-//       activeUserContainer.appendChild(userContainerEl);
-//     }
-//   });
-// }
-
-// // const socket = io.connect("localhost:5000");
-
-// socket.on("update-user-list", ({ users }) => {
-//   updateUserList(users);
-// });
-
-// socket.on("remove-user", ({ socketId }) => {
-//   const elToRemove = document.getElementById(socketId);
-
-//   if (elToRemove) {
-//     elToRemove.remove();
-//   }
-// });
 
 socket.on("call-made", async data => {
-	console.log("____________CALL MADE___________");
-	if (getCalled) {
-		// const confirmed = confirm(
-		// 	`User "Socket: ${data.socket}" wants to call you. Do accept this call?`
-		// );
-		const confirmed = true;
+	console.log("Receiving call from user " + data.socket);
 
-		if (!confirmed) {
-			socket.emit("reject-call", {
-				from: data.socket
-			});
+	// make sure we've set up the stream for this client's peerConnection
+	getMedia(constraints);
 
-			return;
-		}
-	}
-	console.log(clients[data.socket]);
-	console.log("Call-made by " + data.socket);
-
+	// set remote session description to incoming offer
 	await clients[data.socket].peerConnection.setRemoteDescription(
 		new RTCSessionDescription(data.offer)
 	);
+
+	makeVideoCanvas(data.socket);
+
+	// create answer and set local session description to that answer
 	const answer = await clients[data.socket].peerConnection.createAnswer();
 	await clients[data.socket].peerConnection.setLocalDescription(new RTCSessionDescription(answer));
 
+	// send answer out to caller
 	socket.emit("make-answer", {
 		answer,
 		to: data.socket
 	});
-	getCalled = true;
+
 });
 
 socket.on("answer-made", async data => {
-	console.log("____________ANSWER MADE___________");
 
 	console.log("Answer made by " + data.socket);
-	console.log("Attempting to connect using PC: " + clients[data.socket].peerConnection);
 
-	makeClientVideoSkin(data.socket);
-	
+	// set the remote description to be the incoming answer
 	await clients[data.socket].peerConnection.setRemoteDescription(
 		new RTCSessionDescription(data.answer)
 	);
 
-	if (!isAlreadyCalling) {
+	makeVideoCanvas(data.socket);
+
+	// what is this for?
+	if (!clients[data.socket].isAlreadyCalling) {
 		callUser(data.socket);
-		isAlreadyCalling = true;
+		clients[data.socket].isAlreadyCalling = true;
 	}
+
 });
 
 socket.on("call-rejected", data => {
 	alert(`User: "Socket: ${data.socket}" rejected your call.`);
-	// unselectUsersFromList();
 });
 
 
 
 
-// navigator.getUserMedia(
-// 	{ video: true, audio: true },
-// 	stream => {
-// 		const localVideo = document.getElementById("local-video");
-// 		if (localVideo) {
-// 			localVideo.srcObject = stream;
-// 		}
-
-// 		stream.getTracks().forEach(track => {
-// 			for (let id in clients) {
-// 				clients[id].peerConnection.addTrack(track, stream)
-// 			}
-
-// 		});
-// 	},
-// 	error => {
-// 		console.warn(error.message);
-// 	}
-// );
 
 
+////////////////////////////////////////////////////////////////////////////////
+// THREE.js video //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-var video, videoImage, videoImageContext, videoTexture, movieScreen;
-var rvideo, rvideoImage, rvideoImageContext, rvideoTexture, rmovieScreen;
+
+// var video, videoImage, videoImageContext, videoTexture, movieScreen;
+// var rvideo, rvideoImage, rvideoImageContext;
+// let rvideoTexture, rmovieScreen;
 
 // from https://github.com/zacharystenger/three-js-video-chat
-function addRemoteVideo() {
-	rvideo = document.getElementById('remote-video');
+// function addRemoteVideo() {
+// 	rvideo = document.getElementById('remote-video');
 
-	rvideoImage = document.getElementById('remoteVideoImage');
-	rvideoImageContext = rvideoImage.getContext('2d');
+// 	rvideoImage = document.getElementById('remoteVideoImage');
+// 	rvideoImageContext = rvideoImage.getContext('2d');
 
-	// background color if no video present
-	rvideoImageContext.fillStyle = '#000000';
-	rvideoImageContext.fillRect(0, 0, rvideoImage.width, rvideoImage.height);
+// 	// background color if no video present
+// 	rvideoImageContext.fillStyle = '#000000';
+// 	rvideoImageContext.fillRect(0, 0, rvideoImage.width, rvideoImage.height);
 
-	rvideoTexture = new THREE.Texture(rvideoImage);
-	rvideoTexture.minFilter = THREE.LinearFilter;
-	rvideoTexture.magFilter = THREE.LinearFilter;
+// 	rvideoTexture = new THREE.Texture(rvideoImage);
+// 	rvideoTexture.minFilter = THREE.LinearFilter;
+// 	rvideoTexture.magFilter = THREE.LinearFilter;
 
-	var rmovieMaterial = new THREE.MeshBasicMaterial({ map: rvideoTexture, overdraw: true, side: THREE.DoubleSide });
-	// the geometry on which the movie will be displayed;
-	// 		movie image will be scaled to fit these dimensions.
-	var rmovieGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
-	rmovieScreen = new THREE.Mesh(rmovieGeometry, rmovieMaterial);
+// 	var rmovieMaterial = new THREE.MeshBasicMaterial({ map: rvideoTexture, overdraw: true, side: THREE.DoubleSide });
+// 	// the geometry on which the movie will be displayed;
+// 	// 		movie image will be scaled to fit these dimensions.
+// 	var rmovieGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+// 	rmovieScreen = new THREE.Mesh(rmovieGeometry, rmovieMaterial);
 
-	rmovieScreen.position.set(-100, 50, 0);
-	rmovieScreen.rotation.y = Math.PI / 4;
-	glScene.scene.add(rmovieScreen);
-}
+// 	rmovieScreen.position.set(-100, 50, 0);
+// 	rmovieScreen.rotation.y = Math.PI / 4;
+// 	glScene.scene.add(rmovieScreen);
+// }
 
-function makeClientVideoSkin(_id) {
-	rvideo = document.getElementById(_id);
+function makeVideoCanvas(_id) {
+	// let rvideo = document.getElementById(_id);
+	if (!clients[_id].videoCanvasCreated) {
 
-	rvideoImage = document.createElement('canvas');
-	document.body.appendChild(rvideoImage);
-	rvideoImage.id = _id + "_canvas";
-	rvideoImage.width = videoWidth;
-	rvideoImage.height = videoHeight;
-	rvideoImageContext = rvideoImage.getContext('2d');
+		// create a canvas and add it to the body
+		let rvideoImageCanvas = document.createElement('canvas');
+		document.body.appendChild(rvideoImageCanvas);
 
-	// background color if no video present
-	rvideoImageContext.fillStyle = '#000000';
-	rvideoImageContext.fillRect(0, 0, rvideoImage.width, rvideoImage.height);
+		rvideoImageCanvas.id = _id + "_canvas";
+		rvideoImageCanvas.width = videoWidth;
+		rvideoImageCanvas.height = videoHeight;
 
-	rvideoTexture = new THREE.Texture(rvideoImage);
-	rvideoTexture.minFilter = THREE.LinearFilter;
-	rvideoTexture.magFilter = THREE.LinearFilter;
+		// get canvas drawing context
+		let rvideoImageContext = rvideoImageCanvas.getContext('2d');
 
-	var rmovieMaterial = new THREE.MeshBasicMaterial({ map: rvideoTexture, overdraw: true, side: THREE.DoubleSide });
+		// background color if no video present
+		rvideoImageContext.fillStyle = '#000000';
+		rvideoImageContext.fillRect(0, 0, rvideoImageCanvas.width, rvideoImageCanvas.height);
 
-	// https://stackoverflow.com/questions/23385623/three-js-proper-way-to-add-and-remove-child-objects-using-three-sceneutils-atta
-	let newBox = new THREE.Mesh(
-		new THREE.BoxGeometry(10, 10, 10),
-		rmovieMaterial
-	);
+		// make texture
+		let rvideoTexture = new THREE.Texture(rvideoImageCanvas);
+		rvideoTexture.minFilter = THREE.LinearFilter;
+		rvideoTexture.magFilter = THREE.LinearFilter;
 
-	newBox.position.set(clients[_id].mesh.position.x,clients[_id].mesh.position.y + 10,clients[_id].mesh.position.z);
+		// make material from texture
+		var rmovieMaterial = new THREE.MeshBasicMaterial({ map: rvideoTexture, overdraw: true, side: THREE.DoubleSide });
 
-	clients[_id].mesh.add(newBox);
+		// https://stackoverflow.com/questions/23385623/three-js-proper-way-to-add-and-remove-child-objects-using-three-sceneutils-atta
+		let newBox = new THREE.Mesh(
+			new THREE.BoxGeometry(1, 1, 1),
+			rmovieMaterial
+		);
+
+		// set position of box before adding to parent object
+		newBox.position.set(clients[_id].mesh.position.x, clients[_id].mesh.position.y + 1, clients[_id].mesh.position.z);
 
 
+		clients[_id].mesh.add(newBox);
+
+		// store copy of texture for later updating
+		clients[_id].tex = rvideoTexture;
+		clients[_id].videoCanvasCreated = true;
+	}
 
 
 	// clients[_id].mesh.matererial = rmovieMaterial;
@@ -445,13 +385,4 @@ function makeClientVideoSkin(_id) {
 	// clients[_id].mesh.geometry.uvsNeedUpdate = true;
 	// clients[_id].mesh.material.needsUpdate = true
 
-
-	// the geometry on which the movie will be displayed;
-	// 		movie image will be scaled to fit these dimensions.
-	// var rmovieGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
-	// rmovieScreen = new THREE.Mesh(rmovieGeometry, rmovieMaterial);
-
-	// rmovieScreen.position.set(-100, 50, 0);
-	// rmovieScreen.rotation.y = Math.PI / 4;
-	// glScene.scene.add(rmovieScreen);
 }

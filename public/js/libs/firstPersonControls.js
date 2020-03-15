@@ -8,8 +8,8 @@ THREE.FirstPersonControls = function (object, domElement) {
 
 	this.enabled = true;
 
-	this.movementSpeed = 100.0;
-	this.lookSpeed = 0.5;
+	this.movementSpeed = 1.0;
+	this.lookSpeed = 5.0;
 
 
 	this.lookVertical = true;
@@ -46,7 +46,7 @@ THREE.FirstPersonControls = function (object, domElement) {
 	this.viewHalfX = 0;
 	this.viewHalfY = 0;
 
-	this.lockYPos = false;
+	this.lockYPos = true;
 
 	if (this.domElement !== document) {
 
@@ -213,9 +213,7 @@ THREE.FirstPersonControls = function (object, domElement) {
 		var actualLookSpeed = delta * this.lookSpeed;
 
 		if (!this.activeLook) {
-
 			actualLookSpeed = 0;
-
 		}
 
 		var verticalLookRatio = 1;

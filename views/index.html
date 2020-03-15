@@ -22,10 +22,10 @@
 
 </head>
 
-<body>
+<body style="background: yellow;">
 
 	<!--  from  https://github.com/Miczeq22/simple-chat-app -->
-	<div class="container">
+	<!-- <div class="container">
 		<div class="content-container">
 			<div class="active-users-panel" id="active-user-container">
 				<h3 class="panel-title">Active Users:</h3>
@@ -38,7 +38,8 @@
 					remote video:
 					<br />
 					<video autoplay class="remote-video" id="remote-video" width="160" height="120"></video>
-					<canvas id="remoteVideoImage" width="160" height="120" style="visibility: hidden; float:left;" class="remote"></canvas>
+					<canvas id="remoteVideoImage" width="160" height="120" style="visibility: hidden; float:left;"
+						class="remote"></canvas>
 					<br />
 					local video:
 					<br />
@@ -46,7 +47,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
 
 	<!-- WebGL context -->
@@ -56,6 +57,12 @@
 	<!-- <script src="js/bundle.js"></script> -->
 	<script src="js/scene.js"></script>
 	<script src="js/index.js"></script>
+	local video:
+	<br />
+	<video autoplay muted class="local-video" id="local-video" width="160" height="120"></video>
+	<br />
+	remote video(s):
+	<br />
 
 
 </body>
