@@ -32,6 +32,32 @@ const io = require('socket.io').listen(server);
 ////////EJS//////////
 const ejs = require('ejs');
 
+// TWILIO FOR ICE SERVICES:
+
+// secure way for production:
+// const accountSid = process.env.TWILIO_ACCOUNT_SID;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+// insecure method for testing:
+const accountSid = "YOUR-ACCOUNT-SID"; 
+const authToken = "YOUR-AUTH-TOKEN";
+
+const client = require('twilio')(accountSid, authToken);
+
+let iceToken;
+let iceServers;
+
+client.tokens.create().then(token => {
+  iceToken = token;
+  iceServers = token.iceServers;
+  // console.log(token.username)
+  // console.log(token.iceServers);
+  console.log("Got ICE Server credentials from Twilio.");
+});
+
+
+
+
 //Setup the views folder
 app.set("views", __dirname + '/views');
 
@@ -57,7 +83,7 @@ io.on('connection', client => {
   }
 
   //Make sure to send the client it's ID
-  client.emit('introduction', client.id, io.engine.clientsCount, Object.keys(clients));
+  client.emit('introduction', client.id, io.engine.clientsCount, Object.keys(clients), iceServers);
   // also give the client all existing clients positions:
   client.emit('userPositions', clients);
 
@@ -105,7 +131,18 @@ io.on('connection', client => {
       socket: client.id
     });
   });
+
+  // ICE Setup
+  client.on('addIceCandidate', data => {
+    client.to(data.to).emit("iceCandidateFound", {
+      socket: client.id,
+      candidate: data.candidate
+    });
+  });
 });
+
+
+
 
 /////////////////////
 //////ROUTER/////////

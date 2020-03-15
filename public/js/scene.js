@@ -8,19 +8,16 @@
 */
 let clients = new Object();
 
-let playerMesh;
-
-
 class Scene {
-	constructor(domElement = document.getElementById('gl_context'),
+	constructor(
+		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
 		_height = 400,
 		hasControls = true,
 		clearColor = 'lightblue',
-		socket) {
+		_movementCallback) {
 
-		//Since we extend EventEmitter we need to instance it from here
-		//   super();
+		this.movementCallback = _movementCallback;
 
 		//THREE scene
 		this.scene = new THREE.Scene();
@@ -29,23 +26,40 @@ class Scene {
 		this.width = _width;
 		this.height = _height;
 
-		// PLayer Mesh (for 3rd Person):
-		playerMesh = new THREE.Mesh(
+		// Player mesh (for 3rd Person view):
+		this.player = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
 			new THREE.MeshNormalMaterial()
 		);
+		this.player.position.set(0, 0, 0);
+		// let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial("local-video");
+		this.playerHead = new THREE.Mesh(
+			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.MeshNormalMaterial()
+		);
+		this.playerHead.position.set(0, 1, 0);
+		this.player.add(this.playerHead);
+		this.scene.add(this.player);
 
-		playerMesh.position.set(0,0,0);
 
-		this.scene.add(playerMesh);
 
 		//THREE Camera
 		this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0,5,10);
+		this.camera.position.set(0, 3, 5);
+		this.camera.lookAt(this.player.position);
+		this.scene.add(this.camera);
 
-		playerMesh.add(this.camera); // add camera watching playerMesh
-		this.camera.lookAt(playerMesh.position)
-		// console.log(this.playerMesh);
+		// create an AudioListener and add it to the camera
+		this.listener = new THREE.AudioListener();
+		this.camera.add(this.listener);
+
+		// create group to house player and camera
+		// this.playerCamGroup = new THREE.Group();
+		// this.playerCamGroup.add(this.player);
+		// this.playerCamGroup.add(this.camera);
+
+		// add this group to the scene
+		this.scene.add(this.playerCamGroup);
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
@@ -55,36 +69,28 @@ class Scene {
 		this.renderer.setClearColor(new THREE.Color(clearColor));
 
 		// add controls:
-		document.addEventListener("keydown", this.playerControls, false);
-
-
+		// https://github.com/PiusNyakoojo/PlayerControls
+		this.controls = new THREE.PlayerControls(this.camera, this.player);
 
 		this.renderer.setSize(this.width, this.height);
 
 		// add terrain
 		var worldWidth = 512, worldDepth = 512;
-
 		var data = generateHeight(worldWidth, worldDepth);
-
 		let texture = new THREE.CanvasTexture(generateTexture(data, worldWidth, worldDepth));
 		texture.wrapS = THREE.ClampToEdgeWrapping;
 		texture.wrapT = THREE.ClampToEdgeWrapping;
-
 		var geometry = new THREE.PlaneBufferGeometry(5000, 5000, worldWidth - 1, worldDepth - 1);
 		geometry.rotateX(- Math.PI / 2);
-
 		var vertices = geometry.attributes.position.array;
-
 		for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-
 			vertices[j + 1] = data[i] * 0.5;
-
 		}
-
 		let mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
 		mesh.position.y = -50;
 		this.scene.add(mesh);
 
+	
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
@@ -109,48 +115,32 @@ class Scene {
 
 	}
 
-	playerControls(event) {
-		
-		var keyCode = event.which;
-		var speed = 1;
-		if (keyCode == 87) {
-			playerMesh.position.z -= speed;
-		} else if (keyCode == 83) {
-			playerMesh.position.z += speed;
-		} else if (keyCode == 65) {
-			playerMesh.position.x -= speed;
-		} else if (keyCode == 68) {
-			playerMesh.position.x += speed;
-		} else if (keyCode == 32) {
-			playerMesh.position.set(0, 0, 0);
-		}
-	};
 
-	drawUsers(positions, id) {
-		for (let i = 0; i < Object.keys(positions).length; i++) {
-			if (Object.keys(positions)[i] != id) {
-				this.users[i].position.set(positions[Object.keys(positions)[i]].position[0],
-					positions[Object.keys(positions)[i]].position[1],
-					positions[Object.keys(positions)[i]].position[2]);
-			}
-		}
-	}
+
+	// drawUsers(positions, id) {
+	// 	for (let i = 0; i < Object.keys(positions).length; i++) {
+	// 		if (Object.keys(positions)[i] != id) {
+	// 			this.users[i].position.set(positions[Object.keys(positions)[i]].position[0],
+	// 				positions[Object.keys(positions)[i]].position[1],
+	// 				positions[Object.keys(positions)[i]].position[2]);
+	// 		}
+	// 	}
+	// }
+
 
 	update() {
 		requestAnimationFrame(() => this.update());
 		// this.controls.update(this.clock.getDelta());
 		// this.controls.target = new THREE.Vector3(0, 0, 0);
+		this.controls.update();
 		this.render();
 	}
 
-
-
-	render() {
+	updateVideoTextures() {
 		for (let _id in clients) {
-			// console.log('Attempting to update video canvas for id: ' + _id);
 			if (_id != id) {
 				if (clients[_id].videoCanvasCreated) {
-
+					// console.log('updating video texture');
 					// video DOM element
 					let remoteVideo = document.getElementById(_id);
 					// video canvas DOM element
@@ -161,19 +151,22 @@ class Scene {
 
 					if (remoteVideo) {
 						if (remoteVideo.readyState === remoteVideo.HAVE_ENOUGH_DATA) {
-							// console.log('Updating canvas for id: ' + _id);
 							remoteVideoImageContext.drawImage(remoteVideo, 0, 0, remoteVideoCanvas.width, remoteVideoCanvas.height);
-							if (clients[_id].tex) {
-								clients[_id].tex.needsUpdate = true;
+							if (clients[_id].texture) {
+								clients[_id].texture.needsUpdate = true;
 							}
 						}
 					} else {
 						console.log('No remote video element found!');
 					}
-
 				}
 			}
 		}
+	}
+
+	render() {
+		// Update video canvases for each client
+		this.updateVideoTextures();
 
 		this.renderer.render(this.scene, this.camera);
 	}
@@ -193,7 +186,12 @@ class Scene {
 		// this.controls.enabled = true;
 	}
 	onKeyDown(e) {
-		socket.emit('move', [playerMesh.position.x, playerMesh.position.y, playerMesh.position.z]);
+		this.movementCallback();
+	}
+
+	getPlayerPosition() {
+		// notice the y height hack...
+		return [this.player.position.x, 0.5, this.player.position.z];
 	}
 }
 
@@ -286,3 +284,39 @@ function generateHeight(width, height) {
 	return data;
 
 }
+
+
+function makePlayerHead() {
+	// create a canvas and add it to the body
+	let rvideoImageCanvas = document.createElement('canvas');
+	document.body.appendChild(rvideoImageCanvas);
+
+	rvideoImageCanvas.id = _id + "_canvas";
+	rvideoImageCanvas.width = videoWidth;
+	rvideoImageCanvas.height = videoHeight;
+
+	// get canvas drawing context
+	let rvideoImageContext = rvideoImageCanvas.getContext('2d');
+
+	// background color if no video present
+	rvideoImageContext.fillStyle = '#000000';
+	rvideoImageContext.fillRect(0, 0, rvideoImageCanvas.width, rvideoImageCanvas.height);
+
+	// make texture
+	let videoTexture = new THREE.Texture(rvideoImageCanvas);
+	videoTexture.minFilter = THREE.LinearFilter;
+	videoTexture.magFilter = THREE.LinearFilter;
+
+	// store copy of texture for later updating
+	// clients[_id].tex = rvideoTexture;
+	// clients[_id].videoCanvasCreated = true;
+
+	// make material from texture
+	var movieMaterial = new THREE.MeshBasicMaterial({ map: videoTexture, overdraw: true, side: THREE.DoubleSide });
+
+	return [videoTexture, movieMaterial];
+
+}
+
+
+
