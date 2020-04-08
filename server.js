@@ -35,12 +35,12 @@ const ejs = require('ejs');
 // TWILIO FOR ICE SERVICES:
 
 // secure way for production:
-// const accountSid = process.env.TWILIO_ACCOUNT_SID;
-// const authToken = process.env.TWILIO_AUTH_TOKEN;
+const accountSid = process.env.TWILIO_ACCOUNT_SID || "ACdb900f036056c60ff9da6571562c4293";
+const authToken = process.env.TWILIO_AUTH_TOKEN || "59cc6d11aa0bd3ae0649f6d4b5ecff52";
 
 // insecure method for testing:
-const accountSid = "YOUR-ACCOUNT-SID"; 
-const authToken = "YOUR-AUTH-TOKEN";
+// const accountSid = "YOUR-ACCOUNT-SID"; 
+// const authToken = "YOUR-AUTH-TOKEN";
 
 const client = require('twilio')(accountSid, authToken);
 

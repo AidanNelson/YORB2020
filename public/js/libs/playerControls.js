@@ -11,7 +11,7 @@ THREE.PlayerControls = function ( camera, player, domElement ) {
 
 	this.center = new THREE.Vector3( player.position.x, player.position.y, player.position.z );
 
-	this.moveSpeed = 0.2;
+	this.moveSpeed = 0.5;
 	this.turnSpeed = 0.1;
 
 	this.userZoom = true;

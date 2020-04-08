@@ -7,6 +7,7 @@
 *
 */
 let clients = new Object();
+let myMouse;
 
 class Scene {
 	constructor(
@@ -16,6 +17,8 @@ class Scene {
 		hasControls = true,
 		clearColor = 'lightblue',
 		_movementCallback) {
+
+		document.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
 		this.movementCallback = _movementCallback;
 
@@ -41,6 +44,12 @@ class Scene {
 		this.player.add(this.playerHead);
 		this.scene.add(this.player);
 
+		// 
+		myMouse = new THREE.Vector2();
+		this.INTERSECTED = null;
+		// var radius = 100, theta = 0;
+		this.raycaster = new THREE.Raycaster();
+
 
 
 		//THREE Camera
@@ -59,7 +68,7 @@ class Scene {
 		// this.playerCamGroup.add(this.camera);
 
 		// add this group to the scene
-		this.scene.add(this.playerCamGroup);
+		// this.scene.add(this.playerCamGroup);
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
@@ -74,23 +83,55 @@ class Scene {
 
 		this.renderer.setSize(this.width, this.height);
 
-		// add terrain
-		var worldWidth = 512, worldDepth = 512;
-		var data = generateHeight(worldWidth, worldDepth);
-		let texture = new THREE.CanvasTexture(generateTexture(data, worldWidth, worldDepth));
-		texture.wrapS = THREE.ClampToEdgeWrapping;
-		texture.wrapT = THREE.ClampToEdgeWrapping;
-		var geometry = new THREE.PlaneBufferGeometry(5000, 5000, worldWidth - 1, worldDepth - 1);
-		geometry.rotateX(- Math.PI / 2);
-		var vertices = geometry.attributes.position.array;
-		for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-			vertices[j + 1] = data[i] * 0.5;
-		}
-		let mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
-		mesh.position.y = -50;
-		this.scene.add(mesh);
+		// envmap
+		var path = 'models/Park2/';
+		var format = '.jpg';
+		var envMap = new THREE.CubeTextureLoader().load([
+			path + 'posx' + format, path + 'negx' + format,
+			path + 'posy' + format, path + 'negy' + format,
+			path + 'posz' + format, path + 'negz' + format
+		]);
 
-	
+		this.scene.add(new THREE.AmbientLight(0xFFFFFF));
+
+
+		var loader = new THREE.GLTFLoader();
+		// loader.setDRACOLoader(dracoLoader);
+		loader.load('models/itp-2.glb', (gltf) => {
+
+			var model = gltf.scene;
+			model.position.set(0, 0, 0);
+			model.scale.set(2, 2, 2);
+			model.traverse(function (child) {
+				if (child.isMesh) {
+					child.material = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
+					// child.material.envMap = envMap;
+				}
+
+			});
+
+			this.scene.add(model);
+		}, undefined, function (e) {
+			console.error(e);
+		});
+
+		// add terrain
+		// var worldWidth = 512, worldDepth = 512;
+		// var data = generateHeight(worldWidth, worldDepth);
+		// let texture = new THREE.CanvasTexture(generateTexture(data, worldWidth, worldDepth));
+		// texture.wrapS = THREE.ClampToEdgeWrapping;
+		// texture.wrapT = THREE.ClampToEdgeWrapping;
+		// var geometry = new THREE.PlaneBufferGeometry(5000, 5000, worldWidth - 1, worldDepth - 1);
+		// geometry.rotateX(- Math.PI / 2);
+		// var vertices = geometry.attributes.position.array;
+		// for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
+		// 	vertices[j + 1] = data[i] * 0.5;
+		// }
+		// let mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
+		// mesh.position.y = -50;
+		// this.scene.add(mesh);
+
+
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
@@ -130,10 +171,49 @@ class Scene {
 
 	update() {
 		requestAnimationFrame(() => this.update());
+
+		this.raycaster.setFromCamera(myMouse, this.camera);
+
+		var intersects = this.raycaster.intersectObjects(this.scene.children);
+
+		if (intersects.length > 0) {
+
+			if (this.INTERSECTED != intersects[0].object) {
+				if (this.INTERSECTED) {
+					console.log(this.INTERSECTED);
+					// this.INTERSECTED.material.emissive.setHex( this.INTERSECTED.currentHex );
+				}
+
+				this.INTERSECTED = intersects[0].object;
+				// this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive.getHex();
+				// this.INTERSECTED.material.emissive.setHex(0xff0000);
+
+			}
+
+		} else {
+
+			if (this.INTERSECTED) {
+				// this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
+			}
+
+			this.INTERSECTED = null;
+
+		}
+
+
 		// this.controls.update(this.clock.getDelta());
 		// this.controls.target = new THREE.Vector3(0, 0, 0);
 		this.controls.update();
 		this.render();
+	}
+
+	onDocumentMouseMove( event ) {
+
+		event.preventDefault();
+
+		myMouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		myMouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
 	}
 
 	updateVideoTextures() {
