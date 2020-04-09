@@ -66,20 +66,22 @@ io.on('connection', client => {
 
   //Add a new client indexed by his id
   clients[client.id] = {
-    position: [0, 0, 0],
-    rotation: [0, 0, 0]
+    position: [0, 0.5, 0],
+    rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
   }
 
   //Make sure to send the client it's ID and a list of ICE servers for WebRTC network traversal 
   client.emit('introduction', client.id, io.engine.clientsCount, Object.keys(clients), iceServers);
+
   // also give the client all existing clients positions:
   client.emit('userPositions', clients);
 
   //Update everyone that the number of users has changed
   io.sockets.emit('newUserConnected', io.engine.clientsCount, client.id, Object.keys(clients));
 
-  client.on('move', (pos) => {
-    clients[client.id].position = pos;
+  client.on('move', (data) => {
+    clients[client.id].position = data[0];
+    clients[client.id].rotation = data[1];
     io.sockets.emit('userPositions', clients);
   });
 

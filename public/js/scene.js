@@ -5,44 +5,35 @@
 * https://github.com/juniorxsound/THREE.Multiplayer
 * with terrain from https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_terrain.html
 *
+* Aidan Nelson, April 2020
+*
 */
-
-let myMouse;
 
 class Scene {
 	constructor(
 		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
 		_height = window.innerHeight,
-		hasControls = true,
 		clearColor = 'lightblue',
 		_movementCallback) {
-
-		document.addEventListener('mousemove', this.onDocumentMouseMove, false);
 
 		this.movementCallback = _movementCallback;
 
 		//THREE scene
 		this.scene = new THREE.Scene();
+		this.framecount = 0;
+		this.keyState = {};
 
 		//Utility
 		this.width = _width;
 		this.height = _height;
 
-		// Player mesh (for 3rd Person view):
-		// this.player = new THREE.Mesh(
-		// 	new THREE.BoxGeometry(1, 1, 1),
-		// 	new THREE.MeshNormalMaterial()
-		// );
-		// this.player.position.set(0, 0, 0);
-		// // let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial("local-video");
-		// this.playerHead = new THREE.Mesh(
-		// 	new THREE.BoxGeometry(1, 1, 1),
-		// 	new THREE.MeshNormalMaterial()
-		// );
-		// this.playerHead.position.set(0, 1, 0);
-		// this.player.add(this.playerHead);
-		// this.scene.add(this.player);
+		// crazy colors:
+		this.crazyMode = false;
+		this.originalFloorMaterials = [];
+
+
+		//Add Player
 		let _body = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
 			new THREE.MeshNormalMaterial()
@@ -57,13 +48,13 @@ class Scene {
 			videoMaterial
 		);
 
-
 		// set position of head before adding to parent object
 		_body.position.set(0, 0, 0);
 		_head.position.set(0, 1, 0);
 
 		// https://threejs.org/docs/index.html#api/en/objects/Group
 		this.playerGroup = new THREE.Group();
+		this.playerGroup.position.set(0, 0.5, 0);
 		this.playerGroup.add(_body);
 		this.playerGroup.add(_head);
 		this.playerVideoTexture = videoTexture;
@@ -71,29 +62,18 @@ class Scene {
 		// add group to scene
 		this.scene.add(this.playerGroup);
 
-		// 
-		myMouse = new THREE.Vector2();
-		this.INTERSECTED = null;
-		// var radius = 100, theta = 0;
+		// Raycaster
 		this.raycaster = new THREE.Raycaster();
 
 		//THREE Camera
 		this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0, 3, 5);
-		this.camera.lookAt(this.playerGroup.position);
+		this.camera.position.set(0, 3, 3);
 		this.scene.add(this.camera);
 
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
-		this.camera.add(this.listener);
-
-		// create group to house player and camera
-		// this.playerCamGroup = new THREE.Group();
-		// this.playerCamGroup.add(this.player);
-		// this.playerCamGroup.add(this.camera);
-
-		// add this group to the scene
-		// this.scene.add(this.playerCamGroup);
+		// this.camera.add(this.listener);
+		this.playerGroup.add(this.listener);
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
@@ -108,53 +88,60 @@ class Scene {
 
 		this.renderer.setSize(this.width, this.height);
 
-		this.scene.add(new THREE.AmbientLight(0xFFFFFF));
+		// add some lights
+		this.scene.add(new THREE.AmbientLight(0x404040, 4));
 
-		// var loader = new THREE.GLTFLoader();
-		// this.floorModel;
-		// loader.load('models/itp-2.glb', (gltf) => {
+		// White directional light at half intensity shining from the top.
+		//https://threejs.org/docs/#api/en/lights/DirectionalLight
+		var directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+		this.scene.add(directionalLight);
+		var targetObject = new THREE.Object3D();
+		targetObject.position.set(10, 0, 10);
+		this.scene.add(targetObject);
 
-		// 	this.floorModel = gltf.scene;
-		// 	this.floorModel.position.set(0, 0, 0);
-		// 	this.floorModel.scale.set(2, 2, 2);
-		// 	this.floorModel.traverse(function (child) {
-		// 		if (child.isMesh) {
+		directionalLight.target = targetObject;
 
-		// 			// child.material = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
+		// environment map from three.js examples
+		var path = 'models/Park2/';
+		var format = '.jpg';
+		this.envMap = new THREE.CubeTextureLoader().load([
+			path + 'posx' + format, path + 'negx' + format,
+			path + 'posy' + format, path + 'negy' + format,
+			path + 'posz' + format, path + 'negz' + format
+		]);
+		this.scene.background = this.envMap;
 
-		// 			// child.material.envMap = envMap;
-		// 		}
+		// load floor model
+		var loader = new THREE.GLTFLoader();
+		this.floorModel = null;
+		loader.load('models/2020-04-07--ITP-for-threejs.glb', (gltf) => {
 
-		// 	});
-
-		// 	this.scene.add(this.floorModel);
-		// }, undefined, function (e) {
-		// 	console.error(e);
-		// });
-
+			this.floorModel = gltf.scene;
+			this.floorModel.position.set(0, 0, 0);
+			this.floorModel.scale.set(2, 2, 2); // seems about right
+			this.scene.add(this.floorModel);
+		}, undefined, function (e) {
+			console.error(e);
+		});
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
-
-		// if (hasControls) {
-		// 	this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
-		// 	this.controls.lookSpeed =0.1;
-		// }
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
 		domElement.addEventListener('mouseenter', e => this.onEnterCanvas(e), false);
 		domElement.addEventListener('mouseleave', e => this.onLeaveCanvas(e), false);
 		window.addEventListener('keydown', e => this.onKeyDown(e), false);
+		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
-		this.helperGrid = new THREE.GridHelper(100, 100);
-		this.helperGrid.position.y = -0.5;
+		this.helperGrid = new THREE.GridHelper(500, 500);
+		this.helperGrid.position.y = -0.1;
 		this.scene.add(this.helperGrid);
-		this.clock = new THREE.Clock();
 
 		this.update();
 	}
 
+	// add a client meshes, a video element and  canvas for three.js video texture
 	addClient(_id) {
 
 		let _body = new THREE.Mesh(
@@ -182,15 +169,16 @@ class Scene {
 		group.add(_body);
 		group.add(_head);
 
-		// add audio source:
-		// let _audioSource = makePositionalAudioSource(_id);
-		// _body.add(_audioSource);
-
 		// add group to scene
 		this.scene.add(group);
 
 		clients[_id].group = group;
 		clients[_id].texture = videoTexture;
+		clients[_id].desiredPosition = new THREE.Vector3();
+		clients[_id].desiredRotation = new THREE.Quaternion();
+		clients[_id].oldPos = group.position
+		clients[_id].oldRot = group.quaternion;
+		clients[_id].movementAlpha = 0;
 	}
 
 	removeClient(_id) {
@@ -199,149 +187,123 @@ class Scene {
 		removeClientVideoElementAndCanvas(_id);
 	}
 
+	// overloaded function can deal with new info or not
 	updateClientPositions(_clientProps) {
+
 		for (let _id in _clientProps) {
 			// we'll update ourselves separately to avoid lag...
 			if (_id != id) {
-				//Store the values
-				// let oldPos = clients[Object.keys(_clientProps)[i]].group.position;
-				let newPos = _clientProps[_id].position;
-
-				//Create a vector 3 and lerp the new values with the old values
-				// let lerpedPos = new THREE.Vector3();
-				// lerpedPos.x = THREE.Math.lerp(oldPos.x, newPos[0], 1);
-				// lerpedPos.y = THREE.Math.lerp(oldPos.y, newPos[1], 1);
-				// lerpedPos.z = THREE.Math.lerp(oldPos.z, newPos[2], 1);
-
-				//Set the position
-				// clients[Object.keys(_clientProps)[i]].group.position.set(lerpedPos.x, lerpedPos.y, lerpedPos.z);
-				// let newPositionVec3 = new THREE.Vector3(newPos[0], newPos[1], newPos[2]);
-				clients[_id].group.position.set(newPos[0], newPos[1], newPos[2]);
+				clients[_id].desiredPosition = new THREE.Vector3().fromArray(_clientProps[_id].position);
+				clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
 			}
 		}
 	}
 
-	crazyColors() {
-		// envmap
-		var path = 'models/Park2/';
-		var format = '.jpg';
-		var envMap = new THREE.CubeTextureLoader().load([
-			path + 'posx' + format, path + 'negx' + format,
-			path + 'posy' + format, path + 'negy' + format,
-			path + 'posz' + format, path + 'negz' + format
-		]);
+	updatePositions() {
+		let snapDistance = 0.5;
+		let snapAngle = 0.2; // radians
+		for (let _id in clients) {
 
-		this.floorModel.traverse(function (child) {
-			if (child.isMesh) {
-
-				// child.material = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
-
-				child.material = new THREE.MeshPhongMaterial({
-					color: Math.random() * 0xffffff,
-					specular: 0.75,
-					reflectivity: 0.75,
-					shininess: 0.75,
-					envMap: envMap
-				});
-				// child.material.envMap = envMap;
+			clients[_id].group.position.lerp(clients[_id].desiredPosition, 0.2);
+			clients[_id].group.quaternion.slerp(clients[_id].desiredRotation, 0.2);
+			if (clients[_id].group.position.distanceTo(clients[_id].desiredPosition) < snapDistance) {
+				clients[_id].group.position.set(clients[_id].desiredPosition.x, clients[_id].desiredPosition.y, clients[_id].desiredPosition.z);
 			}
+			if (clients[_id].group.quaternion.angleTo(clients[_id].desiredRotation) < snapAngle) {
+				clients[_id].group.quaternion.set(clients[_id].desiredRotation.x, clients[_id].desiredRotation.y, clients[_id].desiredRotation.z, clients[_id].desiredRotation.w);
+			}
+		}
+	}
 
+	// color mode
+	crazyColors() {
+		this.floorModel.traverse((child) => {
+			if (child.isMesh) {
+				if (this.crazyMode) {
+					// if we're already in crazy mode, restore materials
+					child.material = this.originalFloorMaterials.pop();
+				} else {
+					this.originalFloorMaterials.push(child.material);
+					child.material = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
+				}
+			}
 		});
+		this.crazyMode = !this.crazyMode;
 	}
 
 
-	// drawUsers(positions, id) {
-	// 	for (let i = 0; i < Object.keys(positions).length; i++) {
-	// 		if (Object.keys(positions)[i] != id) {
-	// 			this.users[i].position.set(positions[Object.keys(positions)[i]].position[0],
-	// 				positions[Object.keys(positions)[i]].position[1],
-	// 				positions[Object.keys(positions)[i]].position[2]);
-	// 		}
-	// 	}
-	// }
+
+	// TODO...
+	//https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
+	detectCollisions() {
+		// from player controls direction
+		let xDir = -  Math.sin(this.controls.player.rotation.y);
+		let zDir = - Math.cos(this.controls.player.rotation.y);
+		let dirVec = new THREE.Vector3(xDir, 0, zDir);
+		dirVec.normalize();
+
+		this.raycaster.set(this.playerGroup.position, dirVec);
+
+		if (this.floorModel != null) {
+			// console.log(this.floorModel.children);
+			let meshArr = [];
+			// only grab the important stuff, no need to check intersection with lights
+			meshArr = meshArr.concat(this.floorModel.children[2].children);
+			meshArr = meshArr.concat(this.floorModel.children[7].children);
+			meshArr = meshArr.concat(this.floorModel.children[10].children);
+
+			var intersects = this.raycaster.intersectObjects(meshArr);
+
+			if (intersects.length > 0) {
+				for (let i = 0; i < intersects.length; i++) {
+					if (intersects[i].distance < 2) {
+						console.log("Approaching obstacle!");
+					}
+				}
+			}
+		}
+	}
 
 
+	// LOOP
 	update() {
 		requestAnimationFrame(() => this.update());
 
-		// this.raycaster.setFromCamera(myMouse, this.camera);
-
-		// var intersects = this.raycaster.intersectObjects(this.scene.children);
-
-		// if (intersects.length > 0) {
-
-		// 	if (this.INTERSECTED != intersects[0].object) {
-		// 		if (this.INTERSECTED) {
-		// 			console.log(this.INTERSECTED);
-		// 			// this.INTERSECTED.material.emissive.setHex( this.INTERSECTED.currentHex );
-		// 		}
-
-		// 		this.INTERSECTED = intersects[0].object;
-		// 		// this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive.getHex();
-		// 		// this.INTERSECTED.material.emissive.setHex(0xff0000);
-
-		// 	}
-
-		// } else {
-
-		// 	if (this.INTERSECTED) {
-		// 		// this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
-		// 	}
-
-		// 	this.INTERSECTED = null;
-
-		// }
+		// send movement stats to the server if any of the keys are pressed
+		let sendStats = false;
+		for (let i in this.keyState) {
+			if (this.keyState[i]) {
+				sendStats = true;
+				break;
+			}
+		}
+		if (sendStats) { this.movementCallback(); }
 
 
-		// this.controls.update(this.clock.getDelta());
-		// this.controls.target = new THREE.Vector3(0, 0, 0);
+		this.updatePositions();
+		this.detectCollisions();
 		this.controls.update();
+
 		this.render();
-	}
-
-	onDocumentMouseMove(event) {
-
-		event.preventDefault();
-
-		myMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-		myMouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
 	}
 
 	updateVideoTextures() {
 		// update ourselves first:
-
 		let localVideo = document.getElementById("local_video");
 		let localVideoCanvas = document.getElementById("local_canvas");
+
+		// TODO: mirror local video --> canvas
 		// https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
 		// let ctx = localVideoCanvas.getContext('2d')
 		// ctx.translate(localVideoCanvas.width, 0);
 		// ctx.scale(-1, 1); // flip local image
 		this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
 
-		// localVideoCanvas.getContext('2d').scale(-1, 1); // flip local image
 
 		for (let _id in clients) {
-
-			// video DOM element
 			let remoteVideo = document.getElementById(_id);
-			// video canvas DOM element
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
 			this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
-
-
-			// if (remoteVideo) {
-			// 	if (remoteVideo.readyState === remoteVideo.HAVE_ENOUGH_DATA) {
-			// 		remoteVideoImageContext.drawImage(remoteVideo, 0, 0, remoteVideoCanvas.width, remoteVideoCanvas.height);
-			// 		if (clients[_id].texture) {
-			// 			clients[_id].texture.needsUpdate = true;
-			// 		}
-			// 		if (this.playerVideoTexture) {
-			// 			this.playerVideoTexture.needsUpdate = true;
-			// 		}
-
-			// 	}
-			// }
 		}
 	}
 
@@ -350,7 +312,6 @@ class Scene {
 	redrawVideoCanvas(_videoEl, _canvasEl, _videoTex) {
 		let _canvasDrawingContext = _canvasEl.getContext('2d');
 
-		// if (_videoEl) {
 		// check that we have enough data on the video element to redraw the canvas
 		if (_videoEl.readyState === _videoEl.HAVE_ENOUGH_DATA) {
 			// if so, redraw the canvas from the video element
@@ -358,13 +319,11 @@ class Scene {
 			// and indicate to three.js that the texture needs to be redrawn from the canvas
 			_videoTex.needsUpdate = true;
 		}
-		// }
 	}
 
 	render() {
 		// Update video canvases for each client
 		this.updateVideoTextures();
-
 		this.renderer.render(this.scene, this.camera);
 	}
 
@@ -382,83 +341,37 @@ class Scene {
 	onEnterCanvas(e) {
 		// this.controls.enabled = true;
 	}
-	onKeyDown(e) {
-		this.movementCallback();
+
+	// keystate functions from playercontrols
+	onKeyDown(event) {
+		if (event.keyCode == 67) {
+			this.crazyColors();
+		}
+		event = event || window.event;
+		this.keyState[event.keyCode || event.which] = true;
+	}
+
+	onKeyUp(event) {
+		event = event || window.event;
+		this.keyState[event.keyCode || event.which] = false;
 	}
 
 	getPlayerPosition() {
-		// notice the y height hack...
-		return [this.playerGroup.position.x, 0.0, this.playerGroup.position.z];
+		// TODO: use quaternion or are euler angles fine here?
+		return [
+			[this.playerGroup.position.x, this.playerGroup.position.y, this.playerGroup.position.z],
+			[this.playerGroup.quaternion._x, this.playerGroup.quaternion._y, this.playerGroup.quaternion._z, this.playerGroup.quaternion._w]];
 	}
 }
 
-// from here: https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_terrain.html
-function generateTexture(data, width, height) {
 
-	var canvas, canvasScaled, context, image, imageData, vector3, sun, shade;
 
-	vector3 = new THREE.Vector3(0, 0, 0);
 
-	sun = new THREE.Vector3(1, 1, 1);
-	sun.normalize();
 
-	canvas = document.createElement('canvas');
 
-	canvas.width = width;
-	canvas.height = height;
 
-	context = canvas.getContext('2d');
-	context.fillStyle = '#000';
-	context.fillRect(0, 0, width, height);
 
-	image = context.getImageData(0, 0, canvas.width, canvas.height);
-	imageData = image.data;
 
-	for (var i = 0, j = 0, l = imageData.length; i < l; i += 4, j++) {
-
-		vector3.x = data[j - 2] - data[j + 2];
-		vector3.y = 2;
-		vector3.z = data[j - width * 2] - data[j + width * 2];
-		vector3.normalize();
-
-		shade = vector3.dot(sun);
-
-		imageData[i] = (96 + shade * 128) * (0.5 + data[j] * 0.007);
-		imageData[i + 1] = (32 + shade * 96) * (0.5 + data[j] * 0.007);
-		imageData[i + 2] = (shade * 96) * (0.5 + data[j] * 0.007);
-
-	}
-
-	context.putImageData(image, 0, 0);
-
-	// Scaled 4x
-
-	canvasScaled = document.createElement('canvas');
-	canvasScaled.width = width * 4;
-	canvasScaled.height = height * 4;
-
-	context = canvasScaled.getContext('2d');
-	context.scale(4, 4);
-	context.drawImage(canvas, 0, 0);
-
-	image = context.getImageData(0, 0, canvasScaled.width, canvasScaled.height);
-	imageData = image.data;
-
-	for (var i = 0, l = imageData.length; i < l; i += 4) {
-
-		var v = ~ ~(Math.random() * 5);
-
-		imageData[i] += v;
-		imageData[i + 1] += v;
-		imageData[i + 2] += v;
-
-	}
-
-	context.putImageData(image, 0, 0);
-
-	return canvasScaled;
-
-}
 
 
 // created <video> element for local element
@@ -468,10 +381,11 @@ function createLocalVideoElement() {
 	videoElement.autoplay = true;
 	videoElement.width = videoWidth;
 	videoElement.height = videoHeight;
+	videoElement.style = "visibility: hidden;";
 
 	// there seems to be a weird behavior where a muted video 
-	// won't autoplay.  so instead of muting the video, simply make a
-	// video only stream for this video element:
+	// won't autoplay in chrome...  so instead of muting the video, simply make a
+	// video only stream for this video element :|
 	let videoStream = new MediaStream([localMediaStream.getVideoTracks()[0]]);
 
 	videoElement.srcObject = videoStream;
@@ -484,12 +398,11 @@ function createClientVideoElement(_id) {
 
 	const videoElement = document.createElement("video");
 	videoElement.id = _id;
-
 	videoElement.width = videoWidth;
 	videoElement.height = videoHeight;
 	videoElement.autoplay = true;
-	// videoElement.muted = true;
-	// videoElement.style = "visibility: hidden;";
+	// videoElement.muted = true; // TODO Positional Audio
+	videoElement.style = "visibility: hidden;";
 
 	document.body.appendChild(videoElement);
 }
@@ -513,6 +426,7 @@ function makeVideoTextureAndMaterial(_id) {
 	rvideoImageCanvas.id = _id + "_canvas";
 	rvideoImageCanvas.width = videoWidth;
 	rvideoImageCanvas.height = videoHeight;
+	rvideoImageCanvas.style = "visibility: hidden;";
 
 	// get canvas drawing context
 	let rvideoImageContext = rvideoImageCanvas.getContext('2d');
@@ -533,7 +447,7 @@ function makeVideoTextureAndMaterial(_id) {
 }
 
 
-
+// TODO
 function makePositionalAudioSource(_audioStream) {
 	// create the PositionalAudio object (passing in the listener)
 	var audioSource = new THREE.PositionalAudio(glScene.listener);
@@ -541,7 +455,5 @@ function makePositionalAudioSource(_audioStream) {
 	audioSource.setRefDistance(20);
 	audioSource.play();
 	sound.setVolume(0.5);
-	// console.log(audioSource);
-
 	return audioSource;
 }

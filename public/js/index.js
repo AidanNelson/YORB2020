@@ -6,36 +6,16 @@
 * And a WEBRTC chat app made by Mikołaj Wargowski:
 * https://github.com/Miczeq22/simple-chat-app
 *
-
-
-TODO:
-- reverse (mirror) localvideo for head
-- add positional audio
-	- split incoming peer streams into audio and video
-	- send video to video element
-	- attach audio stream to three.js audio source
-- stress test
-- add back in lerping of movement values
-- add rotation of client
-- move update client positions to scene
-
-- figure out order of operations:
-	- navigator.getUserMedia must complete before tracks are added to peer connections
-	- tracks must be added to peer connections before connections are finalized
-
-Questions for Shawn:
-how to establish one way webrtc connection?  then how to open up two way?  re-establish connection or what?
-how to dynamically handle load in simple way?  Small videos?
-better way to manage code?  Seems a bit bogged down.
-autoplay in muted vs un-muted video element? 
-getting muted audio stream for positional audio?
-
+* 
+* Aidan Nelson, April 2020
+*
 */
 
-//A socket.io instance
+// socket.io
 let socket;
-
 let id;
+
+// array of connected clients
 let clients = {};
 
 // Variable to store our three.js scene:
@@ -50,12 +30,10 @@ const videoWidth = 160;
 const videoHeight = 120;
 const videoFrameRate = 15;
 
-// Get access to local media stream (i.e. webcam and microphone stream)
+// Our local media stream (i.e. webcam and microphone stream)
 let localMediaStream = null;
 
-// set constraints on local audio/video stream
-// is there a better place to do this?
-// what should constraints be to allow for many streams...?
+// Constraints for our local audio/video stream
 let mediaConstraints = {
 	audio: true,
 	video: {
@@ -77,14 +55,12 @@ window.onload = async () => {
 	// first get user media
 	localMediaStream = await getMedia(mediaConstraints);
 
-	// then create local video element
-	// createLocalVideoElement();
-
 	// then initialize socket connection
 	initSocketConnection();
 
 	// finally create the threejs scene
 	createScene();
+
 };
 
 
@@ -127,6 +103,8 @@ function addTracksToPeerConnection(_stream, _pc) {
 function initSocketConnection() {
 	console.log("Initializing socket.io...");
 	socket = io();
+
+	socket.on('connect', () => { });
 
 	//On connection server sends the client his ID and a list of all keys
 	socket.on('introduction', (_id, _clientNum, _ids, _iceServers) => {
@@ -178,12 +156,10 @@ function initSocketConnection() {
 		}
 	});
 
-	socket.on('connect', () => { });
 
 	// Update when one of the users moves in space
 	socket.on('userPositions', _clientProps => {
-		console.log('Received update client positions');
-		glScene.updateClientPositions(_clientProps);		
+		glScene.updateClientPositions(_clientProps);
 	});
 
 	socket.on("call-made", async data => {
@@ -242,7 +218,7 @@ function initSocketConnection() {
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
 function addClient(_id) {
 	console.log("Adding client with id " + _id);
-	clients[_id] = {}; 
+	clients[_id] = {};
 
 	// add peerConnection to the client
 	let pc = createPeerConnection(_id);
@@ -250,7 +226,6 @@ function addClient(_id) {
 
 	// boolean for establishing WebRTC connection
 	clients[_id].isAlreadyCalling = false;
-	clients[_id].videoCanvasCreated = true;
 
 	// add client to scene:
 	glScene.addClient(_id);
@@ -267,41 +242,29 @@ function createPeerConnection(_id) {
 	// add ontrack listener for peer connection
 	pc.ontrack = function ({ streams: [_remoteStream] }) {
 		console.log("OnTrack: track added to RTC Peer Connection.");
-
+		console.log(_remoteStream);
 		// TODO: split incoming stream into two streams -- audio for positional audio and 
 		// video for video element --> canvas --> videoTexture --> videoMaterial for THREE.js
-		// console.log()
+
+		// DEBUG the following:
+
+		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
+
+		// let videoStream = new MediaStream([_remoteStream.getVideoTracks()[0]]);
 		// let audioStream = new MediaStream([_remoteStream.getAudioTracks()[0]]);
-		// let audioEl = document.createElement("audio");
-		// audioEl.autoplay = true;
-		// document.body.appendChild(audioEl);
-		// audioEl.srcObject = audioStream;
-		// let audioStream = _remoteStream.clone();
 
-		// console.log('Making audioSource from stream: ')
-		// console.log(audioStream.getAudioTracks());
-		// let audioSource = makePositionalAudioSource(audioStream);
-
-		// create a global audio source
-		// var sound = new THREE.Audio(glScene.listener);
 		// var audioSource = new THREE.PositionalAudio(glScene.listener);
 		// audioSource.setMediaStreamSource(audioStream);
 		// audioSource.setRefDistance(20);
 		// audioSource.setVolume(0.9);
 		// audioSource.play();
 
-		// glScene.scene.add(audioSource);
-
-
-		// glScene.scene.add(audioSource);
-		// clients[_id].mesh.add(audioSource);
-
-		// let videoStream = new MediaStream([_remoteStream.getVideoTracks()[0]]);
+		// clients[_id].group.add(audioSource);
 
 		const remoteVideoElement = document.getElementById(_id);
 		if (remoteVideoElement) {
+			// remoteVideoElement.srcObject = videoStream;
 			remoteVideoElement.srcObject = _remoteStream;
-			// remoteVideo.srcObject = videoStream;
 		} else {
 			console.warn("No video element found for ID: " + _id);
 		}
@@ -374,7 +337,6 @@ function createScene() {
 		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
 		_height = window.innerHeight,
-		hasControls = true,
 		clearColor = 'lightblue',
 		onPlayerMove);
 }
