@@ -1,5 +1,3 @@
-'use strict'
-
 /* 
 * YORB 2020
 * 
@@ -7,6 +5,8 @@
 * https://github.com/juniorxsound/THREE.Multiplayer
 * And a WEBRTC chat app made by Mikołaj Wargowski:
 * https://github.com/Miczeq22/simple-chat-app
+*
+* Aidan Nelson, April 2020
 *
 */
 
@@ -23,40 +23,14 @@ const port = process.env.PORT || 1989;
 //Server
 const server = app.listen(port);
 
+//EJS
+const ejs = require('ejs');
+
 //Console the port
 console.log('Server is running localhost on port: ' + port);
 
 /////SOCKET.IO///////
 const io = require('socket.io').listen(server);
-
-////////EJS//////////
-const ejs = require('ejs');
-
-// TWILIO FOR ICE SERVICES:
-
-// secure way for production:
-const accountSid = process.env.TWILIO_ACCOUNT_SID || "ACdb900f036056c60ff9da6571562c4293";
-const authToken = process.env.TWILIO_AUTH_TOKEN || "59cc6d11aa0bd3ae0649f6d4b5ecff52";
-
-// insecure method for testing:
-// const accountSid = "YOUR-ACCOUNT-SID"; 
-// const authToken = "YOUR-AUTH-TOKEN";
-
-const client = require('twilio')(accountSid, authToken);
-
-let iceToken;
-let iceServers;
-
-client.tokens.create().then(token => {
-  iceToken = token;
-  iceServers = token.iceServers;
-  // console.log(token.username)
-  // console.log(token.iceServers);
-  console.log("Got ICE Server credentials from Twilio.");
-});
-
-
-
 
 //Setup the views folder
 app.set("views", __dirname + '/views');
@@ -67,6 +41,20 @@ app.set('view-engine', 'html');
 
 //Setup the public client folder
 app.use(express.static(__dirname + '/public'));
+
+// Twilio network traversal (ICE servers) for WebRTC peer connections
+const accountSid = process.env.TWILIO_ACCOUNT_SID || "ACdb900f036056c60ff9da6571562c4293";
+const authToken = process.env.TWILIO_AUTH_TOKEN || "59cc6d11aa0bd3ae0649f6d4b5ecff52";
+
+const twilioClient = require('twilio')(accountSid, authToken);
+let iceToken;
+let iceServers;
+
+twilioClient.tokens.create().then(token => {
+  iceToken = token;
+  iceServers = token.iceServers;
+  console.log("Got ICE Server credentials from Twilio.");
+});
 
 let clients = {};
 
@@ -82,7 +70,7 @@ io.on('connection', client => {
     rotation: [0, 0, 0]
   }
 
-  //Make sure to send the client it's ID
+  //Make sure to send the client it's ID and a list of ICE servers for WebRTC network traversal 
   client.emit('introduction', client.id, io.engine.clientsCount, Object.keys(clients), iceServers);
   // also give the client all existing clients positions:
   client.emit('userPositions', clients);
@@ -106,8 +94,6 @@ io.on('connection', client => {
     console.log('User ' + client.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
 
   });
-
-
 
   // from simple chat app:
   // WEBRTC Communications
