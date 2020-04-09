@@ -43,8 +43,8 @@ app.set('view-engine', 'html');
 app.use(express.static(__dirname + '/public'));
 
 // Twilio network traversal (ICE servers) for WebRTC peer connections
-const accountSid = process.env.TWILIO_ACCOUNT_SID || "ACdb900f036056c60ff9da6571562c4293";
-const authToken = process.env.TWILIO_AUTH_TOKEN || "59cc6d11aa0bd3ae0649f6d4b5ecff52";
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 
 const twilioClient = require('twilio')(accountSid, authToken);
 let iceToken;
