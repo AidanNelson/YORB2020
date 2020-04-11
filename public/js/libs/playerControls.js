@@ -12,7 +12,7 @@ THREE.PlayerControls = function ( camera, player, domElement ) {
 	this.center = new THREE.Vector3( player.position.x, player.position.y, player.position.z );
 
 	this.moveSpeed = 0.2;
-	this.turnSpeed = 0.1;
+	this.turnSpeed = 0.08;
 
 	this.userZoom = true;
 	this.userZoomSpeed = 1.0;
@@ -20,7 +20,7 @@ THREE.PlayerControls = function ( camera, player, domElement ) {
 	this.userRotate = true;
 	this.userRotateSpeed = 1.5;
 
-	this.autoRotate = false;
+	this.autoRotate = true;
 	this.autoRotateSpeed = 0.1;
 	this.YAutoRotation = false;
 

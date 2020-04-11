@@ -1,45 +1,27 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
 	<title>
-		Three.js Multiplayer Client
+		YORB 2020
 	</title>
 
 	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
-	<!--Scoket.io-->
-	<script src="js/socket.io.js"></script>
-
-	<!--Client Side CSS-->
-	<link rel="stylesheet" href="css/client.css" />
+	<script src="https://cdn.jsdelivr.net/npm/socket.io-client@2.3.0/dist/socket.io.js" integrity="sha256-bQmrZe4yPnQrLTY+1gYylfNMBuGfnT/HKsCGX+9Xuqo=" crossorigin="anonymous"></script>
 	<script src="js/libs/three.min.js"></script>
-	<script src="js/libs/firstPersonControls.js"></script>
 	<script src="js/libs/playerControls.js"></script>
-	<!-- <script src="js/libs/OBJLoader.js"></script> -->
-	<script src="js/libs/improvedNoise.js"></script>
-	<script src="js/libs/socket.io.js"></script>
+	<script src="js/libs/GLTFLoader.js"></script>
+
+	<script src="js/scene.js"></script>
+	<script src="js/index.js"></script>
 
 
 </head>
 
 <body style="background: yellow;">
-
 	<!-- WebGL context -->
 	<div id="gl_context"></div>
-
-	<!-- Client side JS bundle -->
-	<!-- <script src="js/bundle.js"></script> -->
-	<script src="js/scene.js"></script>
-	<script src="js/index.js"></script>
-	local video:
-	<br />
-	<video autoplay muted class="local-video" id="local-video" width="160" height="120"></video>
-	<br />
-	remote video(s):
-	<br />
-
 
 </body>
 
