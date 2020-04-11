@@ -1,21 +1,16 @@
-Repo for YORB2020, a virtual version of the fourth floor of 370 Jay Street.
+YORB2020 is a shared online palace space to hang out, collaborate and work near each other.  This space is built using a number of web technologies:
 
 
+*Technologies used:*
 
-Technologies used:
-
-THREE.js -- for 3D environment / rendering
-
-Socket.io -- for multiplayer 
-
-WEBRTC -- for video / audio chat
+* [three.js](https://threejs.org/) provides rendering / 3D environment interactivity
+* [socket.io](https://socket.io/) provides the three.js multiplayer functionality, and acts as a WebRTC signaling server
+* [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) provides video / audio chat functionality
 
 
-Thanks to / borrowed code from:
+*Thanks to / borrowed code from:*
 
-https://github.com/juniorxsound/THREE.Multiplayer
-
-https://github.com/Miczeq22/simple-chat-app
-
-https://github.com/zacharystenger/three-js-video-chat
+* https://github.com/juniorxsound/THREE.Multiplayer
+* https://github.com/Miczeq22/simple-chat-app
+* https://github.com/zacharystenger/three-js-video-chat
 
