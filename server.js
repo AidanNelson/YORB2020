@@ -20,6 +20,13 @@ const http = require('http').createServer(app);
 //Port and server setup
 const port = process.env.PORT || 1989;
 
+// Add environment variables:
+// https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
+
 //Server
 const server = app.listen(port);
 
