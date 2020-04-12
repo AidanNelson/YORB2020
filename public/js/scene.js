@@ -65,6 +65,11 @@ class Scene {
 		// Raycaster
 		this.raycaster = new THREE.Raycaster();
 
+		// array to store interactable hyperlinked meshes
+		this.hyperlinkedObjects = [];
+		// instantiate a loader
+		this.textureLoader = new THREE.TextureLoader();
+
 		//THREE Camera
 		this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 5000);
 		this.camera.position.set(0, 3, 3);
@@ -79,6 +84,7 @@ class Scene {
 		this.renderer = new THREE.WebGLRenderer({
 			antialiasing: true
 		});
+
 
 		this.renderer.setClearColor(new THREE.Color(clearColor));
 
@@ -124,6 +130,7 @@ class Scene {
 			console.error(e);
 		});
 
+		this.createHyperlinkedMesh(5, 0, 0, "http://www.example.com");
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
 
@@ -135,7 +142,7 @@ class Scene {
 		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
 		this.helperGrid = new THREE.GridHelper(500, 500);
-		this.helperGrid.position.y = -0.1;
+		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
 		this.scene.add(this.helperGrid);
 
 		this.update();
@@ -158,7 +165,6 @@ class Scene {
 			new THREE.BoxGeometry(1, 1, 1),
 			videoMaterial
 		);
-
 
 		// set position of head before adding to parent object
 		_body.position.set(0, 0, 0);
@@ -185,6 +191,21 @@ class Scene {
 		this.scene.remove(clients[_id].group);
 
 		removeClientVideoElementAndCanvas(_id);
+	}
+
+	createHyperlinkedMesh(x, y, z, url) {
+		// load a image resource
+		let tex = this.textureLoader.load('images/grid.jpg');
+
+		var geometry = new THREE.CylinderGeometry(1, 1, 8, 32);
+		var material = new THREE.MeshBasicMaterial({ map: tex, color: 0xffff00 });
+		var mesh = new THREE.Mesh(geometry, material);
+		mesh.position.set(x, y, z);
+
+		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
+		mesh.userData = { URL: url };
+		this.hyperlinkedObjects.push(mesh);
+		this.scene.add(mesh);
 	}
 
 	// overloaded function can deal with new info or not
@@ -246,18 +267,26 @@ class Scene {
 
 		if (this.floorModel != null) {
 			// console.log(this.floorModel.children);
-			let meshArr = [];
+			// let meshArr = [];
 			// only grab the important stuff, no need to check intersection with lights
-			meshArr = meshArr.concat(this.floorModel.children[2].children);
-			meshArr = meshArr.concat(this.floorModel.children[7].children);
-			meshArr = meshArr.concat(this.floorModel.children[10].children);
+			// meshArr = meshArr.concat(this.floorModel.children[2].children);
+			// meshArr = meshArr.concat(this.floorModel.children[7].children);
+			// meshArr = meshArr.concat(this.floorModel.children[10].children);
 
-			var intersects = this.raycaster.intersectObjects(meshArr);
+			// var intersects = this.raycaster.intersectObjects(meshArr);
+			var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
+
 
 			if (intersects.length > 0) {
 				for (let i = 0; i < intersects.length; i++) {
-					if (intersects[i].distance < 2) {
+					if (intersects[i].distance < 1) {
 						console.log("Approaching obstacle!");
+						console.log(intersects[i].object.userData.URL);
+						if (!intersects[i].object.userData.linkVisited) {
+							// open some sort of modal asking users if they wish to enter zoom link...
+							window.open(intersects[i].object.userData.URL);
+							intersects[i].object.userData.linkVisited = true
+						}
 					}
 				}
 			}
