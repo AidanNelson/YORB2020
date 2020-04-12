@@ -329,7 +329,6 @@ function onPlayerMove() {
 	socket.emit('move', glScene.getPlayerPosition());
 }
 
-
 function createScene() {
 	// initialize three.js scene
 	console.log("Creating three.js scene...")
@@ -340,7 +339,6 @@ function createScene() {
 		clearColor = 'lightblue',
 		onPlayerMove);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
