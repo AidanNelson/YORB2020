@@ -25,10 +25,6 @@ class Scene {
 		this.stats = new Stats();
 		domElement.appendChild(this.stats.dom);
 
-		// crazy colors:
-		this.crazyMode = false;
-		this.originalFloorMaterials = [];
-
 		//Add Player
 		this.addSelf();
 
@@ -518,9 +514,6 @@ class Scene {
 
 	// keystate functions from playercontrols
 	onKeyDown(event) {
-		if (event.keyCode == 67) {
-			this.crazyColors();
-		}
 		event = event || window.event;
 		this.keyState[event.keyCode || event.which] = true;
 	}
