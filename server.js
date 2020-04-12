@@ -22,6 +22,7 @@ const port = process.env.PORT || 1989;
 
 // Add environment variables:
 // https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
+// https://stackoverflow.com/questions/21831945/heroku-node-env-environment-variable
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -87,8 +88,10 @@ io.on('connection', client => {
   io.sockets.emit('newUserConnected', io.engine.clientsCount, client.id, Object.keys(clients));
 
   client.on('move', (data) => {
-    clients[client.id].position = data[0];
-    clients[client.id].rotation = data[1];
+    if (clients[client.id]) {
+      clients[client.id].position = data[0];
+      clients[client.id].rotation = data[1];
+    }
     io.sockets.emit('userPositions', clients);
   });
 

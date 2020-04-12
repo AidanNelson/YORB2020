@@ -35,13 +35,12 @@ class Scene {
 		this.addLights();
 
 		//THREE Camera
-		this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0, 3, 3);
+		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
+		this.camera.position.set(0, 3, 6);
 		this.scene.add(this.camera);
 
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
-		// this.camera.add(this.listener);
 		this.playerGroup.add(this.listener);
 
 		//THREE WebGL renderer
@@ -54,7 +53,6 @@ class Scene {
 		this.renderer.setSize(this.width, this.height);
 
 		// add controls:
-		// https://github.com/PiusNyakoojo/PlayerControls
 		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup);
 
 		// array to store interactable hyperlinked meshes
@@ -79,6 +77,7 @@ class Scene {
 		window.addEventListener('keydown', e => this.onKeyDown(e), false);
 		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
+		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
 		this.scene.add(this.helperGrid);
@@ -227,7 +226,6 @@ class Scene {
 		});
 
 		this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-
 		this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
 	}
 
