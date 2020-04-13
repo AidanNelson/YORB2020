@@ -283,15 +283,19 @@ function createPeerConnection(_id) {
 
 		//////////////////////////////////////////////////////////////////////
 		// 3. This does not work:
+		// console.log("Adding audio stream source to scene.");
 		// let audioSource = new THREE.Audio(glScene.listener);
 		// audioSource.setMediaStreamSource(audioStream);
 		// glScene.scene.add(audioSource);
-
+		// console.log(audioSource);
 		//////////////////////////////////////////////////////////////////////
 		// 4. This also does not work:
-		// let audioSource = new THREE.PositionalAudio(glScene.listener);
-		// audioSource.setMediaStreamSource(audioStream);
-		// glScene.scene.add(audioSource);
+
+		let audioSource = new THREE.PositionalAudio(glScene.listener);
+		audioSource.setMediaStreamSource(audioStream);
+		audioSource.setRefDistance(5);
+		audioSource.setRolloffFactor(10);
+		clients[_id].group.add(audioSource);
 
 		//////////////////////////////////////////////////////////////////////
 		// Eventually, connect the positional audioSource to the client group:
