@@ -56,13 +56,17 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 
 const twilioClient = require('twilio')(accountSid, authToken);
 let iceToken;
-let iceServers;
+let iceServers = null;
 
-twilioClient.tokens.create().then(token => {
-  iceToken = token;
-  iceServers = token.iceServers;
-  console.log("Got ICE Server credentials from Twilio.");
-});
+try {
+  twilioClient.tokens.create().then(token => {
+    iceToken = token;
+    iceServers = token.iceServers;
+    console.log("Got ICE Server credentials from Twilio.");
+  });
+} catch (err) {
+  console.log(err);
+}
 
 let clients = {};
 
@@ -100,9 +104,7 @@ io.on('connection', client => {
 
     //Delete this client from the object
     delete clients[client.id];
-
     io.sockets.emit('userDisconnected', io.engine.clientsCount, client.id, Object.keys(clients));
-
     console.log('User ' + client.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
 
   });

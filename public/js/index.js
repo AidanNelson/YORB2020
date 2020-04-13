@@ -215,8 +215,6 @@ function initSocketConnection() {
 // Clients / WebRTC
 ////////////////////////////////////////////////////////////////////////////////
 
-
-
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
 function addClient(_id) {
 	console.log("Adding client with id " + _id);
@@ -234,42 +232,78 @@ function addClient(_id) {
 }
 
 
-
 // this function sets up a peer connection and corresponding DOM elements for a specific client
 function createPeerConnection(_id) {
 	// create a peer connection for  client:
-	let peerConnectionConfiguration = { iceServers: iceServerList };
+	let peerConnectionConfiguration;
+	if (false) {
+		peerConnectionConfiguration = { iceServers: iceServerList };
+	} else {
+		peerConnectionConfiguration = {}; // this should work locally
+	}
+
+
 	let pc = new RTCPeerConnection(peerConnectionConfiguration);
 
 	// add ontrack listener for peer connection
 	pc.ontrack = function ({ streams: [_remoteStream] }) {
 		console.log("OnTrack: track added to RTC Peer Connection.");
 		console.log(_remoteStream);
-		// TODO: split incoming stream into two streams -- audio for positional audio and 
-		// video for video element --> canvas --> videoTexture --> videoMaterial for THREE.js
-
-		// DEBUG the following:
-
+		// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
+		// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
 		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
 
-		// let videoStream = new MediaStream([_remoteStream.getVideoTracks()[0]]);
-		// let audioStream = new MediaStream([_remoteStream.getAudioTracks()[0]]);
+		let videoStream = new MediaStream([_remoteStream.getVideoTracks()[0]]);
+		let audioStream = new MediaStream([_remoteStream.getAudioTracks()[0]]);
 
-		// var audioSource = new THREE.PositionalAudio(glScene.listener);
+		//////////////////////////////////////////////////////////////////////
+		// UNCOMMENT ONE OF THE FOLLOWING APPROACHES:
+		//////////////////////////////////////////////////////////////////////
+		// 1. This works:
+		// let audioEl = document.createElement('audio');
+		// audioEl.srcObject = audioStream;
+		// audioEl.play();
+		// audioEl.style = "position:absolute; top: 0px; right: 0px;";
+		// audioEl.controls = 'controls';
+		// audioEl.volume = 1;
+		// document.body.appendChild(audioEl);
+
+		//////////////////////////////////////////////////////////////////////
+		// 2. This also works, but does not allow volume control (bc volme is matched from HTMLMediaElement)
+		// let audioEl = document.createElement('audio');
+		// audioEl.srcObject = audioStream;
+		// audioEl.play();
+		// audioEl.style = "position:absolute; top: 0px; right: 0px;";
+		// audioEl.controls = 'controls';
+		// audioEl.volume = 1;
+		// document.body.appendChild(audioEl);
+		// let audioSource = new THREE.Audio(glScene.listener);
+		// audioSource.setMediaElementSource(audioEl);
+		// glScene.scene.add(audioSource);
+
+		//////////////////////////////////////////////////////////////////////
+		// 3. This does not work:
+		// let audioSource = new THREE.Audio(glScene.listener);
 		// audioSource.setMediaStreamSource(audioStream);
-		// audioSource.setRefDistance(20);
-		// audioSource.setVolume(0.9);
-		// audioSource.play();
+		// glScene.scene.add(audioSource);
 
+		//////////////////////////////////////////////////////////////////////
+		// 4. This also does not work:
+		// let audioSource = new THREE.PositionalAudio(glScene.listener);
+		// audioSource.setMediaStreamSource(audioStream);
+		// glScene.scene.add(audioSource);
+
+		//////////////////////////////////////////////////////////////////////
+		// Eventually, connect the positional audioSource to the client group:
 		// clients[_id].group.add(audioSource);
 
 		const remoteVideoElement = document.getElementById(_id);
 		if (remoteVideoElement) {
-			// remoteVideoElement.srcObject = videoStream;
-			remoteVideoElement.srcObject = _remoteStream;
+			remoteVideoElement.srcObject = videoStream;
 		} else {
 			console.warn("No video element found for ID: " + _id);
 		}
+
 	};
 
 	// https://www.twilio.com/docs/stun-turn
@@ -337,7 +371,7 @@ function createScene() {
 	glScene = new Scene(
 		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
-		_height = window.innerHeight,
+		_height = window.innerHeight * 0.8,
 		clearColor = 'lightblue',
 		onPlayerMove);
 }
