@@ -51,22 +51,27 @@ app.set('view-engine', 'html');
 app.use(express.static(__dirname + '/public'));
 
 // Twilio network traversal (ICE servers) for WebRTC peer connections
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+// const accountSid = process.env.TWILIO_ACCOUNT_SID;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-const twilioClient = require('twilio')(accountSid, authToken);
-let iceToken;
-let iceServers = null;
+// const twilioClient = require('twilio')(accountSid, authToken);
+// let iceToken;
+// let iceServers = null;
 
-try {
-  twilioClient.tokens.create().then(token => {
-    iceToken = token;
-    iceServers = token.iceServers;
-    console.log("Got ICE Server credentials from Twilio.");
-  });
-} catch (err) {
-  console.log(err);
-}
+// twilioClient.tokens.create().then(token => {
+//   iceToken = token;
+//   iceServers = token.iceServers;
+//   console.log("Got ICE Server credentials from Twilio.");
+//   console.log(token.iceServers);
+// });
+
+let iceServers = [{
+  urls: [
+    "stun3.l.google.com:19302",
+    "stun4.l.google.com:19302"
+  ]
+}];
+
 
 let clients = {};
 
