@@ -293,7 +293,7 @@ function createPeerConnection(_id) {
 
 		let audioSource = new THREE.PositionalAudio(glScene.listener);
 		audioSource.setMediaStreamSource(audioStream);
-		audioSource.setRefDistance(5);
+		audioSource.setRefDistance(10);
 		audioSource.setRolloffFactor(10);
 		clients[_id].group.add(audioSource);
 

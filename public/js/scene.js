@@ -41,7 +41,7 @@ class Scene {
 
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
-		this.camera.add(this.listener);
+		this.playerGroup.add(this.listener);
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
