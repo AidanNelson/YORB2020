@@ -20,12 +20,6 @@ const http = require('http').createServer(app);
 //Port and server setup
 const port = process.env.PORT || 1989;
 
-// Add environment variables:
-// https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
-// https://stackoverflow.com/questions/21831945/heroku-node-env-environment-variable
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
 
 
 //Server
@@ -50,6 +44,12 @@ app.set('view-engine', 'html');
 //Setup the public client folder
 app.use(express.static(__dirname + '/public'));
 
+// Add environment variables:
+// https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
+// https://stackoverflow.com/questions/21831945/heroku-node-env-environment-variable
+// if (process.env.NODE_ENV !== 'production') {
+//   require('dotenv').config();
+// }
 // Twilio network traversal (ICE servers) for WebRTC peer connections
 // const accountSid = process.env.TWILIO_ACCOUNT_SID;
 // const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -65,11 +65,36 @@ app.use(express.static(__dirname + '/public'));
 //   console.log(token.iceServers);
 // });
 
+// // let iceServers = [{
+// //   urls: [
+// //     "stun3.l.google.com:19302",
+// //     "stun4.l.google.com:19302"
+// //   ]
+// // }];
 let iceServers = [{
-  urls: [
-    "stun3.l.google.com:19302",
-    "stun4.l.google.com:19302"
-  ]
+  url: 'stun:global.stun.twilio.com:3478?transport=udp',
+  urls: 'stun:global.stun.twilio.com:3478?transport=udp'
+},
+{
+  url: 'turn:global.turn.twilio.com:3478?transport=udp',
+  username:
+    'ea8592743f49ac1b488a545efb5ce904602ef7171dfe3568f57286492ca662d5',
+  urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+  credential: 'RQEzFL9rGVTM+TjB3nctHOlcBSL3seLmEo3TSgAGJpU='
+},
+{
+  url: 'turn:global.turn.twilio.com:3478?transport=tcp',
+  username:
+    'ea8592743f49ac1b488a545efb5ce904602ef7171dfe3568f57286492ca662d5',
+  urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+  credential: 'RQEzFL9rGVTM+TjB3nctHOlcBSL3seLmEo3TSgAGJpU='
+},
+{
+  url: 'turn:global.turn.twilio.com:443?transport=tcp',
+  username:
+    'ea8592743f49ac1b488a545efb5ce904602ef7171dfe3568f57286492ca662d5',
+  urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+  credential: 'RQEzFL9rGVTM+TjB3nctHOlcBSL3seLmEo3TSgAGJpU='
 }];
 
 
