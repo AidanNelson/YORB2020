@@ -100,7 +100,7 @@ class Scene {
 	// Lighting 💡
 
 	addLights() {
-		/ add some lights/
+		// add some lights
 		this.scene.add(new THREE.AmbientLight(0xffffe6, 0.7));
 
 		//https://github.com/mrdoob/three.js/blob/master/examples/webgl_lights_hemisphere.html
@@ -162,7 +162,7 @@ class Scene {
 
 		// wall material:
 		this.wallMaterial = new THREE.MeshPhongMaterial({
-			color: 0xfffff5,
+			color: 0x00fff5,
 			bumpMap: paintedRoughnessTexture,
 			bumpScale: 0.25,
 			specular: 0xfffff5,

@@ -35,17 +35,9 @@ THREE.PlayerControls = function (camera, player, domElement) {
 	this.maxPolarAngle = Math.PI;
 
 	this.minDistance = 0;
-	this.maxDistance = Infinity;
+	this.maxDistance = 20;
 
-	// added for raycasting collision detection:
-	this.Raycaster = new THREE.Raycaster();
-	this.collidableMeshList = [];
-	this.obstacles = {
-		forward: false,
-		backward: false,
-		right: false,
-		left: false
-	}
+	this.centerOffsetY = 1.5;
 
 	// internals
 
@@ -206,7 +198,9 @@ THREE.PlayerControls = function (camera, player, domElement) {
 
 		}
 
-		this.camera.lookAt(this.center);
+		var cameraLookAtPt = this.center.clone();
+		cameraLookAtPt.y += this.centerOffsetY;
+		this.camera.lookAt(cameraLookAtPt);
 
 		thetaDelta = 0;
 		phiDelta = 0;
