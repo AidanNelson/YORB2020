@@ -13,6 +13,7 @@ class Scene {
 		clearColor = 'lightblue',
 		_movementCallback) {
 
+		this.DEBUG_MODE = false;
 		this.movementCallback = _movementCallback;
 
 		//THREE scene
@@ -55,6 +56,9 @@ class Scene {
 		// add controls:
 		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup);
 
+		// Collision Detection Setup!
+		this.setupCollisionDetection();
+
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
 		// proof of concept hyperlink
@@ -82,7 +86,10 @@ class Scene {
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
 		this.scene.add(this.helperGrid);
 
+
 		this.scene.add(new THREE.AxesHelper(10));
+
+
 
 		this.update();
 	}
@@ -229,7 +236,7 @@ class Scene {
 		this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
 	}
 
-	loadModel(_file, _material, _scale, _castShadow, _receiveShadow) {
+	loadModel(_file, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {
 		this.GLTFLoader.load(_file, (gltf) => {
 			let scene = gltf.scene;
 			scene.position.set(0, 0, 0);
@@ -239,6 +246,9 @@ class Scene {
 					child.material = _material;
 					child.castShadow = _castShadow;
 					child.receiveShadow = _receiveShadow;
+					if (_collidable) {
+						this.collidableMeshList.push(child);
+					}
 				}
 			});
 			this.scene.add(scene);
@@ -254,15 +264,15 @@ class Scene {
 		this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true);
 		this.loadModel('models/itp/glass-fixturing.glb', this.glassFixturingMaterial, scaleFactor, true, false);
-		this.loadModel('models/itp/glass.glb', this.glassMaterial, scaleFactor, false, false);
-		this.loadModel('models/itp/granite-bar.glb', this.graniteBarMaterial, scaleFactor, true, false);
-		this.loadModel('models/itp/ibeam.glb', this.paintedMetalMaterial, scaleFactor, true, false);
+		this.loadModel('models/itp/glass.glb', this.glassMaterial, scaleFactor, false, false, true);
+		this.loadModel('models/itp/granite-bar.glb', this.graniteBarMaterial, scaleFactor, true, false, true);
+		this.loadModel('models/itp/ibeam.glb', this.paintedMetalMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/light-diffuser.glb', this.lightDiffuserMaterial, scaleFactor, false, false);
 		this.loadModel('models/itp/light-housing.glb', this.lightHousingMaterial, scaleFactor, false, false);
 		this.loadModel('models/itp/lighting-grid.glb', this.wallMaterial, scaleFactor, false, false);
-		this.loadModel('models/itp/walls.glb', this.wallMaterial, scaleFactor, true, false);
+		this.loadModel('models/itp/walls.glb', this.wallMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/window-shelf.glb', this.windowShelfMaterial, scaleFactor, true, false);
-		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true);
+		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true);
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -376,6 +386,210 @@ class Scene {
 	//////////////////////////////////////////////////////////////////////
 	// Interaction 🤾‍♀️
 
+
+	setupCollisionDetection() {
+		this.numCollisionDetectionPoints = 4 * 4;
+
+		// get the headMesh vertices
+		// var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
+
+		// these are the four vertices of each side:
+		// var forwardVertices = [headMeshVertices[1], headMeshVertices[3], headMeshVertices[4], headMeshVertices[6]];
+		// var backwardVertices = [headMeshVertices[0], headMeshVertices[2], headMeshVertices[5], headMeshVertices[7]];
+		// var rightVertices = [headMeshVertices[0], headMeshVertices[1], headMeshVertices[2], headMeshVertices[3]];
+		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
+
+		this.collidableMeshList = [];
+		this.obstacles = {
+			forward: false,
+			backward: false,
+			right: false,
+			left: false
+		}
+
+		// vertex indices discovered by manual labor...
+		var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
+		var numPoints = this.numCollisionDetectionPoints / 4;
+
+		this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numPoints);
+		this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numPoints);
+		this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numPoints);
+		this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numPoints);
+
+		// for use debugging collision detection
+		if (this.DEBUG_MODE) {
+			this.collisionDetectionDebugArrows = [];
+			for (let i = 0; i < this.numCollisionDetectionPoints; i++) {
+				var arrow = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 1, 0x000000)
+				this.collisionDetectionDebugArrows.push(arrow)
+				this.scene.add(arrow)
+			}
+		}
+	}
+
+	// https://stackoverflow.com/questions/21249739/how-to-calculate-the-points-between-two-given-points-and-given-distance
+	// returns an array of vectors from A to B, including A and B
+	getPointsBetweenPoints(vecA, vecB, numPoints) {
+		var points = [];
+		var dirVec = vecB.clone().sub(vecA);
+		for (let i = 0; i < numPoints; i++) {
+			var pt = vecA.clone().add(dirVec.clone().multiplyScalar(i / (numPoints - 1)));
+			points.push(pt)
+		}
+		return points;
+	}
+
+
+	detectCollisionsWalls() {
+		// reset obstacles: 
+		this.obstacles = {
+			forward: false,
+			backward: false,
+			right: false,
+			left: false
+		}
+
+		// for debugging:
+		var arrowHelperOffset = 0;
+
+		// distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
+		var detectCollisionDistance = 1;
+
+		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)... 
+		// Weird, but this function respects those directions for the sake of not having to make conversions
+		// https://github.com/mrdoob/three.js/issues/1606
+		var matrix = new THREE.Matrix4();
+		matrix.extractRotation(this.playerGroup.matrix);
+		var backwardDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
+		var forwardDir = backwardDir.clone().negate();
+		var rightDir = forwardDir.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
+		var leftDir = rightDir.clone().negate();
+
+
+		;
+
+
+		// check forward
+
+		for (var vertexIndex = 0; vertexIndex < this.forwardCollisionDetectionPoints.length; vertexIndex++) {
+
+			var vertex = this.forwardCollisionDetectionPoints[vertexIndex].clone();
+			vertex.applyMatrix4(this.playerGroup.matrix);
+			vertex.y += 1.0; // bias upward to head area of player
+
+			this.raycaster.set(vertex, forwardDir);
+			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
+
+			// arrow helpers for debugging
+			if (this.DEBUG_MODE) {
+				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
+				a.setLength(detectCollisionDistance);
+				a.setColor(new THREE.Color("rgb(0, 0, 255)"));
+				a.position.x = vertex.x;
+				a.position.y = vertex.y;
+				a.position.z = vertex.z;
+				a.setDirection(forwardDir);
+			}
+
+			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
+				if (this.DEBUG_MODE) {
+					console.log("Forward hit on vertex " + vertexIndex + "!");
+				}
+				this.obstacles.forward = true;
+			}
+		}
+
+		// check backward
+		arrowHelperOffset += 4;
+		for (var vertexIndex = 0; vertexIndex < this.backwardCollisionDetectionPoints.length; vertexIndex++) {
+
+			var vertex = this.backwardCollisionDetectionPoints[vertexIndex].clone();
+			vertex.applyMatrix4(this.playerGroup.matrix);
+			vertex.y += 1.0; // bias upward to head area of player
+
+			this.raycaster.set(vertex, backwardDir);
+			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
+
+			// arrow helpers for debugging
+			if (this.DEBUG_MODE) {
+				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
+				a.setLength(detectCollisionDistance);
+				a.setColor(new THREE.Color("rgb(0, 255, 255)"));
+				a.position.x = vertex.x;
+				a.position.y = vertex.y;
+				a.position.z = vertex.z;
+				a.setDirection(backwardDir);
+			}
+
+			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
+				if (this.DEBUG_MODE) { console.log("Backward hit on vertex " + vertexIndex + "!"); }
+				this.obstacles.backward = true;
+			}
+		}
+
+		// check right
+		arrowHelperOffset += 4;
+		for (var vertexIndex = 0; vertexIndex < this.rightCollisionDetectionPoints.length; vertexIndex++) {
+
+			var vertex = this.rightCollisionDetectionPoints[vertexIndex].clone();
+			vertex.applyMatrix4(this.playerGroup.matrix);
+			vertex.y += 1.0; // bias upward to head area of player
+
+			this.raycaster.set(vertex, rightDir);
+			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
+
+			// arrow helpers for debugging
+			if (this.DEBUG_MODE) {
+				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
+				a.setLength(detectCollisionDistance);
+				a.setColor(new THREE.Color("rgb(255, 255, 0)"));
+				a.position.x = vertex.x;
+				a.position.y = vertex.y;
+				a.position.z = vertex.z;
+				a.setDirection(rightDir);
+			}
+
+			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
+				if (this.DEBUG_MODE) {
+					console.log("Right hit on vertex " + vertexIndex + "!");
+				}
+				this.obstacles.right = true;
+			}
+		}
+
+		// check left
+		arrowHelperOffset += 4;
+		for (var vertexIndex = 0; vertexIndex < this.leftCollisionDetectionPoints.length; vertexIndex++) {
+
+			var vertex = this.leftCollisionDetectionPoints[vertexIndex].clone();
+			vertex.applyMatrix4(this.playerGroup.matrix);
+			vertex.y += 1.0; // bias upward to head area of player
+
+			this.raycaster.set(vertex, leftDir);
+			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
+
+			// arrow helpers for debugging
+			if (this.DEBUG_MODE) {
+				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
+				a.setLength(detectCollisionDistance);
+				a.setColor(new THREE.Color("rgb(255, 0, 0)"));
+				a.position.x = vertex.x;
+				a.position.y = vertex.y;
+				a.position.z = vertex.z;
+				a.setDirection(leftDir);
+			}
+
+			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
+				if (this.DEBUG_MODE) {
+					console.log("Left hit on vertex " + vertexIndex + "!");
+				}
+				this.obstacles.left = true;
+			} else {
+				this.obstacles.left = false
+			}
+		}
+	}
+
 	createHyperlinkedMesh(x, y, z, url) {
 		// load a image resource
 		let tex = new THREE.TextureLoader().load('images/grid.jpg');
@@ -395,9 +609,16 @@ class Scene {
 	//https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
 	detectCollisions() {
 		// from player controls direction
-		let xDir = -  Math.sin(this.controls.player.rotation.y);
-		let zDir = - Math.cos(this.controls.player.rotation.y);
-		let dirVec = new THREE.Vector3(xDir, 0, zDir);
+		// let xDir = -  Math.sin(this.controls.player.rotation.y);
+		// let zDir = - Math.cos(this.controls.player.rotation.y);
+		// let dirVec = new THREE.Vector3(xDir, 0, zDir);
+		// dirVec.normalize();
+		// https://github.com/mrdoob/three.js/issues/1606
+		var matrix = new THREE.Matrix4();
+		matrix.extractRotation(this.playerGroup.matrix);
+
+		var dirVec = new THREE.Vector3(0, 1, 0);
+		dirVec = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
 		dirVec.normalize();
 
 		this.raycaster.set(this.playerGroup.position, dirVec);
@@ -446,6 +667,8 @@ class Scene {
 
 		this.updatePositions();
 		this.detectCollisions();
+
+		this.detectCollisionsWalls();
 		this.controls.update();
 		this.stats.update();
 		this.render();
