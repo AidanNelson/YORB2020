@@ -20,26 +20,14 @@ const http = require('http').createServer(app);
 //Port and server setup
 const port = process.env.PORT || 1989;
 
-
-
 //Server
 const server = app.listen(port);
-
-//EJS
-const ejs = require('ejs');
 
 //Console the port
 console.log('Server is running localhost on port: ' + port);
 
 /////SOCKET.IO///////
 const io = require('socket.io').listen(server);
-
-//Setup the views folder
-app.set("views", __dirname + '/views');
-
-//Setup ejs, so I can write HTML(:
-app.engine('.html', ejs.__express);
-app.set('view-engine', 'html');
 
 //Setup the public client folder
 app.use(express.static(__dirname + '/public'));
@@ -143,25 +131,4 @@ io.on('connection', client => {
       candidate: data.candidate
     });
   });
-});
-
-
-
-
-/////////////////////
-//////ROUTER/////////
-/////////////////////
-
-//Client view
-app.get('/', (req, res) => {
-
-  res.render('index.html');
-
-});
-
-//404 view
-app.get('/*', (req, res) => {
-
-  res.render('404.html');
-
 });
