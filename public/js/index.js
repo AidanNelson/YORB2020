@@ -236,11 +236,11 @@ function addClient(_id) {
 function createPeerConnection(_id) {
 	// create a peer connection for  client:
 	let peerConnectionConfiguration;
-	if (false) {
-		peerConnectionConfiguration = { iceServers: iceServerList };
-	} else {
-		peerConnectionConfiguration = {}; // this should work locally
-	}
+	// if (false) {
+	peerConnectionConfiguration = { iceServers: iceServerList };
+	// } else {
+	// peerConnectionConfiguration = {}; // this should work locally
+	// }
 
 
 	let pc = new RTCPeerConnection(peerConnectionConfiguration);

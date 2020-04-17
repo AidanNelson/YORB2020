@@ -1,4 +1,11 @@
-// https://github.com/PiusNyakoojo/PlayerControls
+/*
+* YORB 2020
+* This PlayerControls adapted from https://github.com/PiusNyakoojo/PlayerControls
+* with added collision detection based on http://stemkoski.github.io/Three.js/Collision-Detection.html
+*
+*
+*/
+
 THREE.PlayerControls = function (camera, player, domElement) {
 
 	this.camera = camera;
@@ -12,7 +19,7 @@ THREE.PlayerControls = function (camera, player, domElement) {
 	this.center = new THREE.Vector3(player.position.x, player.position.y, player.position.z);
 
 	this.moveSpeed = 0.2;
-	this.turnSpeed = 0.08;
+	this.turnSpeed = 0.02;
 
 	this.userZoom = true;
 	this.userZoomSpeed = 1.0;
@@ -29,6 +36,16 @@ THREE.PlayerControls = function (camera, player, domElement) {
 
 	this.minDistance = 0;
 	this.maxDistance = Infinity;
+
+	// added for raycasting collision detection:
+	this.Raycaster = new THREE.Raycaster();
+	this.collidableMeshList = [];
+	this.obstacles = {
+		forward: false,
+		backward: false,
+		right: false,
+		left: false
+	}
 
 	// internals
 
@@ -144,6 +161,8 @@ THREE.PlayerControls = function (camera, player, domElement) {
 
 	this.update = function () {
 
+		// this.detectCollisions();
+
 		this.checkKeyStates();
 
 		this.center = this.player.position;
@@ -219,29 +238,36 @@ THREE.PlayerControls = function (camera, player, domElement) {
 	};
 
 	this.checkKeyStates = function () {
+		var movement = new THREE.Vector3();
 
-		if (keyState[38] || keyState[87]) {
+		if ((keyState[38] || keyState[87]) && !glScene.obstacles.forward) {
 
 			// up arrow or 'w' - move forward
 
-			this.player.position.x -= this.moveSpeed * Math.sin(this.player.rotation.y);
-			this.player.position.z -= this.moveSpeed * Math.cos(this.player.rotation.y);
+			movement.x += -1 * Math.sin(this.player.rotation.y);
+			movement.z += -1 * Math.cos(this.player.rotation.y);
 
-			this.camera.position.x -= this.moveSpeed * Math.sin(this.player.rotation.y);
-			this.camera.position.z -= this.moveSpeed * Math.cos(this.player.rotation.y);
+			// this.player.position.x -= this.moveSpeed * Math.sin(this.player.rotation.y);
+			// this.player.position.z -= this.moveSpeed * Math.cos(this.player.rotation.y);
+
+			// this.camera.position.x -= this.moveSpeed * Math.sin(this.player.rotation.y);
+			// this.camera.position.z -= this.moveSpeed * Math.cos(this.player.rotation.y);
 
 		}
 
-		if (keyState[40] || keyState[83]) {
+		if ((keyState[40] || keyState[83]) && !glScene.obstacles.backward) {
 
 			// down arrow or 's' - move backward
 			playerIsMoving = true;
 
-			this.player.position.x += this.moveSpeed * Math.sin(this.player.rotation.y);
-			this.player.position.z += this.moveSpeed * Math.cos(this.player.rotation.y);
+			movement.x += Math.sin(this.player.rotation.y);
+			movement.z += Math.cos(this.player.rotation.y);
 
-			this.camera.position.x += this.moveSpeed * Math.sin(this.player.rotation.y);
-			this.camera.position.z += this.moveSpeed * Math.cos(this.player.rotation.y);
+			// this.player.position.x += this.moveSpeed * Math.sin(this.player.rotation.y);
+			// this.player.position.z += this.moveSpeed * Math.cos(this.player.rotation.y);
+
+			// this.camera.position.x += this.moveSpeed * Math.sin(this.player.rotation.y);
+			// this.camera.position.z += this.moveSpeed * Math.cos(this.player.rotation.y);
 
 		}
 
@@ -258,35 +284,48 @@ THREE.PlayerControls = function (camera, player, domElement) {
 
 			// right arrow or 'd' - rotate right
 			playerIsMoving = true;
-
 			this.player.rotation.y -= this.turnSpeed;
 
 		}
-		if (keyState[81]) {
+		if (keyState[81] && !glScene.obstacles.left) {
 
 			// 'q' - strafe left
 			playerIsMoving = true;
 
-			this.player.position.x -= this.moveSpeed * Math.cos(this.player.rotation.y);
-			this.player.position.z += this.moveSpeed * Math.sin(this.player.rotation.y);
+			movement.x += -1 * Math.cos(this.player.rotation.y);
+			movement.z += Math.sin(this.player.rotation.y);
 
-			this.camera.position.x -= this.moveSpeed * Math.cos(this.player.rotation.y);
-			this.camera.position.z += this.moveSpeed * Math.sin(this.player.rotation.y);
+			// this.player.position.x -= this.moveSpeed * Math.cos(this.player.rotation.y);
+			// this.player.position.z += this.moveSpeed * Math.sin(this.player.rotation.y);
+
+			// this.camera.position.x -= this.moveSpeed * Math.cos(this.player.rotation.y);
+			// this.camera.position.z += this.moveSpeed * Math.sin(this.player.rotation.y);
 
 		}
 
-		if (keyState[69]) {
+		if (keyState[69] && !glScene.obstacles.right) {
 
 			// 'e' - strage right
 			playerIsMoving = true;
 
-			this.player.position.x += this.moveSpeed * Math.cos(this.player.rotation.y);
-			this.player.position.z -= this.moveSpeed * Math.sin(this.player.rotation.y);
+			movement.x += Math.cos(this.player.rotation.y);
+			movement.z += -1 * Math.sin(this.player.rotation.y);
 
-			this.camera.position.x += this.moveSpeed * Math.cos(this.player.rotation.y);
-			this.camera.position.z -= this.moveSpeed * Math.sin(this.player.rotation.y);
+			// this.player.position.x += this.moveSpeed * Math.cos(this.player.rotation.y);
+			// this.player.position.z -= this.moveSpeed * Math.sin(this.player.rotation.y);
+
+			// this.camera.position.x += this.moveSpeed * Math.cos(this.player.rotation.y);
+			// this.camera.position.z -= this.moveSpeed * Math.sin(this.player.rotation.y);
 
 		}
+
+		movement.normalize();
+		movement.multiplyScalar(this.moveSpeed);
+		this.player.position.x += movement.x;
+		this.player.position.z += movement.z;
+
+		this.camera.position.x += movement.x;
+		this.camera.position.z += movement.z;
 
 	};
 
