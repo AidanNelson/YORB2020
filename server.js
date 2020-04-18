@@ -100,35 +100,13 @@ io.on('connection', client => {
     console.log('User ' + client.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
 
   });
-
-  // from simple chat app:
-  // WEBRTC Communications
-  client.on("call-user", (data) => {
-    console.log('Server forwarding call from ' + client.id + " to " + data.to);
-    client.to(data.to).emit("call-made", {
-      offer: data.offer,
+  
+  // SimplePeer Signaling
+  client.on("signal", (data) => {
+    console.log('Server forwarding signaling data from ' + client.id + " to " + data.to);
+    client.to(data.to).emit("signal", {
+      signal: data.signal,
       socket: client.id
-    });
-  });
-
-  client.on("make-answer", data => {
-    client.to(data.to).emit("answer-made", {
-      socket: client.id,
-      answer: data.answer
-    });
-  });
-
-  client.on("reject-call", data => {
-    client.to(data.from).emit("call-rejected", {
-      socket: client.id
-    });
-  });
-
-  // ICE Setup
-  client.on('addIceCandidate', data => {
-    client.to(data.to).emit("iceCandidateFound", {
-      socket: client.id,
-      candidate: data.candidate
     });
   });
 });

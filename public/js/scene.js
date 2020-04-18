@@ -318,7 +318,7 @@ class Scene {
 		);
 
 
-		createClientVideoElement(_id);
+		// createClientVideoElement(_id);
 
 		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id);
 
@@ -350,8 +350,6 @@ class Scene {
 
 	removeClient(_id) {
 		this.scene.remove(clients[_id].group);
-
-		removeClientVideoElementAndCanvas(_id);
 	}
 
 	// overloaded function can deal with new info or not
@@ -694,9 +692,11 @@ class Scene {
 
 
 		for (let _id in clients) {
-			let remoteVideo = document.getElementById(_id);
+			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
-			this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
+			if (remoteVideo != null) {
+				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
+			}
 		}
 	}
 
@@ -745,52 +745,10 @@ class Scene {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Utilities 🚂
 
-// created <video> element for local mediastream
-function createLocalVideoElement() {
-	const videoElement = document.createElement("video");
-	videoElement.id = "local_video";
-	videoElement.autoplay = true;
-	videoElement.width = videoWidth;
-	videoElement.height = videoHeight;
-	videoElement.style = "visibility: hidden;";
 
-	// there seems to be a weird behavior where a muted video 
-	// won't autoplay in chrome...  so instead of muting the video, simply make a
-	// video only stream for this video element :|
-	let videoStream = new MediaStream([localMediaStream.getVideoTracks()[0]]);
 
-	videoElement.srcObject = videoStream;
-	document.body.appendChild(videoElement);
-}
-
-// created <video> element using client ID
-function createClientVideoElement(_id) {
-	console.log("Creating <video> element for client with id: " + _id);
-
-	const videoElement = document.createElement("video");
-	videoElement.id = _id;
-	videoElement.width = videoWidth;
-	videoElement.height = videoHeight;
-	videoElement.autoplay = true;
-	// videoElement.muted = true; // TODO Positional Audio
-	videoElement.style = "visibility: hidden;";
-
-	document.body.appendChild(videoElement);
-}
-
-// remove <video> element and corresponding <canvas> using client ID
-function removeClientVideoElementAndCanvas(_id) {
-	console.log("Removing <video> element for client with id: " + _id);
-
-	let videoEl = document.getElementById(_id).remove();
-	if (videoEl != null) { videoEl.remove(); }
-	let canvasEl = document.getElementById(_id + "_canvas");
-	if (canvasEl != null) { canvasEl.remove(); }
-}
+//////////
 
 // Adapted from: https://github.com/zacharystenger/three-js-video-chat
 function makeVideoTextureAndMaterial(_id) {
