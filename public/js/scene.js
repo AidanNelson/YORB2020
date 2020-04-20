@@ -368,14 +368,15 @@ class Scene {
 		let snapDistance = 0.5;
 		let snapAngle = 0.2; // radians
 		for (let _id in clients) {
-
-			clients[_id].group.position.lerp(clients[_id].desiredPosition, 0.2);
-			clients[_id].group.quaternion.slerp(clients[_id].desiredRotation, 0.2);
-			if (clients[_id].group.position.distanceTo(clients[_id].desiredPosition) < snapDistance) {
-				clients[_id].group.position.set(clients[_id].desiredPosition.x, clients[_id].desiredPosition.y, clients[_id].desiredPosition.z);
-			}
-			if (clients[_id].group.quaternion.angleTo(clients[_id].desiredRotation) < snapAngle) {
-				clients[_id].group.quaternion.set(clients[_id].desiredRotation.x, clients[_id].desiredRotation.y, clients[_id].desiredRotation.z, clients[_id].desiredRotation.w);
+			if (clients[_id].group) {
+				clients[_id].group.position.lerp(clients[_id].desiredPosition, 0.2);
+				clients[_id].group.quaternion.slerp(clients[_id].desiredRotation, 0.2);
+				if (clients[_id].group.position.distanceTo(clients[_id].desiredPosition) < snapDistance) {
+					clients[_id].group.position.set(clients[_id].desiredPosition.x, clients[_id].desiredPosition.y, clients[_id].desiredPosition.z);
+				}
+				if (clients[_id].group.quaternion.angleTo(clients[_id].desiredRotation) < snapAngle) {
+					clients[_id].group.quaternion.set(clients[_id].desiredRotation.x, clients[_id].desiredRotation.y, clients[_id].desiredRotation.z, clients[_id].desiredRotation.w);
+				}
 			}
 		}
 	}

@@ -13,21 +13,51 @@
 //////EXPRESS////////
 const express = require('express');
 const app = express();
+const fs = require('fs');
+
 
 ////////HTTP/////////
-const http = require('http').createServer(app);
+const http = require('http');
+const https = require('https');
+
+// https://itnext.io/node-express-letsencrypt-generate-a-free-ssl-certificate-and-run-an-https-server-in-5-minutes-a730fbe528ca
+
+// Certificate
+const privateKey = fs.readFileSync(__dirname + '/certs/privkey.pem', 'utf8');
+const certificate = fs.readFileSync(__dirname + '/certs/fullchain.pem', 'utf8');
+// const ca = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/chain.pem', 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate
+};
+
+// app.use((req, res) => {
+// 	res.send('Hello there !');
+// });
+
+// Starting both http & https servers
+// const httpServer = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+
+httpsServer.listen(443, () => {
+	console.log('HTTPS Server running on port 443');
+});
 
 //Port and server setup
-const port = process.env.PORT || 1989;
+// const port = process.env.PORT || 1989;
 
 //Server
-const server = app.listen(port);
+// const server = app.listen(port);
 
 //Console the port
-console.log('Server is running localhost on port: ' + port);
+// console.log('Server is running localhost on port: ' + port);
 
 /////SOCKET.IO///////
-const io = require('socket.io').listen(server);
+// const io = require('socket.io').listen(server);
+const io = require('socket.io').listen(httpsServer);
+
 
 //Setup the public client folder
 app.use(express.static(__dirname + '/public'));
