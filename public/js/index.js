@@ -333,6 +333,12 @@ function createSimplePeer(_id, _initiator) {
 	return sp;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// DIY Selective Forwarding Unit Work-In-Progress
+
 // temporarily pause the outgoing stream
 // function disableOutgoingStream() {
 // 	localMediaStream.getTracks().forEach(track => {
@@ -355,40 +361,40 @@ function createSimplePeer(_id, _initiator) {
 // 	let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
 // }
 
-function enableOutgoingAudio(_id) {
-	clients[_id].mediaStream.getAudioTracks().forEach(track => {
-		track.enabled = true;
-	})
-}
-function disableOutgoingAudio(_id) {
-	clients[_id].mediaStream.getAudioTracks().forEach(track => {
-		track.enabled = false;
-	})
-}
+// function enableOutgoingAudio(_id) {
+// 	clients[_id].mediaStream.getAudioTracks().forEach(track => {
+// 		track.enabled = true;
+// 	})
+// }
+// function disableOutgoingAudio(_id) {
+// 	clients[_id].mediaStream.getAudioTracks().forEach(track => {
+// 		track.enabled = false;
+// 	})
+// }
 
 // https://github.com/feross/simple-peer/issues/606
-function setPeerVideoQuality(_id, qualityLevel) {
-	let peer = clients[_id].peerConnection;
-	let existingTrack = clients[_id].mediaStream.getVideoTracks()[0];
-	let newTrack = localMediaStreams[qualityLevel].getVideoTracks()[0].clone();
-	peer.replaceTrack(existingTrack, newTrack, clients[_id].mediaStream);
-}
+// function setPeerVideoQuality(_id, qualityLevel) {
+// 	let peer = clients[_id].peerConnection;
+// 	let existingTrack = clients[_id].mediaStream.getVideoTracks()[0];
+// 	let newTrack = localMediaStreams[qualityLevel].getVideoTracks()[0].clone();
+// 	peer.replaceTrack(existingTrack, newTrack, clients[_id].mediaStream);
+// }
 
-function enablePeerAudio(_id) {
-	let peer = clients[_id].peerConnection;
-	let peerMediaStream = clients[_id].mediaStream;
-	localMediaStreams[0].getAudioTracks().forEach(track => {
-		peer.addTrack(track.clone(), peerMediaStream)
-	})
-}
+// function enablePeerAudio(_id) {
+// 	let peer = clients[_id].peerConnection;
+// 	let peerMediaStream = clients[_id].mediaStream;
+// 	localMediaStreams[0].getAudioTracks().forEach(track => {
+// 		peer.addTrack(track.clone(), peerMediaStream)
+// 	})
+// }
 
-function disablePeerAudio(_id) {
-	let peer = clients[_id].peerConnection;
-	let peerMediaStream = clients[_id].mediaStream;
-	peerMediaStream.getAudioTracks().forEach(track => {
-		peer.removeTrack(track, peerMediaStream);
-	})
-}
+// function disablePeerAudio(_id) {
+// 	let peer = clients[_id].peerConnection;
+// 	let peerMediaStream = clients[_id].mediaStream;
+// 	peerMediaStream.getAudioTracks().forEach(track => {
+// 		peer.removeTrack(track, peerMediaStream);
+// 	})
+// }
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -451,7 +457,8 @@ function createOrUpdateClientVideo(_id, _videoStream) {
 }
 
 function createOrUpdateClientAudio(_id, _audioStream) {
-	// Works in Firefox:
+	// Positional Audio Works in Firefox:
+	// TODO make this work for updated stream with same positional audio object:
 	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
 	// let audioSource = new THREE.PositionalAudio(glScene.listener);
 	// audioSource.setMediaStreamSource(audioStream);
@@ -471,8 +478,7 @@ function createOrUpdateClientAudio(_id, _audioStream) {
 	console.log("Updating <audio> source object for client with ID: " + _id);
 	remoteAudioElement.srcObject = _audioStream;
 	remoteAudioElement.play();
-	// remoteAudioElement.style = "position:absolute; top: 0px; right: 0px;";
-	// remoteAudioElement.controls = 'controls';
+	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
 	// remoteAudioElement.volume = 1;
 }
 

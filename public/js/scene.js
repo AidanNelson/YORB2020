@@ -583,8 +583,6 @@ class Scene {
 					console.log("Left hit on vertex " + vertexIndex + "!");
 				}
 				this.obstacles.left = true;
-			} else {
-				this.obstacles.left = false
 			}
 		}
 	}
@@ -747,9 +745,9 @@ class Scene {
 }
 
 
-
-
-//////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Utilities 🚂
 
 // Adapted from: https://github.com/zacharystenger/three-js-video-chat
 function makeVideoTextureAndMaterial(_id) {
