@@ -162,7 +162,7 @@ class Scene {
 
 		// wall material:
 		this.wallMaterial = new THREE.MeshPhongMaterial({
-			color: 0x00fff5,
+			color: 0xffffe6,
 			bumpMap: paintedRoughnessTexture,
 			bumpScale: 0.25,
 			specular: 0xfffff5,
@@ -284,8 +284,6 @@ class Scene {
 			new THREE.BoxGeometry(1, 1, 1),
 			new THREE.MeshNormalMaterial()
 		);
-
-		createLocalVideoElement();
 
 		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial("local");
 
@@ -465,11 +463,7 @@ class Scene {
 		var leftDir = rightDir.clone().negate();
 
 
-		;
-
-
 		// check forward
-
 		for (var vertexIndex = 0; vertexIndex < this.forwardCollisionDetectionPoints.length; vertexIndex++) {
 
 			var vertex = this.forwardCollisionDetectionPoints[vertexIndex].clone();
@@ -602,14 +596,8 @@ class Scene {
 		this.scene.add(mesh);
 	}
 
-	// TODO...
 	//https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
 	detectCollisions() {
-		// from player controls direction
-		// let xDir = -  Math.sin(this.controls.player.rotation.y);
-		// let zDir = - Math.cos(this.controls.player.rotation.y);
-		// let dirVec = new THREE.Vector3(xDir, 0, zDir);
-		// dirVec.normalize();
 		// https://github.com/mrdoob/three.js/issues/1606
 		var matrix = new THREE.Matrix4();
 		matrix.extractRotation(this.playerGroup.matrix);
@@ -687,13 +675,15 @@ class Scene {
 		// let ctx = localVideoCanvas.getContext('2d')
 		// ctx.translate(localVideoCanvas.width, 0);
 		// ctx.scale(-1, 1); // flip local image
-		this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
+		if (localVideo != null && localVideoCanvas != null) {
+			this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
+		}
 
 
 		for (let _id in clients) {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
-			if (remoteVideo != null) {
+			if (remoteVideo != null && remoteVideoCanvas != null) {
 				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
 			}
 		}
@@ -726,10 +716,12 @@ class Scene {
 	}
 
 	onLeaveCanvas(e) {
-		// this.controls.enabled = false;
+		this.controls.enabled = false;
 	}
+	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
+	// controls to be stuck on
 	onEnterCanvas(e) {
-		// this.controls.enabled = true;
+		this.controls.enabled = true;		
 	}
 
 	// keystate functions from playercontrols
@@ -779,13 +771,17 @@ function makeVideoTextureAndMaterial(_id) {
 }
 
 
-// TODO
-function makePositionalAudioSource(_audioStream) {
-	// create the PositionalAudio object (passing in the listener)
-	var audioSource = new THREE.PositionalAudio(glScene.listener);
-	audioSource.setMediaStreamSource(_audioStream);
-	audioSource.setRefDistance(20);
-	audioSource.play();
-	sound.setVolume(0.5);
-	return audioSource;
+// TODO check this
+function createOrUpdatePositionalAudio(_id, _audioStream) {
+	let audioSource;
+	if (positionalAudioSource in clients[_id]) {
+		audioSource = clients[_id].positionalAudioSource;
+	} else {
+		audioSource = new THREE.PositionalAudio(glScene.listener);
+		audioSource.setRefDistance(10);
+		audioSource.setRolloffFactor(10);
+		clients[_id].group.add(audioSource);
+		clients[_id].positionalAudioSource = audioSource;
+	}
+	audioSource.setMediaStreamSource(audioStream);
 }

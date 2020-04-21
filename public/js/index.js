@@ -32,22 +32,10 @@ const videoWidth = 160;
 const videoHeight = 120;
 const videoFrameRate = 15;
 
-// Our local media stream (i.e. webcam and microphone stream)
-let localMediaStream = null;
-
 // an array of media streams each with different constraints
 let localMediaStreams = [];
 
-// Constraints for our local audio/video stream
-let mediaConstraints = {
-	audio: true,
-	video: {
-		width: videoWidth,
-		height: videoHeight,
-		frameRate: videoFrameRate
-	}
-}
-
+let gotMediaAccess = false;
 
 // array of mediaConstraints arranged from highest to lowest quality
 let localMediaConstraints = [
@@ -59,7 +47,7 @@ let localMediaConstraints = [
 		video: {
 			width: videoWidth,
 			height: videoHeight,
-			frameRate: 1
+			frameRate: 10
 		}
 	},
 	{
@@ -99,9 +87,13 @@ window.onload = async () => {
 	console.log("Window loaded.");
 
 	// first get user media
-	// localMediaStream = await getMedia(mediaConstraints);
+	localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
 
-	localMediaStreams = await getLocalMediaStreams(localMediaConstraints)
+	if (gotMediaAccess) {
+		createOrUpdateClientVideo("local", localMediaStreams[0]);
+	} else {
+		createOrUpdateClientVideo("local", null);
+	}
 
 	// then initialize socket connection
 	initSocketConnection();
@@ -127,37 +119,14 @@ async function getLocalMediaStreams(_mediaConstraintsArray) {
 		try {
 			stream = await navigator.mediaDevices.getUserMedia(_mediaConstraintsArray[i]);
 			streams.push(stream);
-			// createOrUpdateClientVideo(Math.random(), stream);
 		} catch (err) {
 			console.log("Failed to get user media!");
 			console.warn(err);
+			return;
 		}
 	}
+	gotMediaAccess = true;
 	return streams;
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-async function getMedia(_mediaConstraints) {
-	let stream = null;
-
-	try {
-		stream = await navigator.mediaDevices.getUserMedia(_mediaConstraints);
-	} catch (err) {
-		console.log("Failed to get user media!");
-		console.warn(err);
-	}
-
-	return stream;
-}
-
-function addTracksToPeerConnection(_stream, _pc) {
-	if (_stream == null) {
-		console.log("Local User media stream not yet established!");
-	} else {
-		_stream.getTracks().forEach(track => {
-			_pc.addTrack(track, _stream)
-		});
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -185,11 +154,8 @@ function initSocketConnection() {
 		for (let i = 0; i < _ids.length; i++) {
 			if (_ids[i] != id) {
 				addClient(_ids[i], true);
-				// callUser(_ids[i]);
 			}
 		}
-
-
 	});
 
 	// when a new user has entered the server
@@ -232,8 +198,6 @@ function initSocketConnection() {
 
 	// SimplePeer:
 	socket.on("signal", data => {
-		console.log("onSignal");
-		console.log(clients[data.socket].peerConnection);
 		let _id = data.socket;
 		let signalData = data.signal;
 		let localPeer = clients[_id].peerConnection;
@@ -254,7 +218,10 @@ async function addClient(_id, _initiator) {
 	console.log("Adding client with id " + _id);
 	clients[_id] = {};
 
-	clients[_id].mediaStream = await getMedia(localMediaConstraints[0]) // start with okay quality
+	// clients[_id].mediaStream = await getMedia(localMediaConstraints[0]) // start with okay quality
+	if (gotMediaAccess) {
+		clients[_id].mediaStream = localMediaStreams[0];
+	}
 
 	// add peerConnection to the client
 	let sp = createSimplePeer(_id, _initiator);
@@ -266,8 +233,16 @@ async function addClient(_id, _initiator) {
 
 
 function createSimplePeer(_id, _initiator) {
-	// let sp = new SimplePeer({ initiator: _initiator, stream: localMediaStream });
-	let sp = new SimplePeer({ initiator: _initiator, stream: clients[_id].mediaStream });
+	let simplePeerOptions = {
+		initiator: _initiator
+	}
+
+	if (gotMediaAccess) {
+		simplePeerOptions.stream = clients[_id].mediaStream;
+	}
+
+	let sp = new SimplePeer(simplePeerOptions);
+
 
 	sp.on('signal', signal => {
 		socket.emit('signal', {
@@ -289,25 +264,25 @@ function createSimplePeer(_id, _initiator) {
 		console.log(err.code);
 	})
 
-	// sp.on('stream', stream => {
-	// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
-	// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
-	// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
+	sp.on('stream', stream => {
+		// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
+		// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
+		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
 
-	// 	////////////////////////////////////////////////////////////////////////
-	// 	// VIDEO:
-	// 	let videoStream = new MediaStream([stream.getVideoTracks()[0]]);
-	// 	createOrUpdateClientVideo(_id, videoStream);
+		// VIDEO:
+		let videoTracks = stream.getVideoTracks();
+		if (videoTracks.length > 0) {
+			let videoStream = new MediaStream([stream.getVideoTracks()[0]]);
+			createOrUpdateClientVideo(_id, videoStream);
+		}
 
-	// 	////////////////////////////////////////////////////////////////////////
-	// 	// AUDIO: 
-	// 	// some streams don't include audio
-	// 	let audioTracks = stream.getAudioTracks();
-	// 	if (audioTracks.length > 0) {
-	// 		let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
-	// 		createOrUpdateClientAudio(_id, audioStream);
-	// 	}
-	// });
+		// AUDIO: 
+		let audioTracks = stream.getAudioTracks();
+		if (audioTracks.length > 0) {
+			let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
+			createOrUpdateClientAudio(_id, audioStream);
+		}
+	});
 
 	// do it all in track 
 	sp.on('track', (track, stream) => {
@@ -398,8 +373,8 @@ function createSimplePeer(_id, _initiator) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Three.js
 ////////////////////////////////////////////////////////////////////////////////
+// Three.js 🌻
 
 function onPlayerMove() {
 	// console.log('Sending movement update to server.');
@@ -412,7 +387,7 @@ function createScene() {
 	glScene = new Scene(
 		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
-		_height = window.innerHeight * 0.8,
+		_height = window.innerHeight,
 		clearColor = 'lightblue',
 		onPlayerMove);
 }
@@ -421,50 +396,29 @@ function createScene() {
 //////////////////////////////////////////////////////////////////////
 // Utilities 🚂
 
-// created <video> element for local mediastream
-function createLocalVideoElement() {
-	const videoElement = document.createElement("video");
-	videoElement.id = "local_video";
-	videoElement.autoplay = true;
-	videoElement.width = videoWidth;
-	videoElement.height = videoHeight;
-	videoElement.style = "visibility: hidden;";
-
-	// there seems to be a weird behavior where a muted video 
-	// won't autoplay in chrome...  so instead of muting the video, simply make a
-	// video only stream for this video element :|
-	let videoStream = new MediaStream([localMediaStreams[0].getVideoTracks()[0]]);
-
-	videoElement.srcObject = videoStream;
-	document.body.appendChild(videoElement);
-}
-
 function createOrUpdateClientVideo(_id, _videoStream) {
-	let remoteVideoElement = document.getElementById(_id + "_video");
-	if (remoteVideoElement == null) {
+	let videoEl = document.getElementById(_id + "_video");
+	if (videoEl == null) {
 		console.log("Creating video element for user with ID: " + _id);
-		remoteVideoElement = document.createElement('video');
-		remoteVideoElement.id = _id + "_video";
-		remoteVideoElement.style = "visibility: hidden;";
-		document.body.appendChild(remoteVideoElement);
+		videoEl = document.createElement('video');
+		videoEl.id = _id + "_video";
+		videoEl.style = "visibility: hidden;";
+		document.body.appendChild(videoEl);
 	}
 
 	// Question: do i need to update video width and height? or is that based on stream...?
 
 	console.log("Updating video source for user with ID: " + _id);
-	remoteVideoElement.srcObject = _videoStream
-	remoteVideoElement.autoplay = true;
+	if (_videoStream != null) {
+		videoEl.srcObject = _videoStream
+	}
+	videoEl.autoplay = true;
 }
 
+// TODO positional audio in chrome with adjustment of volume...? 
 function createOrUpdateClientAudio(_id, _audioStream) {
 	// Positional Audio Works in Firefox:
-	// TODO make this work for updated stream with same positional audio object:
 	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
-	// let audioSource = new THREE.PositionalAudio(glScene.listener);
-	// audioSource.setMediaStreamSource(audioStream);
-	// audioSource.setRefDistance(10);
-	// audioSource.setRolloffFactor(10);
-	// clients[_id].group.add(audioSource);
 
 	// Global Audio:
 	let remoteAudioElement = document.getElementById(_id + "_audio");
