@@ -21,29 +21,61 @@ let clients = {};
 // Variable to store our three.js scene:
 let glScene;
 
+let DEBUG_MODE = true;
+
 // WebRTC Variables:
 const { RTCPeerConnection, RTCSessionDescription } = window;
 let iceServerList;
-
-
 
 // set video width / height / framerate here:
 const videoWidth = 160;
 const videoHeight = 120;
 const videoFrameRate = 15;
 
-// Our local media stream (i.e. webcam and microphone stream)
-let localMediaStream = null;
+// an array of media streams each with different constraints
+let localMediaStreams = [];
 
-// Constraints for our local audio/video stream
-let mediaConstraints = {
-	audio: true,
-	video: {
-		width: videoWidth,
-		height: videoHeight,
-		frameRate: videoFrameRate
+let gotMediaAccess = false;
+
+// array of mediaConstraints arranged from highest to lowest quality
+let localMediaConstraints = [
+	{
+		audio: {
+			echoCancellation: true,
+			noiseSuppression: true
+		},
+		video: {
+			width: videoWidth,
+			height: videoHeight,
+			frameRate: 10
+		}
+	},
+	{
+		audio: {
+			echoCancellation: true,
+			noiseSuppression: true
+		},
+		video: {
+			width: videoWidth / 2,
+			height: videoHeight / 2,
+			frameRate: 5
+		}
+	},
+	{
+		audio: {
+			echoCancellation: true,
+			noiseSuppression: true
+		},
+		video: {
+			width: videoWidth / 2,
+			height: videoHeight / 2,
+			frameRate: 0.5
+		}
 	}
-}
+];
+
+
+
 
 
 
@@ -55,7 +87,13 @@ window.onload = async () => {
 	console.log("Window loaded.");
 
 	// first get user media
-	localMediaStream = await getMedia(mediaConstraints);
+	localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
+
+	if (gotMediaAccess) {
+		createOrUpdateClientVideo("local", localMediaStreams[0]);
+	} else {
+		createOrUpdateClientVideo("local", null);
+	}
 
 	// then initialize socket connection
 	initSocketConnection();
@@ -74,27 +112,21 @@ window.onload = async () => {
 ////////////////////////////////////////////////////////////////////////////////
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-async function getMedia(_mediaConstraints) {
-	let stream = null;
-
-	try {
-		stream = await navigator.mediaDevices.getUserMedia(_mediaConstraints);
-	} catch (err) {
-		console.log("Failed to get user media!");
-		console.warn(err);
+async function getLocalMediaStreams(_mediaConstraintsArray) {
+	let streams = [];
+	for (let i = 0; i < _mediaConstraintsArray.length; i++) {
+		let stream = null;
+		try {
+			stream = await navigator.mediaDevices.getUserMedia(_mediaConstraintsArray[i]);
+			streams.push(stream);
+		} catch (err) {
+			console.log("Failed to get user media!");
+			console.warn(err);
+			return;
+		}
 	}
-
-	return stream;
-}
-
-function addTracksToPeerConnection(_stream, _pc) {
-	if (_stream == null) {
-		console.log("Local User media stream not yet established!");
-	} else {
-		_stream.getTracks().forEach(track => {
-			_pc.addTrack(track, _stream)
-		});
-	}
+	gotMediaAccess = true;
+	return streams;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,12 +153,9 @@ function initSocketConnection() {
 		// for each existing user, add them as a client and add tracks to their peer connection
 		for (let i = 0; i < _ids.length; i++) {
 			if (_ids[i] != id) {
-				addClient(_ids[i]);
-				callUser(_ids[i]);
+				addClient(_ids[i], true);
 			}
 		}
-
-
 	});
 
 	// when a new user has entered the server
@@ -143,7 +172,7 @@ function initSocketConnection() {
 
 		if (_id != id && !alreadyHasUser) {
 			console.log('A new user connected with the id: ' + _id);
-			addClient(_id);
+			addClient(_id, false);
 		}
 
 	});
@@ -151,61 +180,30 @@ function initSocketConnection() {
 	socket.on('userDisconnected', (clientCount, _id, _ids) => {
 		// Update the data from the server
 
-		if (_id != id) {
-			console.log('A user disconnected with the id: ' + _id);
-			glScene.removeClient(_id);
-			delete clients[_id];
+		if (_id in clients) {
+			if (_id != id) {
+				console.log('A user disconnected with the id: ' + _id);
+				glScene.removeClient(_id);
+				removeClientDOMElements(_id);
+				clients[_id].peerConnection.destroy();
+				delete clients[_id];
+			}
 		}
 	});
-
 
 	// Update when one of the users moves in space
 	socket.on('userPositions', _clientProps => {
 		glScene.updateClientPositions(_clientProps);
 	});
 
-	socket.on("call-made", async data => {
-		console.log("Receiving call from user " + data.socket);
+	// SimplePeer:
+	socket.on("signal", data => {
+		let _id = data.socket;
+		let signalData = data.signal;
+		let localPeer = clients[_id].peerConnection;
 
-		// set remote session description to incoming offer
-		await clients[data.socket].peerConnection.setRemoteDescription(
-			new RTCSessionDescription(data.offer)
-		);
-
-		// create answer and set local session description to that answer
-		const answer = await clients[data.socket].peerConnection.createAnswer();
-		await clients[data.socket].peerConnection.setLocalDescription(new RTCSessionDescription(answer));
-
-		// send answer out to caller
-		socket.emit("make-answer", {
-			answer,
-			to: data.socket
-		});
-
-	});
-
-	socket.on("answer-made", async data => {
-
-		console.log("Answer made by " + data.socket);
-
-		// set the remote description to be the incoming answer
-		await clients[data.socket].peerConnection.setRemoteDescription(
-			new RTCSessionDescription(data.answer)
-		);
-
-		// what is this for?
-		if (!clients[data.socket].isAlreadyCalling) {
-			callUser(data.socket);
-			clients[data.socket].isAlreadyCalling = true;
-		}
-	});
-
-	socket.on("call-rejected", data => {
-		alert(`User: "Socket: ${data.socket}" rejected your call.`);
-	});
-
-	socket.on('iceCandidateFound', data => {
-		clients[data.socket].peerConnection.addIceCandidate(data.candidate);
+		console.log("Received signaling data from peer with socket ID: " + _id);
+		localPeer.signal(signalData)
 	});
 }
 
@@ -216,153 +214,167 @@ function initSocketConnection() {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
-function addClient(_id) {
+async function addClient(_id, _initiator) {
 	console.log("Adding client with id " + _id);
 	clients[_id] = {};
 
-	// add peerConnection to the client
-	let pc = createPeerConnection(_id);
-	clients[_id].peerConnection = pc;
+	// clients[_id].mediaStream = await getMedia(localMediaConstraints[0]) // start with okay quality
+	if (gotMediaAccess) {
+		clients[_id].mediaStream = localMediaStreams[0];
+	}
 
-	// boolean for establishing WebRTC connection
-	clients[_id].isAlreadyCalling = false;
+	// add peerConnection to the client
+	let sp = createSimplePeer(_id, _initiator);
+	clients[_id].peerConnection = sp;
 
 	// add client to scene:
 	glScene.addClient(_id);
 }
 
 
-// this function sets up a peer connection and corresponding DOM elements for a specific client
-function createPeerConnection(_id) {
-	// create a peer connection for  client:
-	let peerConnectionConfiguration;
-	// if (false) {
-	peerConnectionConfiguration = { iceServers: iceServerList };
-	// } else {
-	// peerConnectionConfiguration = {}; // this should work locally
-	// }
+function createSimplePeer(_id, _initiator) {
+	let simplePeerOptions = {
+		initiator: _initiator
+	}
+
+	if (gotMediaAccess) {
+		simplePeerOptions.stream = clients[_id].mediaStream;
+	}
+
+	let sp = new SimplePeer(simplePeerOptions);
 
 
-	let pc = new RTCPeerConnection(peerConnectionConfiguration);
+	sp.on('signal', signal => {
+		socket.emit('signal', {
+			signal,
+			to: _id
+		})
+	});
 
-	// add ontrack listener for peer connection
-	pc.ontrack = function ({ streams: [_remoteStream] }) {
-		console.log("OnTrack: track added to RTC Peer Connection.");
-		console.log(_remoteStream);
+	sp.on('connect', () => {
+		sp.send('Hello from peer ' + id);
+	});
+
+	sp.on('data', data => {
+		console.log('Incoming message: ' + data);
+	});
+
+	sp.on('error', (err) => {
+		console.log("Error in peer connection with ID: " + _id);
+		console.log(err.code);
+	})
+
+	sp.on('stream', stream => {
 		// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
 		// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
 		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
 
-		let videoStream = new MediaStream([_remoteStream.getVideoTracks()[0]]);
-		let audioStream = new MediaStream([_remoteStream.getAudioTracks()[0]]);
-
-		//////////////////////////////////////////////////////////////////////
-		// UNCOMMENT ONE OF THE FOLLOWING APPROACHES:
-		//////////////////////////////////////////////////////////////////////
-		// 1. This works:
-		// let audioEl = document.createElement('audio');
-		// audioEl.srcObject = audioStream;
-		// audioEl.play();
-		// audioEl.style = "position:absolute; top: 0px; right: 0px;";
-		// audioEl.controls = 'controls';
-		// audioEl.volume = 1;
-		// document.body.appendChild(audioEl);
-
-		//////////////////////////////////////////////////////////////////////
-		// 2. This also works, but does not allow volume control (bc volme is matched from HTMLMediaElement)
-		// let audioEl = document.createElement('audio');
-		// audioEl.srcObject = audioStream;
-		// audioEl.play();
-		// audioEl.style = "position:absolute; top: 0px; right: 0px;";
-		// audioEl.controls = 'controls';
-		// audioEl.volume = 1;
-		// document.body.appendChild(audioEl);
-		// let audioSource = new THREE.Audio(glScene.listener);
-		// audioSource.setMediaElementSource(audioEl);
-		// glScene.scene.add(audioSource);
-
-		//////////////////////////////////////////////////////////////////////
-		// 3. This does not work:
-		// console.log("Adding audio stream source to scene.");
-		// let audioSource = new THREE.Audio(glScene.listener);
-		// audioSource.setMediaStreamSource(audioStream);
-		// glScene.scene.add(audioSource);
-		// console.log(audioSource);
-		//////////////////////////////////////////////////////////////////////
-		// 4. This also does not work:
-
-		let audioSource = new THREE.PositionalAudio(glScene.listener);
-		audioSource.setMediaStreamSource(audioStream);
-		audioSource.setRefDistance(10);
-		audioSource.setRolloffFactor(10);
-		clients[_id].group.add(audioSource);
-
-		//////////////////////////////////////////////////////////////////////
-		// Eventually, connect the positional audioSource to the client group:
-		// clients[_id].group.add(audioSource);
-
-		const remoteVideoElement = document.getElementById(_id);
-		if (remoteVideoElement) {
-			remoteVideoElement.srcObject = videoStream;
-		} else {
-			console.warn("No video element found for ID: " + _id);
+		// VIDEO:
+		let videoTracks = stream.getVideoTracks();
+		if (videoTracks.length > 0) {
+			let videoStream = new MediaStream([stream.getVideoTracks()[0]]);
+			createOrUpdateClientVideo(_id, videoStream);
 		}
 
-	};
-
-	// https://www.twilio.com/docs/stun-turn
-	// Here's an example in javascript
-	pc.onicecandidate = function (evt) {
-		if (evt.candidate) {
-			console.log('OnICECandidate: Forwarding ICE candidate to peer.');
-
-			// send the candidate to the other party via your signaling channel
-			socket.emit('addIceCandidate', {
-				candidate: evt.candidate,
-				to: _id
-			});
+		// AUDIO: 
+		let audioTracks = stream.getAudioTracks();
+		if (audioTracks.length > 0) {
+			let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
+			createOrUpdateClientAudio(_id, audioStream);
 		}
-	};
+	});
 
-	addTracksToPeerConnection(localMediaStream, pc);
+	// do it all in track 
+	sp.on('track', (track, stream) => {
+		// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
+		// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
+		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
 
-	return pc;
+		// VIDEO:
+		let videoTracks = stream.getVideoTracks();
+		if (videoTracks.length > 0) {
+			let videoStream = new MediaStream([stream.getVideoTracks()[0]]);
+			createOrUpdateClientVideo(_id, videoStream);
+		}
+
+		// AUDIO: 
+		let audioTracks = stream.getAudioTracks();
+		if (audioTracks.length > 0) {
+			let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
+			createOrUpdateClientAudio(_id, audioStream);
+		}
+	});
+
+	return sp;
 }
 
 
-async function callUser(id) {
-	if (clients.hasOwnProperty(id)) {
-		console.log('Calling user ' + id);
 
-		// https://blog.carbonfive.com/2014/10/16/webrtc-made-simple/
-		// create offer with session description
-		const offer = await clients[id].peerConnection.createOffer();
-		await clients[id].peerConnection.setLocalDescription(new RTCSessionDescription(offer));
-
-		socket.emit("call-user", {
-			offer,
-			to: id
-		});
-	}
-}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// DIY Selective Forwarding Unit Work-In-Progress
 
 // temporarily pause the outgoing stream
-function disableOutgoingStream() {
-	localMediaStream.getTracks().forEach(track => {
-		track.enabled = false;
-	})
-}
-// enable the outgoing stream
-function enableOutgoingStream() {
-	localMediaStream.getTracks().forEach(track => {
-		track.enabled = true;
-	})
-}
+// function disableOutgoingStream() {
+// 	localMediaStream.getTracks().forEach(track => {
+// 		track.enabled = false;
+// 	})
+// }
+// // enable the outgoing stream
+// function enableOutgoingStream() {
+// 	localMediaStream.getTracks().forEach(track => {
+// 		track.enabled = true;
+// 	})
+// }
+
+// function swapOutgoingStreams(_id, _existingStream, _newStream) {
+// 	clients[_id].peerConnection.removeStream(_existingStream)
+// 	clients[_id].peerConnection.addStream(_newStream);
+// }
+
+// function adjustOutgoingStream(_id, _mediaConstraints){
+// 	let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
+// }
+
+// function enableOutgoingAudio(_id) {
+// 	clients[_id].mediaStream.getAudioTracks().forEach(track => {
+// 		track.enabled = true;
+// 	})
+// }
+// function disableOutgoingAudio(_id) {
+// 	clients[_id].mediaStream.getAudioTracks().forEach(track => {
+// 		track.enabled = false;
+// 	})
+// }
+
+// https://github.com/feross/simple-peer/issues/606
+// function setPeerVideoQuality(_id, qualityLevel) {
+// 	let peer = clients[_id].peerConnection;
+// 	let existingTrack = clients[_id].mediaStream.getVideoTracks()[0];
+// 	let newTrack = localMediaStreams[qualityLevel].getVideoTracks()[0].clone();
+// 	peer.replaceTrack(existingTrack, newTrack, clients[_id].mediaStream);
+// }
+
+// function enablePeerAudio(_id) {
+// 	let peer = clients[_id].peerConnection;
+// 	let peerMediaStream = clients[_id].mediaStream;
+// 	localMediaStreams[0].getAudioTracks().forEach(track => {
+// 		peer.addTrack(track.clone(), peerMediaStream)
+// 	})
+// }
+
+// function disablePeerAudio(_id) {
+// 	let peer = clients[_id].peerConnection;
+// 	let peerMediaStream = clients[_id].mediaStream;
+// 	peerMediaStream.getAudioTracks().forEach(track => {
+// 		peer.removeTrack(track, peerMediaStream);
+// 	})
+// }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Three.js
 ////////////////////////////////////////////////////////////////////////////////
+// Three.js 🌻
 
 function onPlayerMove() {
 	// console.log('Sending movement update to server.');
@@ -375,11 +387,63 @@ function createScene() {
 	glScene = new Scene(
 		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
-		_height = window.innerHeight * 0.8,
+		_height = window.innerHeight,
 		clearColor = 'lightblue',
 		onPlayerMove);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Utilities 🚂
+
+function createOrUpdateClientVideo(_id, _videoStream) {
+	let videoEl = document.getElementById(_id + "_video");
+	if (videoEl == null) {
+		console.log("Creating video element for user with ID: " + _id);
+		videoEl = document.createElement('video');
+		videoEl.id = _id + "_video";
+		videoEl.style = "visibility: hidden;";
+		document.body.appendChild(videoEl);
+	}
+
+	// Question: do i need to update video width and height? or is that based on stream...?
+
+	console.log("Updating video source for user with ID: " + _id);
+	if (_videoStream != null) {
+		videoEl.srcObject = _videoStream
+	}
+	videoEl.autoplay = true;
+}
+
+// TODO positional audio in chrome with adjustment of volume...? 
+function createOrUpdateClientAudio(_id, _audioStream) {
+	// Positional Audio Works in Firefox:
+	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
+
+	// Global Audio:
+	let remoteAudioElement = document.getElementById(_id + "_audio");
+	if (remoteAudioElement == null) {
+		console.log("Creating audio element for user with ID: " + _id);
+		remoteAudioElement = document.createElement('audio');
+		remoteAudioElement.id = _id + "_audio";
+		document.body.appendChild(remoteAudioElement);
+	}
+
+	console.log("Updating <audio> source object for client with ID: " + _id);
+	remoteAudioElement.srcObject = _audioStream;
+	remoteAudioElement.play();
+	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
+	// remoteAudioElement.volume = 1;
+}
+
+// remove <video> element and corresponding <canvas> using client ID
+function removeClientDOMElements(_id) {
+	console.log("Removing DOM elements for client with ID: " + _id);
+
+	let videoEl = document.getElementById(_id + "_video");
+	if (videoEl != null) { videoEl.remove(); }
+	let canvasEl = document.getElementById(_id + "_canvas");
+	if (canvasEl != null) { canvasEl.remove(); }
+	let audioEl = document.getElementById(_id + "_audio");
+	if (audioEl != null) { audioEl.remove(); }
+}

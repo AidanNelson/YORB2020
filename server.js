@@ -15,31 +15,20 @@ const express = require('express');
 const app = express();
 
 ////////HTTP/////////
-const http = require('http').createServer(app);
+// const http = require('http');
+// const httpServer = http.createServer(app);
 
 //Port and server setup
 const port = process.env.PORT || 1989;
 
-
-
 //Server
 const server = app.listen(port);
-
-//EJS
-const ejs = require('ejs');
 
 //Console the port
 console.log('Server is running localhost on port: ' + port);
 
 /////SOCKET.IO///////
 const io = require('socket.io').listen(server);
-
-//Setup the views folder
-app.set("views", __dirname + '/views');
-
-//Setup ejs, so I can write HTML(:
-app.engine('.html', ejs.__express);
-app.set('view-engine', 'html');
 
 //Setup the public client folder
 app.use(express.static(__dirname + '/public'));
@@ -64,13 +53,6 @@ twilioClient.tokens.create().then(token => {
   console.log("Got ICE Server credentials from Twilio.");
   console.log(token.iceServers);
 });
-
-// let iceServers = [{
-//   urls: [
-//     "stun3.l.google.com:19302",
-//     "stun4.l.google.com:19302"
-//   ]
-// }];
 
 let clients = {};
 
@@ -112,56 +94,13 @@ io.on('connection', client => {
     console.log('User ' + client.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
 
   });
-
-  // from simple chat app:
-  // WEBRTC Communications
-  client.on("call-user", (data) => {
-    console.log('Server forwarding call from ' + client.id + " to " + data.to);
-    client.to(data.to).emit("call-made", {
-      offer: data.offer,
+  
+  // SimplePeer Signaling
+  client.on("signal", (data) => {
+    console.log('Server forwarding signaling data from ' + client.id + " to " + data.to);
+    client.to(data.to).emit("signal", {
+      signal: data.signal,
       socket: client.id
     });
   });
-
-  client.on("make-answer", data => {
-    client.to(data.to).emit("answer-made", {
-      socket: client.id,
-      answer: data.answer
-    });
-  });
-
-  client.on("reject-call", data => {
-    client.to(data.from).emit("call-rejected", {
-      socket: client.id
-    });
-  });
-
-  // ICE Setup
-  client.on('addIceCandidate', data => {
-    client.to(data.to).emit("iceCandidateFound", {
-      socket: client.id,
-      candidate: data.candidate
-    });
-  });
-});
-
-
-
-
-/////////////////////
-//////ROUTER/////////
-/////////////////////
-
-//Client view
-app.get('/', (req, res) => {
-
-  res.render('index.html');
-
-});
-
-//404 view
-app.get('/*', (req, res) => {
-
-  res.render('404.html');
-
 });

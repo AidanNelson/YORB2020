@@ -162,7 +162,7 @@ class Scene {
 
 		// wall material:
 		this.wallMaterial = new THREE.MeshPhongMaterial({
-			color: 0x00fff5,
+			color: 0xffffe6,
 			bumpMap: paintedRoughnessTexture,
 			bumpScale: 0.25,
 			specular: 0xfffff5,
@@ -285,8 +285,6 @@ class Scene {
 			new THREE.MeshNormalMaterial()
 		);
 
-		createLocalVideoElement();
-
 		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial("local");
 
 		let _head = new THREE.Mesh(
@@ -318,7 +316,7 @@ class Scene {
 		);
 
 
-		createClientVideoElement(_id);
+		// createClientVideoElement(_id);
 
 		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id);
 
@@ -350,8 +348,6 @@ class Scene {
 
 	removeClient(_id) {
 		this.scene.remove(clients[_id].group);
-
-		removeClientVideoElementAndCanvas(_id);
 	}
 
 	// overloaded function can deal with new info or not
@@ -370,14 +366,15 @@ class Scene {
 		let snapDistance = 0.5;
 		let snapAngle = 0.2; // radians
 		for (let _id in clients) {
-
-			clients[_id].group.position.lerp(clients[_id].desiredPosition, 0.2);
-			clients[_id].group.quaternion.slerp(clients[_id].desiredRotation, 0.2);
-			if (clients[_id].group.position.distanceTo(clients[_id].desiredPosition) < snapDistance) {
-				clients[_id].group.position.set(clients[_id].desiredPosition.x, clients[_id].desiredPosition.y, clients[_id].desiredPosition.z);
-			}
-			if (clients[_id].group.quaternion.angleTo(clients[_id].desiredRotation) < snapAngle) {
-				clients[_id].group.quaternion.set(clients[_id].desiredRotation.x, clients[_id].desiredRotation.y, clients[_id].desiredRotation.z, clients[_id].desiredRotation.w);
+			if (clients[_id].group) {
+				clients[_id].group.position.lerp(clients[_id].desiredPosition, 0.2);
+				clients[_id].group.quaternion.slerp(clients[_id].desiredRotation, 0.2);
+				if (clients[_id].group.position.distanceTo(clients[_id].desiredPosition) < snapDistance) {
+					clients[_id].group.position.set(clients[_id].desiredPosition.x, clients[_id].desiredPosition.y, clients[_id].desiredPosition.z);
+				}
+				if (clients[_id].group.quaternion.angleTo(clients[_id].desiredRotation) < snapAngle) {
+					clients[_id].group.quaternion.set(clients[_id].desiredRotation.x, clients[_id].desiredRotation.y, clients[_id].desiredRotation.z, clients[_id].desiredRotation.w);
+				}
 			}
 		}
 	}
@@ -466,11 +463,7 @@ class Scene {
 		var leftDir = rightDir.clone().negate();
 
 
-		;
-
-
 		// check forward
-
 		for (var vertexIndex = 0; vertexIndex < this.forwardCollisionDetectionPoints.length; vertexIndex++) {
 
 			var vertex = this.forwardCollisionDetectionPoints[vertexIndex].clone();
@@ -584,8 +577,6 @@ class Scene {
 					console.log("Left hit on vertex " + vertexIndex + "!");
 				}
 				this.obstacles.left = true;
-			} else {
-				this.obstacles.left = false
 			}
 		}
 	}
@@ -605,14 +596,8 @@ class Scene {
 		this.scene.add(mesh);
 	}
 
-	// TODO...
 	//https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
 	detectCollisions() {
-		// from player controls direction
-		// let xDir = -  Math.sin(this.controls.player.rotation.y);
-		// let zDir = - Math.cos(this.controls.player.rotation.y);
-		// let dirVec = new THREE.Vector3(xDir, 0, zDir);
-		// dirVec.normalize();
 		// https://github.com/mrdoob/three.js/issues/1606
 		var matrix = new THREE.Matrix4();
 		matrix.extractRotation(this.playerGroup.matrix);
@@ -690,13 +675,17 @@ class Scene {
 		// let ctx = localVideoCanvas.getContext('2d')
 		// ctx.translate(localVideoCanvas.width, 0);
 		// ctx.scale(-1, 1); // flip local image
-		this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
+		if (localVideo != null && localVideoCanvas != null) {
+			this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
+		}
 
 
 		for (let _id in clients) {
-			let remoteVideo = document.getElementById(_id);
+			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
-			this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
+			if (remoteVideo != null && remoteVideoCanvas != null) {
+				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
+			}
 		}
 	}
 
@@ -727,10 +716,12 @@ class Scene {
 	}
 
 	onLeaveCanvas(e) {
-		// this.controls.enabled = false;
+		this.controls.enabled = false;
 	}
+	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
+	// controls to be stuck on
 	onEnterCanvas(e) {
-		// this.controls.enabled = true;
+		this.controls.enabled = true;		
 	}
 
 	// keystate functions from playercontrols
@@ -745,52 +736,10 @@ class Scene {
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Utilities 🚂
-
-// created <video> element for local mediastream
-function createLocalVideoElement() {
-	const videoElement = document.createElement("video");
-	videoElement.id = "local_video";
-	videoElement.autoplay = true;
-	videoElement.width = videoWidth;
-	videoElement.height = videoHeight;
-	videoElement.style = "visibility: hidden;";
-
-	// there seems to be a weird behavior where a muted video 
-	// won't autoplay in chrome...  so instead of muting the video, simply make a
-	// video only stream for this video element :|
-	let videoStream = new MediaStream([localMediaStream.getVideoTracks()[0]]);
-
-	videoElement.srcObject = videoStream;
-	document.body.appendChild(videoElement);
-}
-
-// created <video> element using client ID
-function createClientVideoElement(_id) {
-	console.log("Creating <video> element for client with id: " + _id);
-
-	const videoElement = document.createElement("video");
-	videoElement.id = _id;
-	videoElement.width = videoWidth;
-	videoElement.height = videoHeight;
-	videoElement.autoplay = true;
-	// videoElement.muted = true; // TODO Positional Audio
-	videoElement.style = "visibility: hidden;";
-
-	document.body.appendChild(videoElement);
-}
-
-// remove <video> element and corresponding <canvas> using client ID
-function removeClientVideoElementAndCanvas(_id) {
-	console.log("Removing <video> element for client with id: " + _id);
-
-	let videoEl = document.getElementById(_id).remove();
-	if (videoEl != null) { videoEl.remove(); }
-	let canvasEl = document.getElementById(_id + "_canvas");
-	if (canvasEl != null) { canvasEl.remove(); }
-}
 
 // Adapted from: https://github.com/zacharystenger/three-js-video-chat
 function makeVideoTextureAndMaterial(_id) {
@@ -822,13 +771,17 @@ function makeVideoTextureAndMaterial(_id) {
 }
 
 
-// TODO
-function makePositionalAudioSource(_audioStream) {
-	// create the PositionalAudio object (passing in the listener)
-	var audioSource = new THREE.PositionalAudio(glScene.listener);
-	audioSource.setMediaStreamSource(_audioStream);
-	audioSource.setRefDistance(20);
-	audioSource.play();
-	sound.setVolume(0.5);
-	return audioSource;
+// TODO check this
+function createOrUpdatePositionalAudio(_id, _audioStream) {
+	let audioSource;
+	if (positionalAudioSource in clients[_id]) {
+		audioSource = clients[_id].positionalAudioSource;
+	} else {
+		audioSource = new THREE.PositionalAudio(glScene.listener);
+		audioSource.setRefDistance(10);
+		audioSource.setRolloffFactor(10);
+		clients[_id].group.add(audioSource);
+		clients[_id].positionalAudioSource = audioSource;
+	}
+	audioSource.setMediaStreamSource(audioStream);
 }
