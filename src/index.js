@@ -11,9 +11,14 @@
 *
 */
 
+
+  
+import Scene from './scene';
+var SimplePeer = require('simple-peer')
+
 // socket.io
 let socket;
-let id;
+let mySocketID;
 
 // array of connected clients
 let clients = {};
@@ -22,7 +27,6 @@ let clients = {};
 let glScene;
 
 let DEBUG_MODE = true;
-
 // WebRTC Variables:
 const { RTCPeerConnection, RTCSessionDescription } = window;
 let iceServerList;
@@ -148,11 +152,11 @@ function initSocketConnection() {
 
 		// keep a local copy of my ID:
 		console.log('My socket ID is: ' + _id);
-		id = _id;
+		mySocketID = _id;
 
 		// for each existing user, add them as a client and add tracks to their peer connection
 		for (let i = 0; i < _ids.length; i++) {
-			if (_ids[i] != id) {
+			if (_ids[i] != mySocketID) {
 				addClient(_ids[i], true);
 			}
 		}
@@ -170,7 +174,7 @@ function initSocketConnection() {
 			}
 		}
 
-		if (_id != id && !alreadyHasUser) {
+		if (_id != mySocketID && !alreadyHasUser) {
 			console.log('A new user connected with the id: ' + _id);
 			addClient(_id, false);
 		}
@@ -181,7 +185,7 @@ function initSocketConnection() {
 		// Update the data from the server
 
 		if (_id in clients) {
-			if (_id != id) {
+			if (_id != mySocketID) {
 				console.log('A user disconnected with the id: ' + _id);
 				glScene.removeClient(_id);
 				removeClientDOMElements(_id);
@@ -252,7 +256,7 @@ function createSimplePeer(_id, _initiator) {
 	});
 
 	sp.on('connect', () => {
-		sp.send('Hello from peer ' + id);
+		sp.send('Hello from peer ' + mySocketID);
 	});
 
 	sp.on('data', data => {
@@ -384,12 +388,15 @@ function onPlayerMove() {
 function createScene() {
 	// initialize three.js scene
 	console.log("Creating three.js scene...")
+
 	glScene = new Scene(
-		domElement = document.getElementById('gl_context'),
-		_width = window.innerWidth,
-		_height = window.innerHeight,
-		clearColor = 'lightblue',
-		onPlayerMove);
+		document.getElementById('gl_context'),
+		window.innerWidth,
+		window.innerHeight,
+		'lightblue',
+		onPlayerMove,
+		clients,
+		mySocketID);
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -1,1 +1,6 @@
 .env
+certs/
+node_modules
+config.js
+public/js/bundle.js
+

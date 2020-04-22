@@ -6,11 +6,12 @@
 *
 */
 
-THREE.PlayerControls = function (camera, player, domElement) {
+THREE.PlayerControls = function (camera, player, domElement, obstacles) {
 
 	this.camera = camera;
 	this.player = player;
 	this.domElement = (domElement !== undefined) ? domElement : document;
+	this.obstacles = obstacles;
 
 	// API
 
@@ -234,7 +235,7 @@ THREE.PlayerControls = function (camera, player, domElement) {
 	this.checkKeyStates = function () {
 		var movement = new THREE.Vector3();
 
-		if ((keyState[38] || keyState[87]) && !glScene.obstacles.forward) {
+		if ((keyState[38] || keyState[87]) && !this.obstacles.forward) {
 
 			// up arrow or 'w' - move forward
 
@@ -249,7 +250,7 @@ THREE.PlayerControls = function (camera, player, domElement) {
 
 		}
 
-		if ((keyState[40] || keyState[83]) && !glScene.obstacles.backward) {
+		if ((keyState[40] || keyState[83]) && !this.obstacles.backward) {
 
 			// down arrow or 's' - move backward
 			playerIsMoving = true;
@@ -281,7 +282,7 @@ THREE.PlayerControls = function (camera, player, domElement) {
 			this.player.rotation.y -= this.turnSpeed;
 
 		}
-		if (keyState[81] && !glScene.obstacles.left) {
+		if (keyState[81] && !this.obstacles.left) {
 
 			// 'q' - strafe left
 			playerIsMoving = true;
@@ -297,7 +298,7 @@ THREE.PlayerControls = function (camera, player, domElement) {
 
 		}
 
-		if (keyState[69] && !glScene.obstacles.right) {
+		if (keyState[69] && !this.obstacles.right) {
 
 			// 'e' - strage right
 			playerIsMoving = true;
