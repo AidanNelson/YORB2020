@@ -23,6 +23,7 @@ This space is built using a number of technologies, including:
 * [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) provides video / audio chat functionality
 * [Rhino3D](https://www.rhino3d.com/) for building the floor model
 * [Blender](blender.org) conversion of model into GLTF files
+* [SimplePeer](https://github.com/feross/simple-peer) provides a level of abstraction around the WebRTC [PeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
 
 
 And uses code from a number of sources, including: 
