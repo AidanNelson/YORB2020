@@ -11,9 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "debug": "^4.1.1",
+    "deep-equal": "^2.0.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "mediasoup": "^3.5.8",
+    "mediasoup-client": "^3.6.5",
     "simple-peer": "^9.6.2",
     "socket.io": "^2.3.0",
     "three": "^0.115.0",
