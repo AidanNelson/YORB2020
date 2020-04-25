@@ -321,11 +321,7 @@ async function runSocketServer() {
         roomState.peers[peerId] = {
           joinTs: now,
           lastSeenTs: now,
-          media: {}, consumerLayers: {}, stats: {},
-          gameStats: {
-            position: [0, 0.5, 0],
-            rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
-          }
+          media: {}, consumerLayers: {}, stats: {}
         };
 
         callback({ routerRtpCapabilities: router.rtpCapabilities });

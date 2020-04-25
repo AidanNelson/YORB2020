@@ -1,62 +1,39 @@
 /* 
 * YORB 2020
-* 
-* This uses code from a THREE.js Multiplayer boilerplate made by Or Fleisher:
-* https://github.com/juniorxsound/THREE.Multiplayer
-* And a WEBRTC chat app made by Mikołaj Wargowski:
-* https://github.com/Miczeq22/simple-chat-app
 *
-* 
 * Aidan Nelson, April 2020
 *
 */
 
 
+
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // IMPORTS
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+
 import Scene from './scene';
 
-var SimplePeer = require('simple-peer')
-
-// const mediasoup = require('mediasoup-client');
 const socketClient = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
-// const config = require('../config');
 const hostname = window.location.hostname;
-
-
 
 import * as config from '../config';
 import * as mediasoup from 'mediasoup-client';
-import deepEqual from 'deep-equal';
 import debugModule from 'debug';
 
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
+
 const log = debugModule('demo-app');
 const warn = debugModule('demo-app:WARN');
 const err = debugModule('demo-app:ERROR');
 
 
-function setupButtons() {
-	// const joinButton = document.getElementById('join-button');
-	const sendCameraButton = document.getElementById('send-camera');
-	const stopStreamsButton = document.getElementById('stop-streams');
-	// const startScreenshareButton = document.getElementById('share-screen');
-	// const leaveRoomButton = document.getElementById('leave-room');
-	const camPauseRadioButton = document.getElementById('local-cam-checkbox');
-	const micPauseRadioButton = document.getElementById('local-mic-checkbox');
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+// Setup Global Variables:
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-
-	// joinButton.addEventListener('click', joinRoom);
-	sendCameraButton.addEventListener('click', sendCameraStreams);
-	stopStreamsButton.addEventListener('click', stopStreams);
-	// startScreenshareButton.addEventListener('click', startScreenshare);
-	// leaveRoomButton.addEventListener('click', leaveRoom);
-	camPauseRadioButton.addEventListener('change', changeCamPaused);
-	micPauseRadioButton.addEventListener('change', changeMicPaused);
-}
-
-
+// TODO: https://www.mattburkedev.com/export-a-global-to-the-window-object-with-browserify/
 
 //
 // export all the references we use internally to manage call state,
@@ -64,50 +41,8 @@ function setupButtons() {
 //
 //   `Client.camVideoProducer.paused`
 //
-export let myPeerId = uuidv4();
-let allPeers = {};
-//
-// for each peer that connects, we keep a table of peers and what
-// tracks are being sent and received. we also need to know the last
-// time we saw the peer, so that we can disconnect clients that have
-// network issues.
-//
-// for this simple demo, each client polls the server at 1hz, and we
-// just send this roomState.peers data structure as our answer to each
-// poll request.
-//
-// [peerId] : {
-//   joinTs: <ms timestamp>
-//   lastSeenTs: <ms timestamp>
-//   media: {
-//     [mediaTag] : {
-//       paused: <bool>
-//       encodings: []
-//     }
-//   },
-//   gameStats: {},
-//   stats: {
-//     producers: {
-//       [producerId]: {
-//         ...(selected producer stats)
-//       }
-//     consumers: {
-//       [consumerId]: { ...(selected consumer stats) }
-//     }
-//   }
-//   consumerLayers: {
-//     [consumerId]:
-//         currentLayer,
-//         clientSelectedLayer,
-//       }
-//     }
-//   }
-// }
-//
-
-
-// export so we can access from JS console
-export let mySocketID,
+export let myPeerId,
+	mySocketID,
 	socket,
 	device,
 	joined,
@@ -122,17 +57,13 @@ export let mySocketID,
 	currentActiveSpeaker = {},
 	lastPollSyncData = {},
 	consumers = [],
-	pollingInterval;
+	pollingInterval,
+	webcamVideoPaused = false,
+	webcamAudioPaused = false,
+	screenShareVideoPaused = false,
+	screenShareAudioPaused = false;
 
-export let camPaused = false,
-	micPaused = false;
-
-const serverURL = `https://${hostname}:${config.listenPort}`;
-
-
-// array of connected clients
-// TODO: https://www.mattburkedev.com/export-a-global-to-the-window-object-with-browserify/
-
+// array of connected clients for three.js scene
 let clients = {};
 
 // Variable to store our three.js scene:
@@ -141,66 +72,34 @@ let glScene;
 // WebRTC Variables:
 let iceServerList;
 
+// an array of media streams each with different constraints
+let gotMediaAccess = false;
+
 // set video width / height / framerate here:
 const videoWidth = 160;
 const videoHeight = 120;
 
-// an array of media streams each with different constraints
-let localMediaStreams = [];
-let gotMediaAccess = false;
-
-// array of mediaConstraints arranged from highest to lowest quality
-let localMediaConstraints = [
-	{
-		audio: {
-			echoCancellation: true,
-			noiseSuppression: true
-		},
-		video: {
-			width: videoWidth,
-			height: videoHeight,
-			frameRate: 10
-		}
+// 
+let localMediaConstraints = {
+	audio: {
+		echoCancellation: true,
+		noiseSuppression: true
 	},
-	{
-		audio: {
-			echoCancellation: true,
-			noiseSuppression: true
-		},
-		video: {
-			width: videoWidth / 2,
-			height: videoHeight / 2,
-			frameRate: 5
-		}
-	},
-	{
-		audio: {
-			echoCancellation: true,
-			noiseSuppression: true
-		},
-		video: {
-			width: videoWidth / 2,
-			height: videoHeight / 2,
-			frameRate: 0.5
-		}
+	video: {
+		width: videoWidth,
+		height: videoHeight,
+		frameRate: 10
 	}
-];
+};
 
 
 
 
 
-
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Start-Up Sequence:
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-//
-// entry point -- called by document.body.onload
-//
-
-
-// export async function main() {
 window.onload = async () => {
 	console.log("Window loaded.");
 
@@ -221,13 +120,13 @@ window.onload = async () => {
 
 
 	// first get user media
-	localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
+	// localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
 
-	if (gotMediaAccess) {
-		createOrUpdateClientVideo("local", localMediaStreams[0]);
-	} else {
-		createOrUpdateClientVideo("local", null);
-	}
+	// if (gotMediaAccess) {
+	// 	createOrUpdateClientVideo("local", localMediaStreams[0]);
+	// } else {
+	// 	createOrUpdateClientVideo("local", null);
+	// }
 
 	// finally create the threejs scene
 	createScene();
@@ -244,6 +143,25 @@ window.onload = async () => {
 		socket.request('leave', {});
 		// sig('leave', {}, true)
 	});
+}
+
+function setupButtons() {
+	// const joinButton = document.getElementById('join-button');
+	const sendCameraButton = document.getElementById('send-camera');
+	const stopStreamsButton = document.getElementById('stop-streams');
+	// const startScreenshareButton = document.getElementById('share-screen');
+	// const leaveRoomButton = document.getElementById('leave-room');
+	const camPauseRadioButton = document.getElementById('local-cam-checkbox');
+	const micPauseRadioButton = document.getElementById('local-mic-checkbox');
+
+
+	// joinButton.addEventListener('click', joinRoom);
+	sendCameraButton.addEventListener('click', sendCameraStreams);
+	stopStreamsButton.addEventListener('click', stopStreams);
+	// startScreenshareButton.addEventListener('click', startScreenshare);
+	// leaveRoomButton.addEventListener('click', leaveRoom);
+	camPauseRadioButton.addEventListener('change', toggleWebcamVideoPauseState);
+	micPauseRadioButton.addEventListener('change', toggleWebcamAudioPauseState);
 }
 
 
@@ -343,9 +261,9 @@ function initSocketConnection() {
 
 
 
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Clients / WebRTC
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
@@ -357,9 +275,9 @@ async function addClient(_id) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Three.js 🌻
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 function onPlayerMove() {
 	socket.emit('move', glScene.getPlayerPosition());
@@ -379,74 +297,65 @@ function createScene() {
 		mySocketID);
 }
 
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Utilities 🚂
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-function createOrUpdateClientVideo(_id, _videoStream) {
-	let videoEl = document.getElementById(_id + "_video");
-	if (videoEl == null) {
-		console.log("Creating video element for user with ID: " + _id);
-		videoEl = document.createElement('video');
-		videoEl.id = _id + "_video";
-		videoEl.style = "visibility: hidden;";
-		document.body.appendChild(videoEl);
-	}
+// function createOrUpdateClientVideo(_id, _videoStream) {
+// 	let videoEl = document.getElementById(_id + "_video");
+// 	if (videoEl == null) {
+// 		console.log("Creating video element for user with ID: " + _id);
+// 		videoEl = document.createElement('video');
+// 		videoEl.id = _id + "_video";
+// 		videoEl.style = "visibility: hidden;";
+// 		document.body.appendChild(videoEl);
+// 	}
 
-	// Question: do i need to update video width and height? or is that based on stream...?
+// 	// Question: do i need to update video width and height? or is that based on stream...?
 
-	console.log("Updating video source for user with ID: " + _id);
-	if (_videoStream != null) {
-		videoEl.srcObject = _videoStream
-	}
-	videoEl.autoplay = true;
-}
+// 	console.log("Updating video source for user with ID: " + _id);
+// 	if (_videoStream != null) {
+// 		videoEl.srcObject = _videoStream
+// 	}
+// 	videoEl.autoplay = true;
+// }
 
 // TODO positional audio in chrome with adjustment of volume...? 
-function createOrUpdateClientAudio(_id, _audioStream) {
-	// Positional Audio Works in Firefox:
-	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
+// function createOrUpdateClientAudio(_id, _audioStream) {
+// 	// Positional Audio Works in Firefox:
+// 	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
 
-	// Global Audio:
-	let remoteAudioElement = document.getElementById(_id + "_audio");
-	if (remoteAudioElement == null) {
-		console.log("Creating audio element for user with ID: " + _id);
-		remoteAudioElement = document.createElement('audio');
-		remoteAudioElement.id = _id + "_audio";
-		document.body.appendChild(remoteAudioElement);
-	}
+// 	// Global Audio:
+// 	let remoteAudioElement = document.getElementById(_id + "_audio");
+// 	if (remoteAudioElement == null) {
+// 		console.log("Creating audio element for user with ID: " + _id);
+// 		remoteAudioElement = document.createElement('audio');
+// 		remoteAudioElement.id = _id + "_audio";
+// 		document.body.appendChild(remoteAudioElement);
+// 	}
 
-	console.log("Updating <audio> source object for client with ID: " + _id);
-	remoteAudioElement.srcObject = _audioStream;
-	remoteAudioElement.play();
-	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
-	// remoteAudioElement.volume = 1;
-}
+// 	console.log("Updating <audio> source object for client with ID: " + _id);
+// 	remoteAudioElement.srcObject = _audioStream;
+// 	remoteAudioElement.play();
+// 	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
+// 	// remoteAudioElement.volume = 1;
+// }
 
-// remove <video> element and corresponding <canvas> using client ID
-function removeClientDOMElements(_id) {
-	console.log("Removing DOM elements for client with ID: " + _id);
+// // remove <video> element and corresponding <canvas> using client ID
+// function removeClientDOMElements(_id) {
+// 	console.log("Removing DOM elements for client with ID: " + _id);
 
-	let videoEl = document.getElementById(_id + "_video");
-	if (videoEl != null) { videoEl.remove(); }
-	let canvasEl = document.getElementById(_id + "_canvas");
-	if (canvasEl != null) { canvasEl.remove(); }
-	let audioEl = document.getElementById(_id + "_audio");
-	if (audioEl != null) { audioEl.remove(); }
-}
+// 	let videoEl = document.getElementById(_id + "_video");
+// 	if (videoEl != null) { videoEl.remove(); }
+// 	let canvasEl = document.getElementById(_id + "_canvas");
+// 	if (canvasEl != null) { canvasEl.remove(); }
+// 	let audioEl = document.getElementById(_id + "_audio");
+// 	if (audioEl != null) { audioEl.remove(); }
+// }
 
-
-
-
-
-
-
-
-
-
-//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Mediasoup Code: 
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 
 //
@@ -457,9 +366,7 @@ export async function joinRoom() {
 	if (joined) {
 		return;
 	}
-
 	log('join room');
-	// $('#join-control').style.display = 'none';
 
 	try {
 		// signal that we're a new peer and initialize our
@@ -471,7 +378,6 @@ export async function joinRoom() {
 			await device.load({ routerRtpCapabilities });
 		}
 		joined = true;
-		// $('#leave-room').style.display = 'initial';
 	} catch (e) {
 		console.error(e);
 		return;
@@ -489,7 +395,6 @@ export async function joinRoom() {
 
 export async function sendCameraStreams() {
 	log('send camera streams');
-	// $('#send-camera').style.display = 'none';
 
 	// make sure we've joined the room and started our camera. these
 	// functions don't do anything if they've already been called this
@@ -515,13 +420,13 @@ export async function sendCameraStreams() {
 		appData: { mediaTag: 'cam-video' }
 	});
 
-	// if (getCamPausedState()) {
-	// 	try {
-	// 		await camVideoProducer.pause();
-	// 	} catch (e) {
-	// 		console.error(e);
-	// 	}
-	// }
+	if (getCamPausedState()) {
+		try {
+			await camVideoProducer.pause();
+		} catch (e) {
+			console.error(e);
+		}
+	}
 
 	// same thing for audio, but we can use our already-created
 	camAudioProducer = await sendTransport.produce({
@@ -529,16 +434,13 @@ export async function sendCameraStreams() {
 		appData: { mediaTag: 'cam-audio' }
 	});
 
-	// if (getMicPausedState()) {
-	// 	try {
-	// 		camAudioProducer.pause();
-	// 	} catch (e) {
-	// 		console.error(e);
-	// 	}
-	// }
-
-	// $('#stop-streams').style.display = 'initial';
-	// showCameraInfo();
+	if (getMicPausedState()) {
+		try {
+			camAudioProducer.pause();
+		} catch (e) {
+			console.error(e);
+		}
+	}
 }
 
 export async function startScreenshare() {
@@ -600,14 +502,14 @@ export async function startScreenshare() {
 		} catch (e) {
 			console.error(e);
 		}
-		$('#local-screen-pause-ctrl').style.display = 'none';
-		$('#local-screen-audio-pause-ctrl').style.display = 'none';
-		$('#share-screen').style.display = 'initial';
+		// $('#local-screen-pause-ctrl').style.display = 'none';
+		// $('#local-screen-audio-pause-ctrl').style.display = 'none';
+		// $('#share-screen').style.display = 'initial';
 	}
 
-	$('#local-screen-pause-ctrl').style.display = 'block';
+	// $('#local-screen-pause-ctrl').style.display = 'block';
 	if (screenAudioProducer) {
-		$('#local-screen-audio-pause-ctrl').style.display = 'block';
+		// $('#local-screen-audio-pause-ctrl').style.display = 'block';
 	}
 }
 
@@ -617,10 +519,7 @@ export async function startCamera() {
 	}
 	log('start camera');
 	try {
-		localCam = await navigator.mediaDevices.getUserMedia({
-			video: true,
-			audio: true
-		});
+		localCam = await navigator.mediaDevices.getUserMedia(localMediaConstraints);
 	} catch (e) {
 		console.error('start camera error', e);
 	}
@@ -664,9 +563,6 @@ export async function cycleCamera() {
 	// replace the tracks we are sending
 	await camVideoProducer.replaceTrack({ track: localCam.getVideoTracks()[0] });
 	await camAudioProducer.replaceTrack({ track: localCam.getAudioTracks()[0] });
-
-	// update the user interface
-	showCameraInfo();
 }
 
 export async function stopStreams() {
@@ -678,7 +574,7 @@ export async function stopStreams() {
 	}
 
 	log('stop sending media streams');
-	$('#stop-streams').style.display = 'none';
+	// $('#stop-streams').style.display = 'none';
 
 	let { error } = await socket.request('close-producer',
 		{ producerId: screenAudioProducer.id });
@@ -701,13 +597,6 @@ export async function stopStreams() {
 	screenAudioProducer = null;
 	localCam = null;
 	localScreen = null;
-
-	// update relevant ui elements
-	$('#send-camera').style.display = 'initial';
-	$('#share-screen').style.display = 'initial';
-	$('#local-screen-pause-ctrl').style.display = 'none';
-	$('#local-screen-audio-pause-ctrl').style.display = 'none';
-	showCameraInfo();
 }
 
 export async function leaveRoom() {
@@ -715,8 +604,7 @@ export async function leaveRoom() {
 		return;
 	}
 
-	// log('leave room');
-	// $('#leave-room').style.display = 'none';
+	log('leave room');
 
 	// stop polling
 	clearInterval(pollingInterval);
@@ -747,19 +635,6 @@ export async function leaveRoom() {
 	lastPollSyncData = {};
 	consumers = [];
 	joined = false;
-
-	// hacktastically restore ui to initial state
-	// $('#join-control').style.display = 'initial';
-	// $('#send-camera').style.display = 'initial';
-	// $('#stop-streams').style.display = 'none';
-	// $('#remote-video').innerHTML = '';
-	// $('#share-screen').style.display = 'initial';
-	// $('#local-screen-pause-ctrl').style.display = 'none';
-	// $('#local-screen-audio-pause-ctrl').style.display = 'none';
-	// showCameraInfo();
-	// updateCamVideoProducerStatsDisplay();
-	// updateScreenVideoProducerStatsDisplay();
-	// updatePeersDisplay();
 }
 
 export async function subscribeToTrack(peerId, mediaTag) {
@@ -808,7 +683,6 @@ export async function subscribeToTrack(peerId, mediaTag) {
 
 	// ui
 	await addVideoAudio(consumer, peerId);
-	// updatePeersDisplay();
 }
 
 export async function unsubscribeFromTrack(peerId, mediaTag) {
@@ -823,8 +697,6 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 	} catch (e) {
 		console.error(e);
 	}
-	// force update of ui
-	// updatePeersDisplay();
 }
 
 export async function pauseConsumer(consumer) {
@@ -943,11 +815,11 @@ async function createTransport(direction) {
 			// aren't checked, for each media type. not very clean code, here
 			// but, you know, this isn't a real application.)
 			let paused = false;
-			// if (appData.mediaTag === 'cam-video') {
-			// 	paused = getCamPausedState();
-			// } else if (appData.mediaTag === 'cam-audio') {
-			// 	paused = getMicPausedState();
-			// }
+			if (appData.mediaTag === 'cam-video') {
+				paused = getCamPausedState();
+			} else if (appData.mediaTag === 'cam-audio') {
+				paused = getMicPausedState();
+			}
 			// tell the server what it needs to know from us in order to set
 			// up a server-side producer object, and get back a
 			// producer.id. call callback() on success or errback() on
@@ -993,41 +865,21 @@ async function createTransport(direction) {
 async function pollAndUpdate() {
 	let { peers, activeSpeaker, error } = await socket.request('sync');
 
-	// console.log(peers);
-
-	allPeers = peers;
 	if (error) {
 		return ({ error });
 	}
 
 	// always update bandwidth stats and active speaker display
 	currentActiveSpeaker = activeSpeaker;
-	// updateActiveSpeaker();
-	// updateCamVideoProducerStatsDisplay();
-	// updateScreenVideoProducerStatsDisplay();
-	// updateConsumersStatsDisplay();
 
 	// decide if we need to update tracks list and video/audio
 	// elements. build list of peers, sorted by join time, removing last
 	// seen time and stats, so we can easily do a deep-equals
 	// comparison. compare this list with the cached list from last
 	// poll.
-	// let thisPeersList = sortPeers(peers),
-	// 	lastPeersList = sortPeers(lastPollSyncData);
-	// if (!deepEqual(thisPeersList, lastPeersList)) {
-	// console.log('new peer!');
-	// updatePeersDisplay(peers, thisPeersList);
-	// }
 
 	// if a new peer has connected, auto-subscribe to their feeds:
-	// for (let id in peers) {
-	// 	let { mediaTag, info } = peers[id].media;
-	// 	console.log(peers[id].media);
-	// 	if (!findConsumerForTrack(id, mediaTag)) {
-	// 		log(`subscribing to track that ${id} has added`);
-	// 		subscribeToTrack(id, mediaTag);
-	// 	}
-	// }
+	// TODO auto subscribe at lowest spatial layer
 	for (let id in peers) {
 		if (id === myPeerId) {
 			continue;
@@ -1082,191 +934,60 @@ function findConsumerForTrack(peerId, mediaTag) {
 // -- user interface --
 //
 
-// export function getCamPausedState() {
-// 	return !$('#local-cam-checkbox').checked;
-// }
+export function getCamPausedState() {
+	return webcamVideoPaused;
+}
 
-// export function getMicPausedState() {
-// 	return !$('#local-mic-checkbox').checked;
-// }
+export function getMicPausedState() {
+	return webcamAudioPaused;
+}
 
-// export function getScreenPausedState() {
-// 	return !$('#local-screen-checkbox').checked;
-// }
+export function getScreenPausedState() {
+	return screenShareVideoPaused;
+}
 
-// export function getScreenAudioPausedState() {
-// 	return !$('#local-screen-audio-checkbox').checked;
-// }
+export function getScreenAudioPausedState() {
+	return screenShareAudioPaused;
+}
 
-export async function changeCamPaused() {
-	if (camPaused) {
+export async function toggleWebcamVideoPauseState() {
+	if (getCamPausedState()) {
 		resumeProducer(camVideoProducer);
 	} else {
 		pauseProducer(camVideoProducer);
 	}
-	camPaused = !camPaused;
-
-	// if (getCamPausedState()) {
-	// 	pauseProducer(camVideoProducer);
-	// 	$('#local-cam-label').innerHTML = 'camera (paused)';
-	// } else {
-	// 	resumeProducer(camVideoProducer);
-	// 	$('#local-cam-label').innerHTML = 'camera';
-	// }
+	webcamVideoPaused = !webcamVideoPaused;
 }
 
-export async function changeMicPaused() {
-	if (micPaused) {
+export async function toggleWebcamAudioPauseState() {
+	if (getMicPausedState()) {
 		resumeProducer(camAudioProducer);
 	} else {
 		pauseProducer(camAudioProducer);
 	}
-	micPaused = !micPaused;
-	// if (getMicPausedState()) {
-	// 	pauseProducer(camAudioProducer);
-	// 	$('#local-mic-label').innerHTML = 'mic (paused)';
-	// } else {
-	// 	resumeProducer(camAudioProducer);
-	// 	$('#local-mic-label').innerHTML = 'mic';
-	// }
+	webcamAudioPaused = !webcamAudioPaused;
 }
 
-// export async function changeScreenPaused() {
-// 	if (getScreenPausedState()) {
-// 		pauseProducer(screenVideoProducer);
-// 		$('#local-screen-label').innerHTML = 'screen (paused)';
-// 	} else {
-// 		resumeProducer(screenVideoProducer);
-// 		$('#local-screen-label').innerHTML = 'screen';
-// 	}
-// }
+export async function toggleScreenshareVideoPauseState() {
+	if (getScreenPausedState()) {
+		pauseProducer(screenVideoProducer);
 
-// export async function changeScreenAudioPaused() {
-// 	if (getScreenAudioPausedState()) {
-// 		pauseProducer(screenAudioProducer);
-// 		$('#local-screen-audio-label').innerHTML = 'screen (paused)';
-// 	} else {
-// 		resumeProducer(screenAudioProducer);
-// 		$('#local-screen-audio-label').innerHTML = 'screen';
-// 	}
-// }
+	} else {
+		resumeProducer(screenVideoProducer);
+	}
+	screenShareVideoPaused = !screenShareVideoPaused;
+}
+
+export async function toggleScreenshareAudioPauseState() {
+	if (getScreenAudioPausedState()) {
+		pauseProducer(screenAudioProducer);
+	} else {
+		resumeProducer(screenAudioProducer);
+	}
+	screenShareAudioPaused = !screenShareAudioPaused;
+}
 
 
-// export async function updatePeersDisplay(peersInfo = lastPollSyncData,
-// 	sortedPeers = sortPeers(peersInfo)) {
-// 	log('room state updated', peersInfo);
-
-// 	console.log()
-// 	$('#available-tracks').innerHTML = '';
-
-// 	// do local stuff first
-// 	if (camVideoProducer) {
-// 		$('#available-tracks')
-// 			.appendChild(makeTrackControlEl('my', 'cam-video',
-// 				peersInfo[myPeerId].media['cam-video']));
-// 	}
-// 	if (camAudioProducer) {
-// 		$('#available-tracks')
-// 			.appendChild(makeTrackControlEl('my', 'cam-audio',
-// 				peersInfo[myPeerId].media['cam-audio']));
-// 	}
-// 	if (screenVideoProducer) {
-// 		$('#available-tracks')
-// 			.appendChild(makeTrackControlEl('my', 'screen-video',
-// 				peersInfo[myPeerId].media['screen-video']));
-// 	}
-// 	if (screenAudioProducer) {
-// 		$('#available-tracks')
-// 			.appendChild(makeTrackControlEl('my', 'screen-audio',
-// 				peersInfo[myPeerId].media['screen-audio']));
-// 	}
-
-// 	for (let peer of sortedPeers) {
-// 		if (peer.id === myPeerId) {
-// 			continue;
-// 		}
-// 		for (let [mediaTag, info] of Object.entries(peer.media)) {
-// 			$('#available-tracks')
-// 				.appendChild(makeTrackControlEl(peer.id, mediaTag, info));
-
-// 		}
-// 	}
-// }
-
-// function makeTrackControlEl(peerName, mediaTag, mediaInfo) {
-// 	let div = document.createElement('div'),
-// 		peerId = (peerName === 'my' ? myPeerId : peerName),
-// 		consumer = findConsumerForTrack(peerId, mediaTag);
-// 	div.classList = `track-subscribe track-subscribe-${peerId}`;
-
-// 	let sub = document.createElement('button');
-// 	if (!consumer) {
-// 		sub.innerHTML += 'subscribe'
-// 		sub.onclick = () => subscribeToTrack(peerId, mediaTag);
-// 		div.appendChild(sub);
-
-// 	} else {
-// 		sub.innerHTML += 'unsubscribe'
-// 		sub.onclick = () => unsubscribeFromTrack(peerId, mediaTag);
-// 		div.appendChild(sub);
-// 	}
-
-// 	let trackDescription = document.createElement('span');
-// 	trackDescription.innerHTML = `${peerName} ${mediaTag}`
-// 	div.appendChild(trackDescription);
-
-// 	try {
-// 		if (mediaInfo) {
-// 			let producerPaused = mediaInfo.paused;
-// 			let prodPauseInfo = document.createElement('span');
-// 			prodPauseInfo.innerHTML = producerPaused ? '[producer paused]'
-// 				: '[producer playing]';
-// 			div.appendChild(prodPauseInfo);
-// 		}
-// 	} catch (e) {
-// 		console.error(e);
-// 	}
-
-// 	if (consumer) {
-// 		let pause = document.createElement('span'),
-// 			checkbox = document.createElement('input'),
-// 			label = document.createElement('label');
-// 		pause.classList = 'nowrap';
-// 		checkbox.type = 'checkbox';
-// 		checkbox.checked = !consumer.paused;
-// 		checkbox.onchange = async () => {
-// 			if (checkbox.checked) {
-// 				await resumeConsumer(consumer);
-// 			} else {
-// 				await pauseConsumer(consumer);
-// 			}
-// 			updatePeersDisplay();
-// 		}
-// 		label.id = `consumer-stats-${consumer.id}`;
-// 		if (consumer.paused) {
-// 			label.innerHTML = '[consumer paused]'
-// 		} else {
-// 			let stats = lastPollSyncData[myPeerId].stats[consumer.id],
-// 				bitrate = '-';
-// 			if (stats) {
-// 				bitrate = Math.floor(stats.bitrate / 1000.0);
-// 			}
-// 			label.innerHTML = `[consumer playing ${bitrate} kb/s]`;
-// 		}
-// 		pause.appendChild(checkbox);
-// 		pause.appendChild(label);
-// 		div.appendChild(pause);
-
-// 		if (consumer.kind === 'video') {
-// 			let remoteProducerInfo = document.createElement('span');
-// 			remoteProducerInfo.classList = 'nowrap track-ctrl';
-// 			remoteProducerInfo.id = `track-ctrl-${consumer.producerId}`;
-// 			div.appendChild(remoteProducerInfo);
-// 		}
-// 	}
-
-// 	return div;
-// }
 
 function addVideoAudio(consumer, peerId) {
 	if (!(consumer && consumer.track)) {
@@ -1285,7 +1006,6 @@ function addVideoAudio(consumer, peerId) {
 	el.id = `${peerId}_${consumer.kind}`;
 	document.body.appendChild(el);
 
-	// $(`#remote-${consumer.kind}`).appendChild(el);
 	el.srcObject = new MediaStream([consumer.track.clone()]);
 	el.consumer = consumer;
 	// let's "yield" and return before playing, rather than awaiting on
@@ -1306,176 +1026,23 @@ function removeVideoAudio(consumer) {
 	});
 }
 
-// async function showCameraInfo() {
-// 	let deviceId = await getCurrentDeviceId(),
-// 		infoEl = $('#camera-info');
-// 	if (!deviceId) {
-// 		infoEl.innerHTML = '';
-// 		return;
-// 	}
-// 	let devices = await navigator.mediaDevices.enumerateDevices(),
-// 		deviceInfo = devices.find((d) => d.deviceId === deviceId);
-// 	infoEl.innerHTML = `
-//       ${ deviceInfo.label}
-//       <button onclick="Client.cycleCamera()">switch camera</button>
-//   `;
-// }
-
-// export async function getCurrentDeviceId() {
-// 	if (!camVideoProducer) {
-// 		return null;
-// 	}
-// 	let deviceId = camVideoProducer.track.getSettings().deviceId;
-// 	if (deviceId) {
-// 		return deviceId;
-// 	}
-// 	// Firefox doesn't have deviceId in MediaTrackSettings object
-// 	let track = localCam && localCam.getVideoTracks()[0];
-// 	if (!track) {
-// 		return null;
-// 	}
-// 	let devices = await navigator.mediaDevices.enumerateDevices(),
-// 		deviceInfo = devices.find((d) => d.label.startsWith(track.label));
-// 	return deviceInfo.deviceId;
-// }
-
-// function updateActiveSpeaker() {
-// 	$$('.track-subscribe').forEach((el) => {
-// 		el.classList.remove('active-speaker');
-// 	});
-// 	if (currentActiveSpeaker.peerId) {
-// 		$$(`.track-subscribe-${currentActiveSpeaker.peerId}`).forEach((el) => {
-// 			el.classList.add('active-speaker');
-// 		});
-// 	}
-// }
-
-// function updateCamVideoProducerStatsDisplay() {
-// 	let tracksEl = $('#camera-producer-stats');
-// 	tracksEl.innerHTML = '';
-// 	if (!camVideoProducer || camVideoProducer.paused) {
-// 		return;
-// 	}
-// 	makeProducerTrackSelector({
-// 		internalTag: 'local-cam-tracks',
-// 		container: tracksEl,
-// 		peerId: myPeerId,
-// 		producerId: camVideoProducer.id,
-// 		currentLayer: camVideoProducer.maxSpatialLayer,
-// 		layerSwitchFunc: (i) => {
-// 			console.log('client set layers for cam stream');
-// 			camVideoProducer.setMaxSpatialLayer(i)
-// 		}
-// 	});
-// }
-
-// function updateScreenVideoProducerStatsDisplay() {
-// 	let tracksEl = $('#screen-producer-stats');
-// 	tracksEl.innerHTML = '';
-// 	if (!screenVideoProducer || screenVideoProducer.paused) {
-// 		return;
-// 	}
-// 	makeProducerTrackSelector({
-// 		internalTag: 'local-screen-tracks',
-// 		container: tracksEl,
-// 		peerId: myPeerId,
-// 		producerId: screenVideoProducer.id,
-// 		currentLayer: screenVideoProducer.maxSpatialLayer,
-// 		layerSwitchFunc: (i) => {
-// 			console.log('client set layers for screen stream');
-// 			screenVideoProducer.setMaxSpatialLayer(i)
-// 		}
-// 	});
-// }
-
-// function updateConsumersStatsDisplay() {
-// 	try {
-// 		for (let consumer of consumers) {
-// 			let label = $(`#consumer-stats-${consumer.id}`);
-// 			if (label) {
-// 				if (consumer.paused) {
-// 					label.innerHTML = '(consumer paused)'
-// 				} else {
-// 					let stats = lastPollSyncData[myPeerId].stats[consumer.id],
-// 						bitrate = '-';
-// 					if (stats) {
-// 						bitrate = Math.floor(stats.bitrate / 1000.0);
-// 					}
-// 					label.innerHTML = `[consumer playing ${bitrate} kb/s]`;
-// 				}
-// 			}
-
-// 			let mediaInfo = lastPollSyncData[consumer.appData.peerId] &&
-// 				lastPollSyncData[consumer.appData.peerId]
-// 					.media[consumer.appData.mediaTag];
-// 			if (mediaInfo && !mediaInfo.paused) {
-// 				let tracksEl = $(`#track-ctrl-${consumer.producerId}`);
-// 				if (tracksEl && lastPollSyncData[myPeerId]
-// 					.consumerLayers[consumer.id]) {
-// 					tracksEl.innerHTML = '';
-// 					let currentLayer = lastPollSyncData[myPeerId]
-// 						.consumerLayers[consumer.id].currentLayer;
-// 					makeProducerTrackSelector({
-// 						internalTag: consumer.id,
-// 						container: tracksEl,
-// 						peerId: consumer.appData.peerId,
-// 						producerId: consumer.producerId,
-// 						currentLayer: currentLayer,
-// 						layerSwitchFunc: (i) => {
-// 							console.log('ask server to set layers');
-// 							socket.request('consumer-set-layers', {
-// 								consumerId: consumer.id,
-// 								spatialLayer: i
-// 							});
-// 						}
-// 					});
-// 				}
-// 			}
-// 		}
-// 	} catch (e) {
-// 		log('error while updating consumers stats display', e);
-// 	}
-// }
-
-// function makeProducerTrackSelector({ internalTag, container, peerId, producerId,
-// 	currentLayer, layerSwitchFunc }) {
-// 	try {
-// 		let pollStats = lastPollSyncData[peerId] &&
-// 			lastPollSyncData[peerId].stats[producerId];
-// 		if (!pollStats) {
-// 			return;
-// 		}
-
-// 		let stats = [...Array.from(pollStats)]
-// 			.sort((a, b) => a.rid > b.rid ? 1 : (a.rid < b.rid ? -1 : 0));
-// 		let i = 0;
-// 		for (let s of stats) {
-// 			let div = document.createElement('div'),
-// 				radio = document.createElement('input'),
-// 				label = document.createElement('label'),
-// 				x = i;
-// 			radio.type = 'radio';
-// 			radio.name = `radio-${internalTag}-${producerId}`;
-// 			radio.checked = currentLayer == undefined ?
-// 				(i === stats.length - 1) :
-// 				(i === currentLayer);
-// 			radio.onchange = () => layerSwitchFunc(x);
-// 			let bitrate = Math.floor(s.bitrate / 1000);
-// 			label.innerHTML = `${bitrate} kb/s`;
-// 			div.appendChild(radio);
-// 			div.appendChild(label);
-// 			container.appendChild(div);
-// 			i++;
-// 		}
-// 		if (i) {
-// 			let txt = document.createElement('div');
-// 			txt.innerHTML = 'tracks';
-// 			container.insertBefore(txt, container.firstChild);
-// 		}
-// 	} catch (e) {
-// 		log('error while updating track stats display', e);
-// 	}
-// }
+export async function getCurrentDeviceId() {
+	if (!camVideoProducer) {
+		return null;
+	}
+	let deviceId = camVideoProducer.track.getSettings().deviceId;
+	if (deviceId) {
+		return deviceId;
+	}
+	// Firefox doesn't have deviceId in MediaTrackSettings object
+	let track = localCam && localCam.getVideoTracks()[0];
+	if (!track) {
+		return null;
+	}
+	let devices = await navigator.mediaDevices.enumerateDevices(),
+		deviceInfo = devices.find((d) => d.label.startsWith(track.label));
+	return deviceInfo.deviceId;
+}
 
 //
 // encodings for outgoing video
@@ -1498,39 +1065,6 @@ function camEncodings() {
 //
 function screenshareEncodings() {
 	null;
-}
-
-//
-// our "signaling" function -- just an http fetch
-//
-
-// async function sig(endpoint, data, beacon) {
-// 	try {
-// 		let headers = { 'Content-Type': 'application/json' },
-// 			body = JSON.stringify({ ...data, peerId: myPeerId });
-
-// 		if (beacon) {
-// 			navigator.sendBeacon('/signaling/' + endpoint, body);
-// 			return null;
-// 		}
-
-// 		let response = await fetch(
-// 			'/signaling/' + endpoint, { method: 'POST', body, headers }
-// 		);
-// 		return await response.json();
-// 	} catch (e) {
-// 		console.error(e);
-// 		return { error: e };
-// 	}
-// }
-
-//
-// simple uuid helper function
-//
-
-function uuidv4() {
-	return ('111-111-1111').replace(/[018]/g, () =>
-		(crypto.getRandomValues(new Uint8Array(1))[0] & 15).toString(16));
 }
 
 //
