@@ -32,9 +32,10 @@ class Scene {
 
 		//Utility
 		this.width = _width;
+		// this.width = domElement.width;
 		this.height = _height;
 		this.stats = new Stats();
-		domElement.appendChild(this.stats.dom);
+		document.body.appendChild(this.stats.dom);
 
 		//Add Player
 		this.addSelf();

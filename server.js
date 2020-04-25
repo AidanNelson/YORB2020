@@ -101,41 +101,41 @@ expressApp.use(express.static(__dirname + "/public"));
 // Add environment variables:
 // https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
 // https://stackoverflow.com/questions/21831945/heroku-node-env-environment-variable
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
+// if (process.env.NODE_ENV !== 'production') {
+//   require('dotenv').config();
+// }
 // Twilio network traversal (ICE servers) for WebRTC peer connections
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+// const accountSid = process.env.TWILIO_ACCOUNT_SID;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-const twilioClient = require('twilio')(accountSid, authToken);
-let iceToken;
+// const twilioClient = require('twilio')(accountSid, authToken);
+// let iceToken;
 // let iceServers = null;
-let iceServers = [{
-  url: 'stun:global.stun.twilio.com:3478?transport=udp',
-  urls: 'stun:global.stun.twilio.com:3478?transport=udp'
-},
-{
-  url: 'turn:global.turn.twilio.com:3478?transport=udp',
-  username:
-    '5ede97dbe494bd3996915935ec364d8fc16c65bd47a2dc54c016a553a987c5a1',
-  urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-  credential: 'bg0qfo0rQW+ZjibIUirV7XZYFZyPMF3K1U+dL1fBub8='
-},
-{
-  url: 'turn:global.turn.twilio.com:3478?transport=tcp',
-  username:
-    '5ede97dbe494bd3996915935ec364d8fc16c65bd47a2dc54c016a553a987c5a1',
-  urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-  credential: 'bg0qfo0rQW+ZjibIUirV7XZYFZyPMF3K1U+dL1fBub8='
-},
-{
-  url: 'turn:global.turn.twilio.com:443?transport=tcp',
-  username:
-    '5ede97dbe494bd3996915935ec364d8fc16c65bd47a2dc54c016a553a987c5a1',
-  urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-  credential: 'bg0qfo0rQW+ZjibIUirV7XZYFZyPMF3K1U+dL1fBub8='
-}];
+// let iceServers = [{
+//   url: 'stun:global.stun.twilio.com:3478?transport=udp',
+//   urls: 'stun:global.stun.twilio.com:3478?transport=udp'
+// },
+// {
+//   url: 'turn:global.turn.twilio.com:3478?transport=udp',
+//   username:
+//     '5ede97dbe494bd3996915935ec364d8fc16c65bd47a2dc54c016a553a987c5a1',
+//   urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+//   credential: 'bg0qfo0rQW+ZjibIUirV7XZYFZyPMF3K1U+dL1fBub8='
+// },
+// {
+//   url: 'turn:global.turn.twilio.com:3478?transport=tcp',
+//   username:
+//     '5ede97dbe494bd3996915935ec364d8fc16c65bd47a2dc54c016a553a987c5a1',
+//   urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+//   credential: 'bg0qfo0rQW+ZjibIUirV7XZYFZyPMF3K1U+dL1fBub8='
+// },
+// {
+//   url: 'turn:global.turn.twilio.com:443?transport=tcp',
+//   username:
+//     '5ede97dbe494bd3996915935ec364d8fc16c65bd47a2dc54c016a553a987c5a1',
+//   urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+//   credential: 'bg0qfo0rQW+ZjibIUirV7XZYFZyPMF3K1U+dL1fBub8='
+// }];
 
 // twilioClient.tokens.create().then(token => {
 //   iceToken = token;
@@ -231,10 +231,7 @@ async function runSocketServer() {
       rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
     }
 
-    //Make sure to send the client it's ID and a list of ICE servers for WebRTC network traversal 
-    socket.emit('introduction', socket.id, io.engine.clientsCount, Object.keys(clients), iceServers);
-    // socket.emit('introduction', socket.id);
-
+    socket.emit('introduction', socket.id, Object.keys(clients));
     // also give the client all existing clients positions:
     socket.emit('userPositions', clients);
 

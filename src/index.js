@@ -6,14 +6,13 @@
 */
 
 
-
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // IMPORTS
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 import Scene from './scene';
 
-const socketClient = require('socket.io-client');
+const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
 const hostname = window.location.hostname;
 
@@ -41,8 +40,7 @@ const err = debugModule('demo-app:ERROR');
 //
 //   `Client.camVideoProducer.paused`
 //
-export let myPeerId,
-	mySocketID,
+export let mySocketID,
 	socket,
 	device,
 	joined,
@@ -61,39 +59,19 @@ export let myPeerId,
 	webcamVideoPaused = false,
 	webcamAudioPaused = false,
 	screenShareVideoPaused = false,
-	screenShareAudioPaused = false;
+	screenShareAudioPaused = false,
+	clients = {}, // array of connected clients for three.js scene
+	glScene; // Variable to store our three.js scene:
 
-// array of connected clients for three.js scene
-let clients = {};
-
-// Variable to store our three.js scene:
-let glScene;
-
-// WebRTC Variables:
-let iceServerList;
-
-// an array of media streams each with different constraints
-let gotMediaAccess = false;
-
-// set video width / height / framerate here:
-const videoWidth = 160;
-const videoHeight = 120;
-
-// 
+// limit video size / framerate for bandwidth or use bandwidth limitation through encoding?
+// TODO deal with overconstrained errors?
 let localMediaConstraints = {
 	audio: {
 		echoCancellation: true,
 		noiseSuppression: true
 	},
-	video: {
-		width: videoWidth,
-		height: videoHeight,
-		frameRate: 10
-	}
+	video: true
 };
-
-
-
 
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -102,10 +80,7 @@ let localMediaConstraints = {
 
 window.onload = async () => {
 	console.log("Window loaded.");
-
 	setupButtons();
-
-	console.log(`starting up ... my peerId is ${myPeerId}`);
 
 	try {
 		device = new mediasoup.Device();
@@ -118,24 +93,13 @@ window.onload = async () => {
 		}
 	}
 
-
-	// first get user media
-	// localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
-
-	// if (gotMediaAccess) {
-	// 	createOrUpdateClientVideo("local", localMediaStreams[0]);
-	// } else {
-	// 	createOrUpdateClientVideo("local", null);
-	// }
-
-	// finally create the threejs scene
 	createScene();
 
 	// then initialize socket connection
 	await initSocketConnection();
 
 	await joinRoom();
-	sendCameraStreams();
+	// sendCameraStreams(); // send feeds on user input
 
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads
@@ -145,53 +109,37 @@ window.onload = async () => {
 	});
 }
 
-function setupButtons() {
-	// const joinButton = document.getElementById('join-button');
-	const sendCameraButton = document.getElementById('send-camera');
-	const stopStreamsButton = document.getElementById('stop-streams');
-	// const startScreenshareButton = document.getElementById('share-screen');
-	// const leaveRoomButton = document.getElementById('leave-room');
-	const camPauseRadioButton = document.getElementById('local-cam-checkbox');
-	const micPauseRadioButton = document.getElementById('local-mic-checkbox');
 
 
-	// joinButton.addEventListener('click', joinRoom);
-	sendCameraButton.addEventListener('click', sendCameraStreams);
-	stopStreamsButton.addEventListener('click', stopStreams);
-	// startScreenshareButton.addEventListener('click', startScreenshare);
-	// leaveRoomButton.addEventListener('click', leaveRoom);
-	camPauseRadioButton.addEventListener('change', toggleWebcamVideoPauseState);
-	micPauseRadioButton.addEventListener('change', toggleWebcamAudioPauseState);
-}
 
-
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Local media stream setup
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-async function getLocalMediaStreams(_mediaConstraintsArray) {
-	let streams = [];
-	for (let i = 0; i < _mediaConstraintsArray.length; i++) {
-		let stream = null;
-		try {
-			stream = await navigator.mediaDevices.getUserMedia(_mediaConstraintsArray[i]);
-			streams.push(stream);
-		} catch (err) {
-			console.log("Failed to get user media!");
-			console.warn(err);
-			return;
-		}
-	}
-	gotMediaAccess = true;
-	return streams;
-}
+// // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+// async function getLocalMediaStreams(_mediaConstraintsArray) {
+// 	let streams = [];
+// 	for (let i = 0; i < _mediaConstraintsArray.length; i++) {
+// 		let stream = null;
+// 		try {
+// 			stream = await navigator.mediaDevices.getUserMedia(_mediaConstraintsArray[i]);
+// 			streams.push(stream);
+// 		} catch (err) {
+// 			console.log("Failed to get user media!");
+// 			console.warn(err);
+// 			return;
+// 		}
+// 	}
+// 	gotMediaAccess = true;
+// 	return streams;
+// }
 
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Socket.io
-////////////////////////////////////////////////////////////////////////////////
+//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 // establishes socket connection
+// uses promise to ensure that we receive our so
 function initSocketConnection() {
 	return new Promise(resolve => {
 
@@ -202,16 +150,11 @@ function initSocketConnection() {
 		socket.on('connect', () => { });
 
 		//On connection server sends the client his ID and a list of all keys
-		socket.on('introduction', (_id, _clientNum, _ids, _iceServers) => {
-
-			// keep local copy of ice servers:
-			console.log("Received ICE server credentials from server.");
-			iceServerList = _iceServers;
+		socket.on('introduction', (_id, _ids) => {
 
 			// keep a local copy of my ID:
 			console.log('My socket ID is: ' + _id);
 			mySocketID = _id;
-			myPeerId = _id;
 
 			// for each existing user, add them as a client and add tracks to their peer connection
 			for (let i = 0; i < _ids.length; i++) {
@@ -220,7 +163,6 @@ function initSocketConnection() {
 					addClient(_ids[i]);
 				}
 			}
-
 			resolve();
 		});
 
@@ -244,7 +186,6 @@ function initSocketConnection() {
 					console.log('A user disconnected with the id: ' + _id);
 					glScene.removeClient(_id);
 					removeClientDOMElements(_id);
-					// clients[_id].peerConnection.destroy();
 					delete clients[_id];
 				}
 			}
@@ -289,8 +230,8 @@ function createScene() {
 
 	glScene = new Scene(
 		document.getElementById('gl_context'),
-		window.innerWidth,
-		window.innerHeight,
+		(window.innerWidth * 0.9),
+		(window.innerHeight * 0.8),
 		'lightblue',
 		onPlayerMove,
 		clients,
@@ -298,60 +239,80 @@ function createScene() {
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-// Utilities 🚂
+// User Interface 🚂
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-// function createOrUpdateClientVideo(_id, _videoStream) {
-// 	let videoEl = document.getElementById(_id + "_video");
-// 	if (videoEl == null) {
-// 		console.log("Creating video element for user with ID: " + _id);
-// 		videoEl = document.createElement('video');
-// 		videoEl.id = _id + "_video";
-// 		videoEl.style = "visibility: hidden;";
-// 		document.body.appendChild(videoEl);
-// 	}
+function setupButtons() {
+	// const joinButton = document.getElementById('join-button');
+	const sendCameraButton = document.getElementById('send-camera');
+	const stopStreamsButton = document.getElementById('stop-streams');
+	// const startScreenshareButton = document.getElementById('share-screen');
+	// const leaveRoomButton = document.getElementById('leave-room');
+	const camPauseRadioButton = document.getElementById('local-cam-checkbox');
+	const micPauseRadioButton = document.getElementById('local-mic-checkbox');
 
-// 	// Question: do i need to update video width and height? or is that based on stream...?
 
-// 	console.log("Updating video source for user with ID: " + _id);
-// 	if (_videoStream != null) {
-// 		videoEl.srcObject = _videoStream
-// 	}
-// 	videoEl.autoplay = true;
-// }
+	// joinButton.addEventListener('click', joinRoom);
+	sendCameraButton.addEventListener('click', sendCameraStreams);
+	stopStreamsButton.addEventListener('click', stopStreams);
+	// startScreenshareButton.addEventListener('click', startScreenshare);
+	// leaveRoomButton.addEventListener('click', leaveRoom);
+	camPauseRadioButton.addEventListener('change', toggleWebcamVideoPauseState);
+	micPauseRadioButton.addEventListener('change', toggleWebcamAudioPauseState);
+}
+
+
+function createOrUpdateClientVideo(_id, _videoStream) {
+	let videoEl = document.getElementById(_id + "_video");
+	if (videoEl == null) {
+		console.log("Creating video element for user with ID: " + _id);
+		videoEl = document.createElement('video');
+		videoEl.id = _id + "_video";
+		videoEl.style = "visibility: hidden;";
+		document.body.appendChild(videoEl);
+	}
+
+	// Question: do i need to update video width and height? or is that based on stream...?
+
+	console.log("Updating video source for user with ID: " + _id);
+	if (_videoStream != null) {
+		videoEl.srcObject = _videoStream
+	}
+	videoEl.autoplay = true;
+}
 
 // TODO positional audio in chrome with adjustment of volume...? 
-// function createOrUpdateClientAudio(_id, _audioStream) {
-// 	// Positional Audio Works in Firefox:
-// 	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
+function createOrUpdateClientAudio(_id, _audioStream) {
+	// Positional Audio Works in Firefox:
+	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
 
-// 	// Global Audio:
-// 	let remoteAudioElement = document.getElementById(_id + "_audio");
-// 	if (remoteAudioElement == null) {
-// 		console.log("Creating audio element for user with ID: " + _id);
-// 		remoteAudioElement = document.createElement('audio');
-// 		remoteAudioElement.id = _id + "_audio";
-// 		document.body.appendChild(remoteAudioElement);
-// 	}
+	// Global Audio:
+	let remoteAudioElement = document.getElementById(_id + "_audio");
+	if (remoteAudioElement == null) {
+		console.log("Creating audio element for user with ID: " + _id);
+		remoteAudioElement = document.createElement('audio');
+		remoteAudioElement.id = _id + "_audio";
+		document.body.appendChild(remoteAudioElement);
+	}
 
-// 	console.log("Updating <audio> source object for client with ID: " + _id);
-// 	remoteAudioElement.srcObject = _audioStream;
-// 	remoteAudioElement.play();
-// 	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
-// 	// remoteAudioElement.volume = 1;
-// }
+	console.log("Updating <audio> source object for client with ID: " + _id);
+	remoteAudioElement.srcObject = _audioStream;
+	remoteAudioElement.play();
+	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
+	// remoteAudioElement.volume = 1;
+}
 
-// // remove <video> element and corresponding <canvas> using client ID
-// function removeClientDOMElements(_id) {
-// 	console.log("Removing DOM elements for client with ID: " + _id);
+// remove <video> element and corresponding <canvas> using client ID
+function removeClientDOMElements(_id) {
+	console.log("Removing DOM elements for client with ID: " + _id);
 
-// 	let videoEl = document.getElementById(_id + "_video");
-// 	if (videoEl != null) { videoEl.remove(); }
-// 	let canvasEl = document.getElementById(_id + "_canvas");
-// 	if (canvasEl != null) { canvasEl.remove(); }
-// 	let audioEl = document.getElementById(_id + "_audio");
-// 	if (audioEl != null) { audioEl.remove(); }
-// }
+	let videoEl = document.getElementById(_id + "_video");
+	if (videoEl != null) { videoEl.remove(); }
+	let canvasEl = document.getElementById(_id + "_canvas");
+	if (canvasEl != null) { canvasEl.remove(); }
+	let audioEl = document.getElementById(_id + "_audio");
+	if (audioEl != null) { audioEl.remove(); }
+}
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Mediasoup Code: 
@@ -520,6 +481,9 @@ export async function startCamera() {
 	log('start camera');
 	try {
 		localCam = await navigator.mediaDevices.getUserMedia(localMediaConstraints);
+		if (localCam) {
+			createOrUpdateClientVideo('local', localCam);
+		}
 	} catch (e) {
 		console.error('start camera error', e);
 	}
@@ -576,8 +540,8 @@ export async function stopStreams() {
 	log('stop sending media streams');
 	// $('#stop-streams').style.display = 'none';
 
-	let { error } = await socket.request('close-producer',
-		{ producerId: screenAudioProducer.id });
+	let { error } = await socket.request('close-transport',
+		{ transportId: sendTransport.id });
 	if (error) {
 		err(error);
 	}
@@ -881,7 +845,7 @@ async function pollAndUpdate() {
 	// if a new peer has connected, auto-subscribe to their feeds:
 	// TODO auto subscribe at lowest spatial layer
 	for (let id in peers) {
-		if (id === myPeerId) {
+		if (id === mySocketID) {
 			continue;
 		}
 		for (let [mediaTag, info] of Object.entries(peers[id].media)) {
@@ -909,7 +873,10 @@ async function pollAndUpdate() {
 	// need to close the consumer and remove video and audio elements
 	consumers.forEach((consumer) => {
 		let { peerId, mediaTag } = consumer.appData;
-		if (!peers[peerId].media[mediaTag]) {
+		if (!peers[peerId]) {
+			log(`peer ${peerId} has stopped transmitting ${mediaTag}`);
+			closeConsumer(consumer);
+		} else if (!peers[peerId].media[mediaTag]) {
 			log(`peer ${peerId} has stopped transmitting ${mediaTag}`);
 			closeConsumer(consumer);
 		}
