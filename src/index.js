@@ -19,7 +19,7 @@ var SimplePeer = require('simple-peer')
 
 // const mediasoup = require('mediasoup-client');
 const socketClient = require('socket.io-client');
-// const socketPromise = require('./libs/socket.io-promise').promise;
+const socketPromise = require('./libs/socket.io-promise').promise;
 // const config = require('../config');
 const hostname = window.location.hostname;
 
@@ -38,18 +38,22 @@ const err = debugModule('demo-app:ERROR');
 
 
 function setupButtons() {
-	const joinButton = document.getElementById('join-button');
+	// const joinButton = document.getElementById('join-button');
 	const sendCameraButton = document.getElementById('send-camera');
 	const stopStreamsButton = document.getElementById('stop-streams');
-	const startScreenshareButton = document.getElementById('share-screen');
-	const leaveRoomButton = document.getElementById('leave-room');
+	// const startScreenshareButton = document.getElementById('share-screen');
+	// const leaveRoomButton = document.getElementById('leave-room');
+	const camPauseRadioButton = document.getElementById('local-cam-checkbox');
+	const micPauseRadioButton = document.getElementById('local-mic-checkbox');
 
 
-	joinButton.addEventListener('click', joinRoom);
+	// joinButton.addEventListener('click', joinRoom);
 	sendCameraButton.addEventListener('click', sendCameraStreams);
 	stopStreamsButton.addEventListener('click', stopStreams);
-	startScreenshareButton.addEventListener('click', startScreenshare);
-	leaveRoomButton.addEventListener('click', leaveRoom);
+	// startScreenshareButton.addEventListener('click', startScreenshare);
+	// leaveRoomButton.addEventListener('click', leaveRoom);
+	camPauseRadioButton.addEventListener('change', changeCamPaused);
+	micPauseRadioButton.addEventListener('change', changeMicPaused);
 }
 
 
@@ -120,10 +124,15 @@ export let mySocketID,
 	consumers = [],
 	pollingInterval;
 
+export let camPaused = false,
+	micPaused = false;
+
 const serverURL = `https://${hostname}:${config.listenPort}`;
 
 
 // array of connected clients
+// TODO: https://www.mattburkedev.com/export-a-global-to-the-window-object-with-browserify/
+
 let clients = {};
 
 // Variable to store our three.js scene:
@@ -210,13 +219,14 @@ window.onload = async () => {
 		}
 	}
 
-	createOrUpdateClientVideo("local", null);
 
 	// first get user media
 	localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
 
 	if (gotMediaAccess) {
 		createOrUpdateClientVideo("local", localMediaStreams[0]);
+	} else {
+		createOrUpdateClientVideo("local", null);
 	}
 
 	// finally create the threejs scene
@@ -225,38 +235,16 @@ window.onload = async () => {
 	// then initialize socket connection
 	await initSocketConnection();
 
-
-	joinRoom();
+	await joinRoom();
 	sendCameraStreams();
+
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads
-	window.addEventListener('unload', () => sig('leave', {}, true));
+	window.addEventListener('unload', () => {
+		socket.request('leave', {});
+		// sig('leave', {}, true)
+	});
 }
-
-
-
-async function init() {
-	console.log("Window loaded.");
-
-	createOrUpdateClientVideo("local", null);
-
-	// first get user media
-	localMediaStreams = await getLocalMediaStreams(localMediaConstraints);
-
-	if (gotMediaAccess) {
-		createOrUpdateClientVideo("local", localMediaStreams[0]);
-	}
-
-
-	// finally create the threejs scene
-	createScene();
-	// then initialize socket connection
-	await initSocketConnection();
-
-};
-
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -291,82 +279,64 @@ function initSocketConnection() {
 
 		console.log("Initializing socket.io...");
 		socket = io();
+		socket.request = socketPromise(socket);
 
 		socket.on('connect', () => { });
 
 		//On connection server sends the client his ID and a list of all keys
-		// socket.on('introduction', (_id, _clientNum, _ids, _iceServers) => {
-		socket.on('introduction', (_id) => {
+		socket.on('introduction', (_id, _clientNum, _ids, _iceServers) => {
 
 			// keep local copy of ice servers:
-			// console.log("Received ICE server credentials from server.");
-			// iceServerList = _iceServers;
+			console.log("Received ICE server credentials from server.");
+			iceServerList = _iceServers;
 
 			// keep a local copy of my ID:
 			console.log('My socket ID is: ' + _id);
 			mySocketID = _id;
 			myPeerId = _id;
-			resolve();
-			// socket.emit('updateUUID', myPeerId);
 
 			// for each existing user, add them as a client and add tracks to their peer connection
-			// for (let i = 0; i < _ids.length; i++) {
-			// 	if (_ids[i] != mySocketID) {
-			// 		addClient(_ids[i], true);
-			// 	}
-			// }
+			for (let i = 0; i < _ids.length; i++) {
+				if (_ids[i] != mySocketID) {
+					console.log
+					addClient(_ids[i]);
+				}
+			}
+
+			resolve();
 		});
 
 		// when a new user has entered the server
-		// socket.on('newUserConnected', (clientCount, _id, _ids) => {
-		// 	console.log(clientCount + ' clients connected');
+		socket.on('newUserConnected', (clientCount, _id, _ids) => {
+			console.log(clientCount + ' clients connected');
 
-		// 	let alreadyHasUser = false;
-		// 	for (let i = 0; i < Object.keys(clients).length; i++) {
-		// 		if (Object.keys(clients)[i] == _id) {
-		// 			alreadyHasUser = true;
-		// 			break;
-		// 		}
-		// 	}
+			if (!(_id in clients)) {
+				if (_id != mySocketID) {
+					console.log('A new user connected with the id: ' + _id);
+					addClient(_id);
+				}
+			}
+		});
 
-		// 	if (_id != mySocketID && !alreadyHasUser) {
-		// 		console.log('A new user connected with the id: ' + _id);
-		// 		addClient(_id, false);
-		// 	}
+		socket.on('userDisconnected', (clientCount, _id, _ids) => {
+			// Update the data from the server
 
-		// });
-
-		// socket.on('userDisconnected', (clientCount, _id, _ids) => {
-		// 	// Update the data from the server
-
-		// 	if (_id in clients) {
-		// 		if (_id != mySocketID) {
-		// 			console.log('A user disconnected with the id: ' + _id);
-		// 			glScene.removeClient(_id);
-		// 			removeClientDOMElements(_id);
-		// 			clients[_id].peerConnection.destroy();
-		// 			delete clients[_id];
-		// 		}
-		// 	}
-		// });
+			if (_id in clients) {
+				if (_id != mySocketID) {
+					console.log('A user disconnected with the id: ' + _id);
+					glScene.removeClient(_id);
+					removeClientDOMElements(_id);
+					// clients[_id].peerConnection.destroy();
+					delete clients[_id];
+				}
+			}
+		});
 
 		// Update when one of the users moves in space
-		// socket.on('userPositions', _clientProps => {
-		// 	console.log(_clientProps);
-		// 	glScene.updateClientPositions(_clientProps);
+		socket.on('userPositions', _clientProps => {
+			glScene.updateClientPositions(_clientProps);
+		});
 
-		// });
-
-		// SimplePeer:
-		// socket.on("signal", data => {
-		// 	let _id = data.socket;
-		// 	let signalData = data.signal;
-		// 	let localPeer = clients[_id].peerConnection;
-
-		// 	console.log("Received signaling data from peer with socket ID: " + _id);
-		// 	localPeer.signal(signalData)
-		// });
-		
 	});
 
 }
@@ -379,162 +349,12 @@ function initSocketConnection() {
 
 
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
-async function addClient(_id, _initiator) {
+async function addClient(_id) {
 	console.log("Adding client with id " + _id);
 	clients[_id] = {};
-
-	// clients[_id].mediaStream = await getMedia(localMediaConstraints[0]) // start with okay quality
-	// if (gotMediaAccess) {
-	// 	clients[_id].mediaStream = localMediaStreams[0];
-	// }
-
-	// add peerConnection to the client
-	// let sp = createSimplePeer(_id, _initiator);
-	// clients[_id].peerConnection = sp;
-
-	// add client to scene:
 	glScene.addClient(_id);
 }
 
-
-// function createSimplePeer(_id, _initiator) {
-// 	let simplePeerOptions = {
-// 		initiator: _initiator
-// 	}
-
-// 	if (gotMediaAccess) {
-// 		simplePeerOptions.stream = clients[_id].mediaStream;
-// 	}
-
-// 	let sp = new SimplePeer(simplePeerOptions);
-
-
-// 	sp.on('signal', signal => {
-// 		socket.emit('signal', {
-// 			signal,
-// 			to: _id
-// 		})
-// 	});
-
-// 	sp.on('connect', () => {
-// 		sp.send('Hello from peer ' + mySocketID);
-// 	});
-
-// 	sp.on('data', data => {
-// 		console.log('Incoming message: ' + data);
-// 	});
-
-// 	sp.on('error', (err) => {
-// 		console.log("Error in peer connection with ID: " + _id);
-// 		console.log(err.code);
-// 	})
-
-// 	sp.on('stream', stream => {
-// 		// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
-// 		// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
-// 		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
-
-// 		// VIDEO:
-// 		let videoTracks = stream.getVideoTracks();
-// 		if (videoTracks.length > 0) {
-// 			let videoStream = new MediaStream([stream.getVideoTracks()[0]]);
-// 			createOrUpdateClientVideo(_id, videoStream);
-// 		}
-
-// 		// AUDIO: 
-// 		let audioTracks = stream.getAudioTracks();
-// 		if (audioTracks.length > 0) {
-// 			let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
-// 			createOrUpdateClientAudio(_id, audioStream);
-// 		}
-// 	});
-
-// 	// do it all in track 
-// 	sp.on('track', (track, stream) => {
-// 		// Split incoming stream into two streams: audio for THREE.PositionalAudio and 
-// 		// video for <video> element --> <canvas> --> videoTexture --> videoMaterial for THREE.js
-// 		// https://stackoverflow.com/questions/50984531/threejs-positional-audio-with-webrtc-streams-produces-no-sound
-
-// 		// VIDEO:
-// 		let videoTracks = stream.getVideoTracks();
-// 		if (videoTracks.length > 0) {
-// 			let videoStream = new MediaStream([stream.getVideoTracks()[0]]);
-// 			createOrUpdateClientVideo(_id, videoStream);
-// 		}
-
-// 		// AUDIO: 
-// 		let audioTracks = stream.getAudioTracks();
-// 		if (audioTracks.length > 0) {
-// 			let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
-// 			createOrUpdateClientAudio(_id, audioStream);
-// 		}
-// 	});
-
-// 	return sp;
-// }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-// DIY Selective Forwarding Unit Work-In-Progress
-
-// temporarily pause the outgoing stream
-// function disableOutgoingStream() {
-// 	localMediaStream.getTracks().forEach(track => {
-// 		track.enabled = false;
-// 	})
-// }
-// // enable the outgoing stream
-// function enableOutgoingStream() {
-// 	localMediaStream.getTracks().forEach(track => {
-// 		track.enabled = true;
-// 	})
-// }
-
-// function swapOutgoingStreams(_id, _existingStream, _newStream) {
-// 	clients[_id].peerConnection.removeStream(_existingStream)
-// 	clients[_id].peerConnection.addStream(_newStream);
-// }
-
-// function adjustOutgoingStream(_id, _mediaConstraints){
-// 	let audioStream = new MediaStream([stream.getAudioTracks()[0]]);
-// }
-
-// function enableOutgoingAudio(_id) {
-// 	clients[_id].mediaStream.getAudioTracks().forEach(track => {
-// 		track.enabled = true;
-// 	})
-// }
-// function disableOutgoingAudio(_id) {
-// 	clients[_id].mediaStream.getAudioTracks().forEach(track => {
-// 		track.enabled = false;
-// 	})
-// }
-
-// https://github.com/feross/simple-peer/issues/606
-// function setPeerVideoQuality(_id, qualityLevel) {
-// 	let peer = clients[_id].peerConnection;
-// 	let existingTrack = clients[_id].mediaStream.getVideoTracks()[0];
-// 	let newTrack = localMediaStreams[qualityLevel].getVideoTracks()[0].clone();
-// 	peer.replaceTrack(existingTrack, newTrack, clients[_id].mediaStream);
-// }
-
-// function enablePeerAudio(_id) {
-// 	let peer = clients[_id].peerConnection;
-// 	let peerMediaStream = clients[_id].mediaStream;
-// 	localMediaStreams[0].getAudioTracks().forEach(track => {
-// 		peer.addTrack(track.clone(), peerMediaStream)
-// 	})
-// }
-
-// function disablePeerAudio(_id) {
-// 	let peer = clients[_id].peerConnection;
-// 	let peerMediaStream = clients[_id].mediaStream;
-// 	peerMediaStream.getAudioTracks().forEach(track => {
-// 		peer.removeTrack(track, peerMediaStream);
-// 	})
-// }
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -542,11 +362,7 @@ async function addClient(_id, _initiator) {
 // Three.js 🌻
 
 function onPlayerMove() {
-	// console.log('Sending movement update to server.');
-	socket.emit('move', {
-		id: myPeerId,
-		data: glScene.getPlayerPosition()
-	});
+	socket.emit('move', glScene.getPlayerPosition());
 }
 
 function createScene() {
@@ -555,12 +371,12 @@ function createScene() {
 
 	glScene = new Scene(
 		document.getElementById('gl_context'),
-		window.innerWidth * 0.5,
-		window.innerHeight * 0.5,
+		window.innerWidth,
+		window.innerHeight,
 		'lightblue',
 		onPlayerMove,
 		clients,
-		allPeers);
+		mySocketID);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -648,7 +464,9 @@ export async function joinRoom() {
 	try {
 		// signal that we're a new peer and initialize our
 		// mediasoup-client device, if this is our first time connecting
-		let { routerRtpCapabilities } = await sig('join-as-new-peer');
+		let resp = await socket.request('join-as-new-peer');
+		let { routerRtpCapabilities } = resp;
+		console.log(resp);
 		if (!device.loaded) {
 			await device.load({ routerRtpCapabilities });
 		}
@@ -671,7 +489,7 @@ export async function joinRoom() {
 
 export async function sendCameraStreams() {
 	log('send camera streams');
-	$('#send-camera').style.display = 'none';
+	// $('#send-camera').style.display = 'none';
 
 	// make sure we've joined the room and started our camera. these
 	// functions don't do anything if they've already been called this
@@ -696,29 +514,31 @@ export async function sendCameraStreams() {
 		encodings: camEncodings(),
 		appData: { mediaTag: 'cam-video' }
 	});
-	if (getCamPausedState()) {
-		try {
-			await camVideoProducer.pause();
-		} catch (e) {
-			console.error(e);
-		}
-	}
+
+	// if (getCamPausedState()) {
+	// 	try {
+	// 		await camVideoProducer.pause();
+	// 	} catch (e) {
+	// 		console.error(e);
+	// 	}
+	// }
 
 	// same thing for audio, but we can use our already-created
 	camAudioProducer = await sendTransport.produce({
 		track: localCam.getAudioTracks()[0],
 		appData: { mediaTag: 'cam-audio' }
 	});
-	if (getMicPausedState()) {
-		try {
-			camAudioProducer.pause();
-		} catch (e) {
-			console.error(e);
-		}
-	}
 
-	$('#stop-streams').style.display = 'initial';
-	showCameraInfo();
+	// if (getMicPausedState()) {
+	// 	try {
+	// 		camAudioProducer.pause();
+	// 	} catch (e) {
+	// 		console.error(e);
+	// 	}
+	// }
+
+	// $('#stop-streams').style.display = 'initial';
+	// showCameraInfo();
 }
 
 export async function startScreenshare() {
@@ -759,7 +579,8 @@ export async function startScreenshare() {
 		log('screen share stopped');
 		try {
 			await screenVideoProducer.pause();
-			let { error } = await sig('close-producer',
+
+			let { error } = await socket.request('close-producer',
 				{ producerId: screenVideoProducer.id });
 			await screenVideoProducer.close();
 			screenVideoProducer = null;
@@ -767,7 +588,8 @@ export async function startScreenshare() {
 				err(error);
 			}
 			if (screenAudioProducer) {
-				let { error } = await sig('close-producer',
+
+				let { error } = await socket.request('close-producer',
 					{ producerId: screenAudioProducer.id });
 				await screenAudioProducer.close();
 				screenAudioProducer = null;
@@ -858,8 +680,8 @@ export async function stopStreams() {
 	log('stop sending media streams');
 	$('#stop-streams').style.display = 'none';
 
-	let { error } = await sig('close-transport',
-		{ transportId: sendTransport.id });
+	let { error } = await socket.request('close-producer',
+		{ producerId: screenAudioProducer.id });
 	if (error) {
 		err(error);
 	}
@@ -893,14 +715,14 @@ export async function leaveRoom() {
 		return;
 	}
 
-	log('leave room');
-	$('#leave-room').style.display = 'none';
+	// log('leave room');
+	// $('#leave-room').style.display = 'none';
 
 	// stop polling
 	clearInterval(pollingInterval);
 
 	// close everything on the server-side (transports, producers, consumers)
-	let { error } = await sig('leave');
+	let { error } = await socket.request('leave');
 	if (error) {
 		err(error);
 	}
@@ -927,17 +749,17 @@ export async function leaveRoom() {
 	joined = false;
 
 	// hacktastically restore ui to initial state
-	$('#join-control').style.display = 'initial';
-	$('#send-camera').style.display = 'initial';
-	$('#stop-streams').style.display = 'none';
-	$('#remote-video').innerHTML = '';
-	$('#share-screen').style.display = 'initial';
-	$('#local-screen-pause-ctrl').style.display = 'none';
-	$('#local-screen-audio-pause-ctrl').style.display = 'none';
-	showCameraInfo();
-	updateCamVideoProducerStatsDisplay();
-	updateScreenVideoProducerStatsDisplay();
-	updatePeersDisplay();
+	// $('#join-control').style.display = 'initial';
+	// $('#send-camera').style.display = 'initial';
+	// $('#stop-streams').style.display = 'none';
+	// $('#remote-video').innerHTML = '';
+	// $('#share-screen').style.display = 'initial';
+	// $('#local-screen-pause-ctrl').style.display = 'none';
+	// $('#local-screen-audio-pause-ctrl').style.display = 'none';
+	// showCameraInfo();
+	// updateCamVideoProducerStatsDisplay();
+	// updateScreenVideoProducerStatsDisplay();
+	// updatePeersDisplay();
 }
 
 export async function subscribeToTrack(peerId, mediaTag) {
@@ -958,7 +780,8 @@ export async function subscribeToTrack(peerId, mediaTag) {
 
 	// ask the server to create a server-side consumer object and send
 	// us back the info we need to create a client-side consumer
-	let consumerParameters = await sig('recv-track', {
+
+	let consumerParameters = await socket.request('recv-track', {
 		mediaTag,
 		mediaPeerId: peerId,
 		rtpCapabilities: device.rtpCapabilities
@@ -984,8 +807,8 @@ export async function subscribeToTrack(peerId, mediaTag) {
 	consumers.push(consumer);
 
 	// ui
-	await addVideoAudio(consumer);
-	updatePeersDisplay();
+	await addVideoAudio(consumer, peerId);
+	// updatePeersDisplay();
 }
 
 export async function unsubscribeFromTrack(peerId, mediaTag) {
@@ -1001,14 +824,14 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 		console.error(e);
 	}
 	// force update of ui
-	updatePeersDisplay();
+	// updatePeersDisplay();
 }
 
 export async function pauseConsumer(consumer) {
 	if (consumer) {
 		log('pause consumer', consumer.appData.peerId, consumer.appData.mediaTag);
 		try {
-			await sig('pause-consumer', { consumerId: consumer.id });
+			await socket.request('pause-consumer', { consumerId: consumer.id });
 			await consumer.pause();
 		} catch (e) {
 			console.error(e);
@@ -1020,7 +843,7 @@ export async function resumeConsumer(consumer) {
 	if (consumer) {
 		log('resume consumer', consumer.appData.peerId, consumer.appData.mediaTag);
 		try {
-			await sig('resume-consumer', { consumerId: consumer.id });
+			await socket.request('resume-consumer', { consumerId: consumer.id });
 			await consumer.resume();
 		} catch (e) {
 			console.error(e);
@@ -1032,7 +855,7 @@ export async function pauseProducer(producer) {
 	if (producer) {
 		log('pause producer', producer.appData.mediaTag);
 		try {
-			await sig('pause-producer', { producerId: producer.id });
+			await socket.request('pause-producer', { producerId: producer.id });
 			await producer.pause();
 		} catch (e) {
 			console.error(e);
@@ -1044,7 +867,8 @@ export async function resumeProducer(producer) {
 	if (producer) {
 		log('resume producer', producer.appData.mediaTag);
 		try {
-			await sig('resume-producer', { producerId: producer.id });
+			await socket.request('resume-producer', { producerId: producer.id });
+
 			await producer.resume();
 		} catch (e) {
 			console.error(e);
@@ -1060,7 +884,7 @@ async function closeConsumer(consumer) {
 	try {
 		// tell the server we're closing this consumer. (the server-side
 		// consumer may have been closed already, but that's okay.)
-		await sig('close-consumer', { consumerId: consumer.id });
+		await socket.request('close-consumer', { consumerId: consumer.id });
 		await consumer.close();
 
 		consumers = consumers.filter((c) => c !== consumer);
@@ -1079,7 +903,7 @@ async function createTransport(direction) {
 	// ask the server to create a server-side transport object and send
 	// us back the info we need to create a client-side transport
 	let transport,
-		{ transportOptions } = await sig('create-transport', { direction });
+		{ transportOptions } = await socket.request('create-transport', { direction });
 	log('transport options', transportOptions);
 
 	if (direction === 'recv') {
@@ -1095,7 +919,8 @@ async function createTransport(direction) {
 	// server, then call callback() on success or errback() on failure.
 	transport.on('connect', async ({ dtlsParameters }, callback, errback) => {
 		log('transport connect event', direction);
-		let { error } = await sig('connect-transport', {
+
+		let { error } = await socket.request('connect-transport', {
 			transportId: transportOptions.id,
 			dtlsParameters
 		});
@@ -1118,16 +943,17 @@ async function createTransport(direction) {
 			// aren't checked, for each media type. not very clean code, here
 			// but, you know, this isn't a real application.)
 			let paused = false;
-			if (appData.mediaTag === 'cam-video') {
-				paused = getCamPausedState();
-			} else if (appData.mediaTag === 'cam-audio') {
-				paused = getMicPausedState();
-			}
+			// if (appData.mediaTag === 'cam-video') {
+			// 	paused = getCamPausedState();
+			// } else if (appData.mediaTag === 'cam-audio') {
+			// 	paused = getMicPausedState();
+			// }
 			// tell the server what it needs to know from us in order to set
 			// up a server-side producer object, and get back a
 			// producer.id. call callback() on success or errback() on
 			// failure.
-			let { error, id } = await sig('send-track', {
+
+			let { error, id } = await socket.request('send-track', {
 				transportId: transportOptions.id,
 				kind,
 				rtpParameters,
@@ -1165,9 +991,10 @@ async function createTransport(direction) {
 //
 
 async function pollAndUpdate() {
-	let { peers, activeSpeaker, error } = await sig('sync');
-	console.log("_________PEERS_________");
-	console.log(peers);
+	let { peers, activeSpeaker, error } = await socket.request('sync');
+
+	// console.log(peers);
+
 	allPeers = peers;
 	if (error) {
 		return ({ error });
@@ -1175,20 +1002,42 @@ async function pollAndUpdate() {
 
 	// always update bandwidth stats and active speaker display
 	currentActiveSpeaker = activeSpeaker;
-	updateActiveSpeaker();
-	updateCamVideoProducerStatsDisplay();
-	updateScreenVideoProducerStatsDisplay();
-	updateConsumersStatsDisplay();
+	// updateActiveSpeaker();
+	// updateCamVideoProducerStatsDisplay();
+	// updateScreenVideoProducerStatsDisplay();
+	// updateConsumersStatsDisplay();
 
 	// decide if we need to update tracks list and video/audio
 	// elements. build list of peers, sorted by join time, removing last
 	// seen time and stats, so we can easily do a deep-equals
 	// comparison. compare this list with the cached list from last
 	// poll.
-	let thisPeersList = sortPeers(peers),
-		lastPeersList = sortPeers(lastPollSyncData);
-	if (!deepEqual(thisPeersList, lastPeersList)) {
-		updatePeersDisplay(peers, thisPeersList);
+	// let thisPeersList = sortPeers(peers),
+	// 	lastPeersList = sortPeers(lastPollSyncData);
+	// if (!deepEqual(thisPeersList, lastPeersList)) {
+	// console.log('new peer!');
+	// updatePeersDisplay(peers, thisPeersList);
+	// }
+
+	// if a new peer has connected, auto-subscribe to their feeds:
+	// for (let id in peers) {
+	// 	let { mediaTag, info } = peers[id].media;
+	// 	console.log(peers[id].media);
+	// 	if (!findConsumerForTrack(id, mediaTag)) {
+	// 		log(`subscribing to track that ${id} has added`);
+	// 		subscribeToTrack(id, mediaTag);
+	// 	}
+	// }
+	for (let id in peers) {
+		if (id === myPeerId) {
+			continue;
+		}
+		for (let [mediaTag, info] of Object.entries(peers[id].media)) {
+			if (!findConsumerForTrack(id, mediaTag)) {
+				log(`auto subscribing to track that ${id} has added`);
+				await subscribeToTrack(id, mediaTag);
+			}
+		}
 	}
 
 	// if a peer has gone away, we need to close all consumers we have
@@ -1215,7 +1064,6 @@ async function pollAndUpdate() {
 	});
 
 	lastPollSyncData = peers;
-	console.log(peers);
 	return ({}); // return an empty object if there isn't an error
 }
 
@@ -1234,180 +1082,193 @@ function findConsumerForTrack(peerId, mediaTag) {
 // -- user interface --
 //
 
-export function getCamPausedState() {
-	return !$('#local-cam-checkbox').checked;
-}
+// export function getCamPausedState() {
+// 	return !$('#local-cam-checkbox').checked;
+// }
 
-export function getMicPausedState() {
-	return !$('#local-mic-checkbox').checked;
-}
+// export function getMicPausedState() {
+// 	return !$('#local-mic-checkbox').checked;
+// }
 
-export function getScreenPausedState() {
-	return !$('#local-screen-checkbox').checked;
-}
+// export function getScreenPausedState() {
+// 	return !$('#local-screen-checkbox').checked;
+// }
 
-export function getScreenAudioPausedState() {
-	return !$('#local-screen-audio-checkbox').checked;
-}
+// export function getScreenAudioPausedState() {
+// 	return !$('#local-screen-audio-checkbox').checked;
+// }
 
 export async function changeCamPaused() {
-	if (getCamPausedState()) {
-		pauseProducer(camVideoProducer);
-		$('#local-cam-label').innerHTML = 'camera (paused)';
-	} else {
+	if (camPaused) {
 		resumeProducer(camVideoProducer);
-		$('#local-cam-label').innerHTML = 'camera';
+	} else {
+		pauseProducer(camVideoProducer);
 	}
+	camPaused = !camPaused;
+
+	// if (getCamPausedState()) {
+	// 	pauseProducer(camVideoProducer);
+	// 	$('#local-cam-label').innerHTML = 'camera (paused)';
+	// } else {
+	// 	resumeProducer(camVideoProducer);
+	// 	$('#local-cam-label').innerHTML = 'camera';
+	// }
 }
 
 export async function changeMicPaused() {
-	if (getMicPausedState()) {
-		pauseProducer(camAudioProducer);
-		$('#local-mic-label').innerHTML = 'mic (paused)';
-	} else {
+	if (micPaused) {
 		resumeProducer(camAudioProducer);
-		$('#local-mic-label').innerHTML = 'mic';
-	}
-}
-
-export async function changeScreenPaused() {
-	if (getScreenPausedState()) {
-		pauseProducer(screenVideoProducer);
-		$('#local-screen-label').innerHTML = 'screen (paused)';
 	} else {
-		resumeProducer(screenVideoProducer);
-		$('#local-screen-label').innerHTML = 'screen';
+		pauseProducer(camAudioProducer);
 	}
+	micPaused = !micPaused;
+	// if (getMicPausedState()) {
+	// 	pauseProducer(camAudioProducer);
+	// 	$('#local-mic-label').innerHTML = 'mic (paused)';
+	// } else {
+	// 	resumeProducer(camAudioProducer);
+	// 	$('#local-mic-label').innerHTML = 'mic';
+	// }
 }
 
-export async function changeScreenAudioPaused() {
-	if (getScreenAudioPausedState()) {
-		pauseProducer(screenAudioProducer);
-		$('#local-screen-audio-label').innerHTML = 'screen (paused)';
-	} else {
-		resumeProducer(screenAudioProducer);
-		$('#local-screen-audio-label').innerHTML = 'screen';
-	}
-}
+// export async function changeScreenPaused() {
+// 	if (getScreenPausedState()) {
+// 		pauseProducer(screenVideoProducer);
+// 		$('#local-screen-label').innerHTML = 'screen (paused)';
+// 	} else {
+// 		resumeProducer(screenVideoProducer);
+// 		$('#local-screen-label').innerHTML = 'screen';
+// 	}
+// }
+
+// export async function changeScreenAudioPaused() {
+// 	if (getScreenAudioPausedState()) {
+// 		pauseProducer(screenAudioProducer);
+// 		$('#local-screen-audio-label').innerHTML = 'screen (paused)';
+// 	} else {
+// 		resumeProducer(screenAudioProducer);
+// 		$('#local-screen-audio-label').innerHTML = 'screen';
+// 	}
+// }
 
 
-export async function updatePeersDisplay(peersInfo = lastPollSyncData,
-	sortedPeers = sortPeers(peersInfo)) {
-	log('room state updated', peersInfo);
+// export async function updatePeersDisplay(peersInfo = lastPollSyncData,
+// 	sortedPeers = sortPeers(peersInfo)) {
+// 	log('room state updated', peersInfo);
 
-	$('#available-tracks').innerHTML = '';
-	if (camVideoProducer) {
-		$('#available-tracks')
-			.appendChild(makeTrackControlEl('my', 'cam-video',
-				peersInfo[myPeerId].media['cam-video']));
-	}
-	if (camAudioProducer) {
-		$('#available-tracks')
-			.appendChild(makeTrackControlEl('my', 'cam-audio',
-				peersInfo[myPeerId].media['cam-audio']));
-	}
-	if (screenVideoProducer) {
-		$('#available-tracks')
-			.appendChild(makeTrackControlEl('my', 'screen-video',
-				peersInfo[myPeerId].media['screen-video']));
-	}
-	if (screenAudioProducer) {
-		$('#available-tracks')
-			.appendChild(makeTrackControlEl('my', 'screen-audio',
-				peersInfo[myPeerId].media['screen-audio']));
-	}
+// 	console.log()
+// 	$('#available-tracks').innerHTML = '';
 
-	for (let peer of sortedPeers) {
-		if (peer.id === myPeerId) {
-			continue;
-		}
-		for (let [mediaTag, info] of Object.entries(peer.media)) {
-			$('#available-tracks')
-				.appendChild(makeTrackControlEl(peer.id, mediaTag, info));
-			if (peer.id in lastPollSyncData){
-				console.log("Adding peer with id: " + peer.id);
-				glScene.addClient(peer.id);
-			}
-		}
-	}
-}
+// 	// do local stuff first
+// 	if (camVideoProducer) {
+// 		$('#available-tracks')
+// 			.appendChild(makeTrackControlEl('my', 'cam-video',
+// 				peersInfo[myPeerId].media['cam-video']));
+// 	}
+// 	if (camAudioProducer) {
+// 		$('#available-tracks')
+// 			.appendChild(makeTrackControlEl('my', 'cam-audio',
+// 				peersInfo[myPeerId].media['cam-audio']));
+// 	}
+// 	if (screenVideoProducer) {
+// 		$('#available-tracks')
+// 			.appendChild(makeTrackControlEl('my', 'screen-video',
+// 				peersInfo[myPeerId].media['screen-video']));
+// 	}
+// 	if (screenAudioProducer) {
+// 		$('#available-tracks')
+// 			.appendChild(makeTrackControlEl('my', 'screen-audio',
+// 				peersInfo[myPeerId].media['screen-audio']));
+// 	}
 
-function makeTrackControlEl(peerName, mediaTag, mediaInfo) {
-	let div = document.createElement('div'),
-		peerId = (peerName === 'my' ? myPeerId : peerName),
-		consumer = findConsumerForTrack(peerId, mediaTag);
-	div.classList = `track-subscribe track-subscribe-${peerId}`;
+// 	for (let peer of sortedPeers) {
+// 		if (peer.id === myPeerId) {
+// 			continue;
+// 		}
+// 		for (let [mediaTag, info] of Object.entries(peer.media)) {
+// 			$('#available-tracks')
+// 				.appendChild(makeTrackControlEl(peer.id, mediaTag, info));
 
-	let sub = document.createElement('button');
-	if (!consumer) {
-		sub.innerHTML += 'subscribe'
-		sub.onclick = () => subscribeToTrack(peerId, mediaTag);
-		div.appendChild(sub);
+// 		}
+// 	}
+// }
 
-	} else {
-		sub.innerHTML += 'unsubscribe'
-		sub.onclick = () => unsubscribeFromTrack(peerId, mediaTag);
-		div.appendChild(sub);
-	}
+// function makeTrackControlEl(peerName, mediaTag, mediaInfo) {
+// 	let div = document.createElement('div'),
+// 		peerId = (peerName === 'my' ? myPeerId : peerName),
+// 		consumer = findConsumerForTrack(peerId, mediaTag);
+// 	div.classList = `track-subscribe track-subscribe-${peerId}`;
 
-	let trackDescription = document.createElement('span');
-	trackDescription.innerHTML = `${peerName} ${mediaTag}`
-	div.appendChild(trackDescription);
+// 	let sub = document.createElement('button');
+// 	if (!consumer) {
+// 		sub.innerHTML += 'subscribe'
+// 		sub.onclick = () => subscribeToTrack(peerId, mediaTag);
+// 		div.appendChild(sub);
 
-	try {
-		if (mediaInfo) {
-			let producerPaused = mediaInfo.paused;
-			let prodPauseInfo = document.createElement('span');
-			prodPauseInfo.innerHTML = producerPaused ? '[producer paused]'
-				: '[producer playing]';
-			div.appendChild(prodPauseInfo);
-		}
-	} catch (e) {
-		console.error(e);
-	}
+// 	} else {
+// 		sub.innerHTML += 'unsubscribe'
+// 		sub.onclick = () => unsubscribeFromTrack(peerId, mediaTag);
+// 		div.appendChild(sub);
+// 	}
 
-	if (consumer) {
-		let pause = document.createElement('span'),
-			checkbox = document.createElement('input'),
-			label = document.createElement('label');
-		pause.classList = 'nowrap';
-		checkbox.type = 'checkbox';
-		checkbox.checked = !consumer.paused;
-		checkbox.onchange = async () => {
-			if (checkbox.checked) {
-				await resumeConsumer(consumer);
-			} else {
-				await pauseConsumer(consumer);
-			}
-			updatePeersDisplay();
-		}
-		label.id = `consumer-stats-${consumer.id}`;
-		if (consumer.paused) {
-			label.innerHTML = '[consumer paused]'
-		} else {
-			let stats = lastPollSyncData[myPeerId].stats[consumer.id],
-				bitrate = '-';
-			if (stats) {
-				bitrate = Math.floor(stats.bitrate / 1000.0);
-			}
-			label.innerHTML = `[consumer playing ${bitrate} kb/s]`;
-		}
-		pause.appendChild(checkbox);
-		pause.appendChild(label);
-		div.appendChild(pause);
+// 	let trackDescription = document.createElement('span');
+// 	trackDescription.innerHTML = `${peerName} ${mediaTag}`
+// 	div.appendChild(trackDescription);
 
-		if (consumer.kind === 'video') {
-			let remoteProducerInfo = document.createElement('span');
-			remoteProducerInfo.classList = 'nowrap track-ctrl';
-			remoteProducerInfo.id = `track-ctrl-${consumer.producerId}`;
-			div.appendChild(remoteProducerInfo);
-		}
-	}
+// 	try {
+// 		if (mediaInfo) {
+// 			let producerPaused = mediaInfo.paused;
+// 			let prodPauseInfo = document.createElement('span');
+// 			prodPauseInfo.innerHTML = producerPaused ? '[producer paused]'
+// 				: '[producer playing]';
+// 			div.appendChild(prodPauseInfo);
+// 		}
+// 	} catch (e) {
+// 		console.error(e);
+// 	}
 
-	return div;
-}
+// 	if (consumer) {
+// 		let pause = document.createElement('span'),
+// 			checkbox = document.createElement('input'),
+// 			label = document.createElement('label');
+// 		pause.classList = 'nowrap';
+// 		checkbox.type = 'checkbox';
+// 		checkbox.checked = !consumer.paused;
+// 		checkbox.onchange = async () => {
+// 			if (checkbox.checked) {
+// 				await resumeConsumer(consumer);
+// 			} else {
+// 				await pauseConsumer(consumer);
+// 			}
+// 			updatePeersDisplay();
+// 		}
+// 		label.id = `consumer-stats-${consumer.id}`;
+// 		if (consumer.paused) {
+// 			label.innerHTML = '[consumer paused]'
+// 		} else {
+// 			let stats = lastPollSyncData[myPeerId].stats[consumer.id],
+// 				bitrate = '-';
+// 			if (stats) {
+// 				bitrate = Math.floor(stats.bitrate / 1000.0);
+// 			}
+// 			label.innerHTML = `[consumer playing ${bitrate} kb/s]`;
+// 		}
+// 		pause.appendChild(checkbox);
+// 		pause.appendChild(label);
+// 		div.appendChild(pause);
 
-function addVideoAudio(consumer) {
+// 		if (consumer.kind === 'video') {
+// 			let remoteProducerInfo = document.createElement('span');
+// 			remoteProducerInfo.classList = 'nowrap track-ctrl';
+// 			remoteProducerInfo.id = `track-ctrl-${consumer.producerId}`;
+// 			div.appendChild(remoteProducerInfo);
+// 		}
+// 	}
+
+// 	return div;
+// }
+
+function addVideoAudio(consumer, peerId) {
 	if (!(consumer && consumer.track)) {
 		return;
 	}
@@ -1421,7 +1282,7 @@ function addVideoAudio(consumer) {
 		el.setAttribute('playsinline', true);
 		el.setAttribute('autoplay', true);
 	}
-	el.id = `#remote-${consumer.kind}`;
+	el.id = `${peerId}_${consumer.kind}`;
 	document.body.appendChild(el);
 
 	// $(`#remote-${consumer.kind}`).appendChild(el);
@@ -1445,176 +1306,176 @@ function removeVideoAudio(consumer) {
 	});
 }
 
-async function showCameraInfo() {
-	let deviceId = await getCurrentDeviceId(),
-		infoEl = $('#camera-info');
-	if (!deviceId) {
-		infoEl.innerHTML = '';
-		return;
-	}
-	let devices = await navigator.mediaDevices.enumerateDevices(),
-		deviceInfo = devices.find((d) => d.deviceId === deviceId);
-	infoEl.innerHTML = `
-      ${ deviceInfo.label}
-      <button onclick="Client.cycleCamera()">switch camera</button>
-  `;
-}
+// async function showCameraInfo() {
+// 	let deviceId = await getCurrentDeviceId(),
+// 		infoEl = $('#camera-info');
+// 	if (!deviceId) {
+// 		infoEl.innerHTML = '';
+// 		return;
+// 	}
+// 	let devices = await navigator.mediaDevices.enumerateDevices(),
+// 		deviceInfo = devices.find((d) => d.deviceId === deviceId);
+// 	infoEl.innerHTML = `
+//       ${ deviceInfo.label}
+//       <button onclick="Client.cycleCamera()">switch camera</button>
+//   `;
+// }
 
-export async function getCurrentDeviceId() {
-	if (!camVideoProducer) {
-		return null;
-	}
-	let deviceId = camVideoProducer.track.getSettings().deviceId;
-	if (deviceId) {
-		return deviceId;
-	}
-	// Firefox doesn't have deviceId in MediaTrackSettings object
-	let track = localCam && localCam.getVideoTracks()[0];
-	if (!track) {
-		return null;
-	}
-	let devices = await navigator.mediaDevices.enumerateDevices(),
-		deviceInfo = devices.find((d) => d.label.startsWith(track.label));
-	return deviceInfo.deviceId;
-}
+// export async function getCurrentDeviceId() {
+// 	if (!camVideoProducer) {
+// 		return null;
+// 	}
+// 	let deviceId = camVideoProducer.track.getSettings().deviceId;
+// 	if (deviceId) {
+// 		return deviceId;
+// 	}
+// 	// Firefox doesn't have deviceId in MediaTrackSettings object
+// 	let track = localCam && localCam.getVideoTracks()[0];
+// 	if (!track) {
+// 		return null;
+// 	}
+// 	let devices = await navigator.mediaDevices.enumerateDevices(),
+// 		deviceInfo = devices.find((d) => d.label.startsWith(track.label));
+// 	return deviceInfo.deviceId;
+// }
 
-function updateActiveSpeaker() {
-	$$('.track-subscribe').forEach((el) => {
-		el.classList.remove('active-speaker');
-	});
-	if (currentActiveSpeaker.peerId) {
-		$$(`.track-subscribe-${currentActiveSpeaker.peerId}`).forEach((el) => {
-			el.classList.add('active-speaker');
-		});
-	}
-}
+// function updateActiveSpeaker() {
+// 	$$('.track-subscribe').forEach((el) => {
+// 		el.classList.remove('active-speaker');
+// 	});
+// 	if (currentActiveSpeaker.peerId) {
+// 		$$(`.track-subscribe-${currentActiveSpeaker.peerId}`).forEach((el) => {
+// 			el.classList.add('active-speaker');
+// 		});
+// 	}
+// }
 
-function updateCamVideoProducerStatsDisplay() {
-	let tracksEl = $('#camera-producer-stats');
-	tracksEl.innerHTML = '';
-	if (!camVideoProducer || camVideoProducer.paused) {
-		return;
-	}
-	makeProducerTrackSelector({
-		internalTag: 'local-cam-tracks',
-		container: tracksEl,
-		peerId: myPeerId,
-		producerId: camVideoProducer.id,
-		currentLayer: camVideoProducer.maxSpatialLayer,
-		layerSwitchFunc: (i) => {
-			console.log('client set layers for cam stream');
-			camVideoProducer.setMaxSpatialLayer(i)
-		}
-	});
-}
+// function updateCamVideoProducerStatsDisplay() {
+// 	let tracksEl = $('#camera-producer-stats');
+// 	tracksEl.innerHTML = '';
+// 	if (!camVideoProducer || camVideoProducer.paused) {
+// 		return;
+// 	}
+// 	makeProducerTrackSelector({
+// 		internalTag: 'local-cam-tracks',
+// 		container: tracksEl,
+// 		peerId: myPeerId,
+// 		producerId: camVideoProducer.id,
+// 		currentLayer: camVideoProducer.maxSpatialLayer,
+// 		layerSwitchFunc: (i) => {
+// 			console.log('client set layers for cam stream');
+// 			camVideoProducer.setMaxSpatialLayer(i)
+// 		}
+// 	});
+// }
 
-function updateScreenVideoProducerStatsDisplay() {
-	let tracksEl = $('#screen-producer-stats');
-	tracksEl.innerHTML = '';
-	if (!screenVideoProducer || screenVideoProducer.paused) {
-		return;
-	}
-	makeProducerTrackSelector({
-		internalTag: 'local-screen-tracks',
-		container: tracksEl,
-		peerId: myPeerId,
-		producerId: screenVideoProducer.id,
-		currentLayer: screenVideoProducer.maxSpatialLayer,
-		layerSwitchFunc: (i) => {
-			console.log('client set layers for screen stream');
-			screenVideoProducer.setMaxSpatialLayer(i)
-		}
-	});
-}
+// function updateScreenVideoProducerStatsDisplay() {
+// 	let tracksEl = $('#screen-producer-stats');
+// 	tracksEl.innerHTML = '';
+// 	if (!screenVideoProducer || screenVideoProducer.paused) {
+// 		return;
+// 	}
+// 	makeProducerTrackSelector({
+// 		internalTag: 'local-screen-tracks',
+// 		container: tracksEl,
+// 		peerId: myPeerId,
+// 		producerId: screenVideoProducer.id,
+// 		currentLayer: screenVideoProducer.maxSpatialLayer,
+// 		layerSwitchFunc: (i) => {
+// 			console.log('client set layers for screen stream');
+// 			screenVideoProducer.setMaxSpatialLayer(i)
+// 		}
+// 	});
+// }
 
-function updateConsumersStatsDisplay() {
-	try {
-		for (let consumer of consumers) {
-			let label = $(`#consumer-stats-${consumer.id}`);
-			if (label) {
-				if (consumer.paused) {
-					label.innerHTML = '(consumer paused)'
-				} else {
-					let stats = lastPollSyncData[myPeerId].stats[consumer.id],
-						bitrate = '-';
-					if (stats) {
-						bitrate = Math.floor(stats.bitrate / 1000.0);
-					}
-					label.innerHTML = `[consumer playing ${bitrate} kb/s]`;
-				}
-			}
+// function updateConsumersStatsDisplay() {
+// 	try {
+// 		for (let consumer of consumers) {
+// 			let label = $(`#consumer-stats-${consumer.id}`);
+// 			if (label) {
+// 				if (consumer.paused) {
+// 					label.innerHTML = '(consumer paused)'
+// 				} else {
+// 					let stats = lastPollSyncData[myPeerId].stats[consumer.id],
+// 						bitrate = '-';
+// 					if (stats) {
+// 						bitrate = Math.floor(stats.bitrate / 1000.0);
+// 					}
+// 					label.innerHTML = `[consumer playing ${bitrate} kb/s]`;
+// 				}
+// 			}
 
-			let mediaInfo = lastPollSyncData[consumer.appData.peerId] &&
-				lastPollSyncData[consumer.appData.peerId]
-					.media[consumer.appData.mediaTag];
-			if (mediaInfo && !mediaInfo.paused) {
-				let tracksEl = $(`#track-ctrl-${consumer.producerId}`);
-				if (tracksEl && lastPollSyncData[myPeerId]
-					.consumerLayers[consumer.id]) {
-					tracksEl.innerHTML = '';
-					let currentLayer = lastPollSyncData[myPeerId]
-						.consumerLayers[consumer.id].currentLayer;
-					makeProducerTrackSelector({
-						internalTag: consumer.id,
-						container: tracksEl,
-						peerId: consumer.appData.peerId,
-						producerId: consumer.producerId,
-						currentLayer: currentLayer,
-						layerSwitchFunc: (i) => {
-							console.log('ask server to set layers');
-							sig('consumer-set-layers', {
-								consumerId: consumer.id,
-								spatialLayer: i
-							});
-						}
-					});
-				}
-			}
-		}
-	} catch (e) {
-		log('error while updating consumers stats display', e);
-	}
-}
+// 			let mediaInfo = lastPollSyncData[consumer.appData.peerId] &&
+// 				lastPollSyncData[consumer.appData.peerId]
+// 					.media[consumer.appData.mediaTag];
+// 			if (mediaInfo && !mediaInfo.paused) {
+// 				let tracksEl = $(`#track-ctrl-${consumer.producerId}`);
+// 				if (tracksEl && lastPollSyncData[myPeerId]
+// 					.consumerLayers[consumer.id]) {
+// 					tracksEl.innerHTML = '';
+// 					let currentLayer = lastPollSyncData[myPeerId]
+// 						.consumerLayers[consumer.id].currentLayer;
+// 					makeProducerTrackSelector({
+// 						internalTag: consumer.id,
+// 						container: tracksEl,
+// 						peerId: consumer.appData.peerId,
+// 						producerId: consumer.producerId,
+// 						currentLayer: currentLayer,
+// 						layerSwitchFunc: (i) => {
+// 							console.log('ask server to set layers');
+// 							socket.request('consumer-set-layers', {
+// 								consumerId: consumer.id,
+// 								spatialLayer: i
+// 							});
+// 						}
+// 					});
+// 				}
+// 			}
+// 		}
+// 	} catch (e) {
+// 		log('error while updating consumers stats display', e);
+// 	}
+// }
 
-function makeProducerTrackSelector({ internalTag, container, peerId, producerId,
-	currentLayer, layerSwitchFunc }) {
-	try {
-		let pollStats = lastPollSyncData[peerId] &&
-			lastPollSyncData[peerId].stats[producerId];
-		if (!pollStats) {
-			return;
-		}
+// function makeProducerTrackSelector({ internalTag, container, peerId, producerId,
+// 	currentLayer, layerSwitchFunc }) {
+// 	try {
+// 		let pollStats = lastPollSyncData[peerId] &&
+// 			lastPollSyncData[peerId].stats[producerId];
+// 		if (!pollStats) {
+// 			return;
+// 		}
 
-		let stats = [...Array.from(pollStats)]
-			.sort((a, b) => a.rid > b.rid ? 1 : (a.rid < b.rid ? -1 : 0));
-		let i = 0;
-		for (let s of stats) {
-			let div = document.createElement('div'),
-				radio = document.createElement('input'),
-				label = document.createElement('label'),
-				x = i;
-			radio.type = 'radio';
-			radio.name = `radio-${internalTag}-${producerId}`;
-			radio.checked = currentLayer == undefined ?
-				(i === stats.length - 1) :
-				(i === currentLayer);
-			radio.onchange = () => layerSwitchFunc(x);
-			let bitrate = Math.floor(s.bitrate / 1000);
-			label.innerHTML = `${bitrate} kb/s`;
-			div.appendChild(radio);
-			div.appendChild(label);
-			container.appendChild(div);
-			i++;
-		}
-		if (i) {
-			let txt = document.createElement('div');
-			txt.innerHTML = 'tracks';
-			container.insertBefore(txt, container.firstChild);
-		}
-	} catch (e) {
-		log('error while updating track stats display', e);
-	}
-}
+// 		let stats = [...Array.from(pollStats)]
+// 			.sort((a, b) => a.rid > b.rid ? 1 : (a.rid < b.rid ? -1 : 0));
+// 		let i = 0;
+// 		for (let s of stats) {
+// 			let div = document.createElement('div'),
+// 				radio = document.createElement('input'),
+// 				label = document.createElement('label'),
+// 				x = i;
+// 			radio.type = 'radio';
+// 			radio.name = `radio-${internalTag}-${producerId}`;
+// 			radio.checked = currentLayer == undefined ?
+// 				(i === stats.length - 1) :
+// 				(i === currentLayer);
+// 			radio.onchange = () => layerSwitchFunc(x);
+// 			let bitrate = Math.floor(s.bitrate / 1000);
+// 			label.innerHTML = `${bitrate} kb/s`;
+// 			div.appendChild(radio);
+// 			div.appendChild(label);
+// 			container.appendChild(div);
+// 			i++;
+// 		}
+// 		if (i) {
+// 			let txt = document.createElement('div');
+// 			txt.innerHTML = 'tracks';
+// 			container.insertBefore(txt, container.firstChild);
+// 		}
+// 	} catch (e) {
+// 		log('error while updating track stats display', e);
+// 	}
+// }
 
 //
 // encodings for outgoing video
@@ -1643,25 +1504,25 @@ function screenshareEncodings() {
 // our "signaling" function -- just an http fetch
 //
 
-async function sig(endpoint, data, beacon) {
-	try {
-		let headers = { 'Content-Type': 'application/json' },
-			body = JSON.stringify({ ...data, peerId: myPeerId });
+// async function sig(endpoint, data, beacon) {
+// 	try {
+// 		let headers = { 'Content-Type': 'application/json' },
+// 			body = JSON.stringify({ ...data, peerId: myPeerId });
 
-		if (beacon) {
-			navigator.sendBeacon('/signaling/' + endpoint, body);
-			return null;
-		}
+// 		if (beacon) {
+// 			navigator.sendBeacon('/signaling/' + endpoint, body);
+// 			return null;
+// 		}
 
-		let response = await fetch(
-			'/signaling/' + endpoint, { method: 'POST', body, headers }
-		);
-		return await response.json();
-	} catch (e) {
-		console.error(e);
-		return { error: e };
-	}
-}
+// 		let response = await fetch(
+// 			'/signaling/' + endpoint, { method: 'POST', body, headers }
+// 		);
+// 		return await response.json();
+// 	} catch (e) {
+// 		console.error(e);
+// 		return { error: e };
+// 	}
+// }
 
 //
 // simple uuid helper function

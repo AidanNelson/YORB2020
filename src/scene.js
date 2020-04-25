@@ -346,17 +346,21 @@ class Scene {
 		// add group to scene
 		this.scene.add(group);
 
-		this.clients[_id].gameStats.group = group;
-		this.clients[_id].gameStats.texture = videoTexture;
-		this.clients[_id].gameStats.desiredPosition = new THREE.Vector3();
-		this.clients[_id].gameStats.desiredRotation = new THREE.Quaternion();
-		this.clients[_id].gameStats.oldPos = group.position
-		this.clients[_id].gameStats.oldRot = group.quaternion;
-		this.clients[_id].gameStats.movementAlpha = 0;
+		console.log("adding client group for client with id: " + _id);
+		console.log(this.clients);
+
+
+		this.clients[_id].group = group;
+		this.clients[_id].texture = videoTexture;
+		this.clients[_id].desiredPosition = new THREE.Vector3();
+		this.clients[_id].desiredRotation = new THREE.Quaternion();
+		this.clients[_id].oldPos = group.position
+		this.clients[_id].oldRot = group.quaternion;
+		this.clients[_id].movementAlpha = 0;
 	}
 
 	removeClient(_id) {
-		this.scene.remove(this.clients[_id].gameStats.group);
+		this.scene.remove(this.clients[_id].group);
 	}
 
 	// overloaded function can deal with new info or not
@@ -366,8 +370,8 @@ class Scene {
 			// we'll update ourselves separately to avoid lag...
 			if (_id in this.clients) {
 				if (_id != this.mySocketID) {
-					this.clients[_id].gameStats.desiredPosition = new THREE.Vector3().fromArray(_clientProps[_id].position);
-					this.clients[_id].gameStats.desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
+					this.clients[_id].desiredPosition = new THREE.Vector3().fromArray(_clientProps[_id].position);
+					this.clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
 				}
 			}
 		}
@@ -377,14 +381,14 @@ class Scene {
 		let snapDistance = 0.5;
 		let snapAngle = 0.2; // radians
 		for (let _id in this.clients) {
-			if (this.clients[_id].gameStats.group) {
-				this.clients[_id].gameStats.group.position.lerp(this.clients[_id].gameStats.desiredPosition, 0.2);
-				this.clients[_id].gameStats.group.quaternion.slerp(this.clients[_id].gameStats.desiredRotation, 0.2);
-				if (this.clients[_id].gameStats.group.position.distanceTo(this.clients[_id].gameStats.desiredPosition) < snapDistance) {
-					this.clients[_id].gameStats.group.position.set(this.clients[_id].gameStats.desiredPosition.x, this.clients[_id].gameStats.desiredPosition.y, this.clients[_id].gameStats.desiredPosition.z);
+			if (this.clients[_id].group) {
+				this.clients[_id].group.position.lerp(this.clients[_id].desiredPosition, 0.2);
+				this.clients[_id].group.quaternion.slerp(this.clients[_id].desiredRotation, 0.2);
+				if (this.clients[_id].group.position.distanceTo(this.clients[_id].desiredPosition) < snapDistance) {
+					this.clients[_id].group.position.set(this.clients[_id].desiredPosition.x, this.clients[_id].desiredPosition.y, this.clients[_id].desiredPosition.z);
 				}
-				if (this.clients[_id].gameStats.group.quaternion.angleTo(this.clients[_id].gameStats.desiredRotation) < snapAngle) {
-					this.clients[_id].gameStats.group.quaternion.set(this.clients[_id].gameStats.desiredRotation.x, this.clients[_id].gameStats.desiredRotation.y, this.clients[_id].gameStats.desiredRotation.z, this.clients[_id].gameStats.desiredRotation.w);
+				if (this.clients[_id].group.quaternion.angleTo(this.clients[_id].desiredRotation) < snapAngle) {
+					this.clients[_id].group.quaternion.set(this.clients[_id].desiredRotation.x, this.clients[_id].desiredRotation.y, this.clients[_id].desiredRotation.z, this.clients[_id].desiredRotation.w);
 				}
 			}
 		}
@@ -698,7 +702,7 @@ class Scene {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
 			if (remoteVideo != null && remoteVideoCanvas != null) {
-				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].gameStats.texture);
+				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture);
 			}
 		}
 	}
@@ -787,13 +791,13 @@ class Scene {
 	createOrUpdatePositionalAudio(_id, _audioStream) {
 		let audioSource;
 		if (positionalAudioSource in this.clients[_id]) {
-			audioSource = this.clients[_id].gameStats.positionalAudioSource;
+			audioSource = this.clients[_id].positionalAudioSource;
 		} else {
 			audioSource = new THREE.PositionalAudio(this.listener);
 			audioSource.setRefDistance(10);
 			audioSource.setRolloffFactor(10);
-			this.clients[_id].gameStats.group.add(audioSource);
-			this.clients[_id].gameStats.positionalAudioSource = audioSource;
+			this.clients[_id].group.add(audioSource);
+			this.clients[_id].positionalAudioSource = audioSource;
 		}
 		audioSource.setMediaStreamSource(audioStream);
 	}
