@@ -5,13 +5,23 @@
 *
 */
 
+// import  * as THREE from 'three';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+
 class Scene {
 	constructor(
 		domElement = document.getElementById('gl_context'),
 		_width = window.innerWidth,
 		_height = window.innerHeight,
 		clearColor = 'lightblue',
-		_movementCallback) {
+		_movementCallback,
+		clientsArr,
+		mySocketID) {
+
+		// keep track of 
+		this.clients = clientsArr;
+		this.mySocketID = mySocketID;
 
 		this.DEBUG_MODE = false;
 		this.movementCallback = _movementCallback;
@@ -22,9 +32,10 @@ class Scene {
 
 		//Utility
 		this.width = _width;
+		// this.width = domElement.width;
 		this.height = _height;
 		this.stats = new Stats();
-		domElement.appendChild(this.stats.dom);
+		document.body.appendChild(this.stats.dom);
 
 		//Add Player
 		this.addSelf();
@@ -53,11 +64,13 @@ class Scene {
 		this.renderer.setClearColor(new THREE.Color(clearColor));
 		this.renderer.setSize(this.width, this.height);
 
-		// add controls:
-		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup);
 
 		// Collision Detection Setup!
 		this.setupCollisionDetection();
+
+		// add controls:
+		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup, document, this.obstacles);
+
 
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
@@ -86,10 +99,7 @@ class Scene {
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
 		this.scene.add(this.helperGrid);
 
-
 		this.scene.add(new THREE.AxesHelper(10));
-
-
 
 		this.update();
 	}
@@ -285,7 +295,7 @@ class Scene {
 			new THREE.MeshNormalMaterial()
 		);
 
-		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial("local");
+		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial("local");
 
 		let _head = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
@@ -318,7 +328,7 @@ class Scene {
 
 		// createClientVideoElement(_id);
 
-		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id);
+		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
 
 		let _head = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
@@ -337,17 +347,21 @@ class Scene {
 		// add group to scene
 		this.scene.add(group);
 
-		clients[_id].group = group;
-		clients[_id].texture = videoTexture;
-		clients[_id].desiredPosition = new THREE.Vector3();
-		clients[_id].desiredRotation = new THREE.Quaternion();
-		clients[_id].oldPos = group.position
-		clients[_id].oldRot = group.quaternion;
-		clients[_id].movementAlpha = 0;
+		console.log("adding client group for client with id: " + _id);
+		console.log(this.clients);
+
+
+		this.clients[_id].group = group;
+		this.clients[_id].texture = videoTexture;
+		this.clients[_id].desiredPosition = new THREE.Vector3();
+		this.clients[_id].desiredRotation = new THREE.Quaternion();
+		this.clients[_id].oldPos = group.position
+		this.clients[_id].oldRot = group.quaternion;
+		this.clients[_id].movementAlpha = 0;
 	}
 
 	removeClient(_id) {
-		this.scene.remove(clients[_id].group);
+		this.scene.remove(this.clients[_id].group);
 	}
 
 	// overloaded function can deal with new info or not
@@ -355,9 +369,11 @@ class Scene {
 
 		for (let _id in _clientProps) {
 			// we'll update ourselves separately to avoid lag...
-			if (_id != id) {
-				clients[_id].desiredPosition = new THREE.Vector3().fromArray(_clientProps[_id].position);
-				clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
+			if (_id in this.clients) {
+				if (_id != this.mySocketID) {
+					this.clients[_id].desiredPosition = new THREE.Vector3().fromArray(_clientProps[_id].position);
+					this.clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
+				}
 			}
 		}
 	}
@@ -365,15 +381,15 @@ class Scene {
 	updatePositions() {
 		let snapDistance = 0.5;
 		let snapAngle = 0.2; // radians
-		for (let _id in clients) {
-			if (clients[_id].group) {
-				clients[_id].group.position.lerp(clients[_id].desiredPosition, 0.2);
-				clients[_id].group.quaternion.slerp(clients[_id].desiredRotation, 0.2);
-				if (clients[_id].group.position.distanceTo(clients[_id].desiredPosition) < snapDistance) {
-					clients[_id].group.position.set(clients[_id].desiredPosition.x, clients[_id].desiredPosition.y, clients[_id].desiredPosition.z);
+		for (let _id in this.clients) {
+			if (this.clients[_id].group) {
+				this.clients[_id].group.position.lerp(this.clients[_id].desiredPosition, 0.2);
+				this.clients[_id].group.quaternion.slerp(this.clients[_id].desiredRotation, 0.2);
+				if (this.clients[_id].group.position.distanceTo(this.clients[_id].desiredPosition) < snapDistance) {
+					this.clients[_id].group.position.set(this.clients[_id].desiredPosition.x, this.clients[_id].desiredPosition.y, this.clients[_id].desiredPosition.z);
 				}
-				if (clients[_id].group.quaternion.angleTo(clients[_id].desiredRotation) < snapAngle) {
-					clients[_id].group.quaternion.set(clients[_id].desiredRotation.x, clients[_id].desiredRotation.y, clients[_id].desiredRotation.z, clients[_id].desiredRotation.w);
+				if (this.clients[_id].group.quaternion.angleTo(this.clients[_id].desiredRotation) < snapAngle) {
+					this.clients[_id].group.quaternion.set(this.clients[_id].desiredRotation.x, this.clients[_id].desiredRotation.y, this.clients[_id].desiredRotation.z, this.clients[_id].desiredRotation.w);
 				}
 			}
 		}
@@ -397,6 +413,7 @@ class Scene {
 		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
 
 		this.collidableMeshList = [];
+		
 		this.obstacles = {
 			forward: false,
 			backward: false,
@@ -579,6 +596,8 @@ class Scene {
 				this.obstacles.left = true;
 			}
 		}
+
+		this.controls.obstacles = this.obstacles;
 	}
 
 	createHyperlinkedMesh(x, y, z, url) {
@@ -680,11 +699,11 @@ class Scene {
 		}
 
 
-		for (let _id in clients) {
+		for (let _id in this.clients) {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
 			if (remoteVideo != null && remoteVideoCanvas != null) {
-				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, clients[_id].texture);
+				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture);
 			}
 		}
 	}
@@ -721,7 +740,7 @@ class Scene {
 	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
 	// controls to be stuck on
 	onEnterCanvas(e) {
-		this.controls.enabled = true;		
+		this.controls.enabled = true;
 	}
 
 	// keystate functions from playercontrols
@@ -734,54 +753,55 @@ class Scene {
 		event = event || window.event;
 		this.keyState[event.keyCode || event.which] = false;
 	}
-}
 
+	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	// Utilities 🚂
 
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Utilities 🚂
+	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
+	makeVideoTextureAndMaterial(_id) {
+		// create a canvas and add it to the body
+		let rvideoImageCanvas = document.createElement('canvas');
+		document.body.appendChild(rvideoImageCanvas);
 
-// Adapted from: https://github.com/zacharystenger/three-js-video-chat
-function makeVideoTextureAndMaterial(_id) {
-	// create a canvas and add it to the body
-	let rvideoImageCanvas = document.createElement('canvas');
-	document.body.appendChild(rvideoImageCanvas);
+		rvideoImageCanvas.id = _id + "_canvas";
+		// rvideoImageCanvas.width = videoWidth;
+		// rvideoImageCanvas.height = videoHeight;
+		rvideoImageCanvas.style = "visibility: hidden;";
 
-	rvideoImageCanvas.id = _id + "_canvas";
-	rvideoImageCanvas.width = videoWidth;
-	rvideoImageCanvas.height = videoHeight;
-	rvideoImageCanvas.style = "visibility: hidden;";
+		// get canvas drawing context
+		let rvideoImageContext = rvideoImageCanvas.getContext('2d');
 
-	// get canvas drawing context
-	let rvideoImageContext = rvideoImageCanvas.getContext('2d');
+		// background color if no video present
+		rvideoImageContext.fillStyle = '#000000';
+		rvideoImageContext.fillRect(0, 0, rvideoImageCanvas.width, rvideoImageCanvas.height);
 
-	// background color if no video present
-	rvideoImageContext.fillStyle = '#000000';
-	rvideoImageContext.fillRect(0, 0, rvideoImageCanvas.width, rvideoImageCanvas.height);
+		// make texture
+		let videoTexture = new THREE.Texture(rvideoImageCanvas);
+		videoTexture.minFilter = THREE.LinearFilter;
+		videoTexture.magFilter = THREE.LinearFilter;
 
-	// make texture
-	let videoTexture = new THREE.Texture(rvideoImageCanvas);
-	videoTexture.minFilter = THREE.LinearFilter;
-	videoTexture.magFilter = THREE.LinearFilter;
+		// make material from texture
+		var movieMaterial = new THREE.MeshBasicMaterial({ map: videoTexture, overdraw: true, side: THREE.DoubleSide });
 
-	// make material from texture
-	var movieMaterial = new THREE.MeshBasicMaterial({ map: videoTexture, overdraw: true, side: THREE.DoubleSide });
-
-	return [videoTexture, movieMaterial];
-}
-
-
-// TODO check this
-function createOrUpdatePositionalAudio(_id, _audioStream) {
-	let audioSource;
-	if (positionalAudioSource in clients[_id]) {
-		audioSource = clients[_id].positionalAudioSource;
-	} else {
-		audioSource = new THREE.PositionalAudio(glScene.listener);
-		audioSource.setRefDistance(10);
-		audioSource.setRolloffFactor(10);
-		clients[_id].group.add(audioSource);
-		clients[_id].positionalAudioSource = audioSource;
+		return [videoTexture, movieMaterial];
 	}
-	audioSource.setMediaStreamSource(audioStream);
+
+
+	// TODO check this
+	createOrUpdatePositionalAudio(_id, _audioStream) {
+		let audioSource;
+		if (positionalAudioSource in this.clients[_id]) {
+			audioSource = this.clients[_id].positionalAudioSource;
+		} else {
+			audioSource = new THREE.PositionalAudio(this.listener);
+			audioSource.setRefDistance(10);
+			audioSource.setRolloffFactor(10);
+			this.clients[_id].group.add(audioSource);
+			this.clients[_id].positionalAudioSource = audioSource;
+		}
+		audioSource.setMediaStreamSource(audioStream);
+	}
 }
+
+export default Scene;
