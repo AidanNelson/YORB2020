@@ -20,10 +20,11 @@ class Scene {
 		mySocketID) {
 
 		// keep track of 
+		this.frameCount = 0;
 		this.clients = clientsArr;
 		this.mySocketID = mySocketID;
 
-		this.DEBUG_MODE = false;
+		this.DEBUG_MODE = true;
 		this.movementCallback = _movementCallback;
 
 		//THREE scene
@@ -70,7 +71,9 @@ class Scene {
 
 		// add controls:
 		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup, document, this.obstacles);
-
+		// TODO adjust speed for lower framerates:
+		// this.controls.moveSpeed = 0.2;
+		// this.controls.turnSpeed = 0.02;
 
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
@@ -319,14 +322,10 @@ class Scene {
 
 	// add a client meshes, a video element and  canvas for three.js video texture
 	addClient(_id) {
-
 		let _body = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
 			new THREE.MeshNormalMaterial()
 		);
-
-
-		// createClientVideoElement(_id);
 
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
 
@@ -347,9 +346,7 @@ class Scene {
 		// add group to scene
 		this.scene.add(group);
 
-		console.log("adding client group for client with id: " + _id);
-		console.log(this.clients);
-
+		console.log("Adding client to scene: " + _id);
 
 		this.clients[_id].group = group;
 		this.clients[_id].texture = videoTexture;
@@ -378,6 +375,7 @@ class Scene {
 		}
 	}
 
+	// TODO make this simpler...? more performant?
 	updatePositions() {
 		let snapDistance = 0.5;
 		let snapAngle = 0.2; // radians
@@ -413,7 +411,7 @@ class Scene {
 		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
 
 		this.collidableMeshList = [];
-		
+
 		this.obstacles = {
 			forward: false,
 			backward: false,
@@ -658,7 +656,12 @@ class Scene {
 	update() {
 		requestAnimationFrame(() => this.update());
 
-		// send movement stats to the socket server if any of the keys are pressed
+		// FPS monitor for debugging:
+		if (this.DEBUG_MODE) {
+			this.stats.update();
+		}
+
+		// send movement stats to the socket server if any of the keys have been pressed
 		let sendStats = false;
 		for (let i in this.keyState) {
 			if (this.keyState[i]) {
@@ -668,13 +671,18 @@ class Scene {
 		}
 		if (sendStats) { this.movementCallback(); }
 
+		this.frameCount++;
+		if (this.frameCount % 10 == 0) {
+			this.updateClientVolumes();
+		}
 
 		this.updatePositions();
 		this.detectCollisions();
 
 		this.detectCollisionsWalls();
+
 		this.controls.update();
-		this.stats.update();
+
 		this.render();
 	}
 
@@ -704,6 +712,27 @@ class Scene {
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
 			if (remoteVideo != null && remoteVideoCanvas != null) {
 				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture);
+			}
+		}
+	}
+
+	updateClientVolumes() {
+		let distanceThresholdSquared = 800; // over this distance, no sound is heard
+		// let rolloffFactor = 10;
+		let numerator = 50; // TODO rename this
+
+		for (let _id in this.clients) {
+			if (this.clients[_id].audioElement) {
+				let distSquared = this.playerGroup.position.distanceToSquared(this.clients[_id].group.position);
+				if (distSquared > distanceThresholdSquared) {
+					// TODO pause consumer here, rather than setting volume to zero
+					this.clients[_id].audioElement.volume = 0;
+				} else {
+					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
+
+					let volume = Math.min(1, numerator / distSquared);
+					this.clients[_id].audioElement.volume = volume;
+				}
 			}
 		}
 	}
@@ -789,18 +818,33 @@ class Scene {
 
 
 	// TODO check this
-	createOrUpdatePositionalAudio(_id, _audioStream) {
-		let audioSource;
-		if (positionalAudioSource in this.clients[_id]) {
-			audioSource = this.clients[_id].positionalAudioSource;
-		} else {
-			audioSource = new THREE.PositionalAudio(this.listener);
-			audioSource.setRefDistance(10);
-			audioSource.setRolloffFactor(10);
-			this.clients[_id].group.add(audioSource);
-			this.clients[_id].positionalAudioSource = audioSource;
+	createOrUpdatePositionalAudio(_id) {
+		let audioElement = document.getElementById(_id + "_audio");
+		if (audioElement == null) {
+			console.log("No audio element found for user with ID: " + _id);
+			return;
 		}
-		audioSource.setMediaStreamSource(audioStream);
+		this.clients[_id].audioElement = audioElement;
+		console.log("The following audio element attached to client with ID " + _id + ":");
+		console.log(this.clients[_id].audioElement);
+		// let audioSource;	
+		// if (this.clients[_id]) {
+		// 	if ("positionalAudioSource" in this.clients[_id]) {
+		// 		audioSource = this.clients[_id].positionalAudioSource;
+		// 		this.scene.remove(audioSource);
+		// 	}
+
+		// 	audioSource = new THREE.PositionalAudio(this.listener);
+		// 	audioSource.setRefDistance(10);
+		// 	audioSource.setRolloffFactor(10);
+		// 	audioSource.setVolume(1);
+		// 	this.clients[_id].positionalAudioSource = audioSource;
+		// 	this.clients[_id].group.add(audioSource);
+
+		// 	// audioSource.setMediaStreamSource(_audioStream);
+		// 	audioSource.setMediaElementSource(audioElement);
+		// 	console.log(audioSource);
+		// }
 	}
 }
 

@@ -50,11 +50,54 @@
 			width: 90%;
 			margin: 0 auto;
 		}
+
+		#overlay {
+			position: absolute;
+			z-index: 2;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 1;
+			background-color: #000000;
+			color: yellow;
+		}
+
+		#overlay>div {
+			text-align: center;
+		}
+
+		#overlay>div>button {
+			height: 80px;
+			background: transparent;
+			color: yellow;
+			outline: 4px dashed yellow;
+			border: 0px;
+			cursor: pointer;
+			font-size: 3em;
+			padding: 2em;
+			padding-bottom: 3em;
+		}
+
+		#overlay>div>p {
+			color: #777777;
+			font-size: 16px;
+		}
 	</style>
 
 </head>
 
 <body>
+	<!-- https://github.com/mrdoob/three.js/blob/master/examples/webaudio_orientation.html -->
+	<div id="overlay">
+		<div>
+			<button id="startButton">Enter YORB</button>
+			<p></p>
+		</div>
+	</div>
 
 	<div id="full-width-column">
 
