@@ -61,7 +61,8 @@ export let mySocketID,
 	screenShareVideoPaused = false,
 	screenShareAudioPaused = false,
 	clients = {}, // array of connected clients for three.js scene
-	glScene; // Variable to store our three.js scene:
+	glScene,
+	projects = []; 
 
 // limit video size / framerate for bandwidth or use bandwidth limitation through encoding?
 // TODO deal with overconstrained errors?
@@ -187,6 +188,11 @@ function initSocketConnection() {
 			}
 		});
 
+		socket.on('projects', _projects => {
+			console.log("Received project list from server.");
+			updateProjects(_projects);
+		});
+
 		socket.on('userDisconnected', (clientCount, _id, _ids) => {
 			// Update the data from the server
 
@@ -223,6 +229,13 @@ async function addClient(_id) {
 	glScene.addClient(_id);
 }
 
+function updateProjects(_projects) {
+	projects = _projects;
+	if (glScene.updateProjects) {
+		glScene.updateProjects(projects);
+	}
+}
+
 
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -245,6 +258,8 @@ function createScene() {
 		onPlayerMove,
 		clients,
 		mySocketID);
+
+	glScene.updateProjects(projects);
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
