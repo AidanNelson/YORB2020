@@ -20,6 +20,7 @@ class Scene {
 		mySocketID) {
 
 		// keep track of 
+		this.frameCount = 0;
 		this.clients = clientsArr;
 		this.mySocketID = mySocketID;
 
@@ -34,8 +35,10 @@ class Scene {
 		this.width = _width;
 		// this.width = domElement.width;
 		this.height = _height;
+		// if (this.DEBUG_MODE) {
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
+		// }
 
 		//Add Player
 		this.addSelf();
@@ -64,18 +67,17 @@ class Scene {
 		this.renderer.setClearColor(new THREE.Color(clearColor));
 		this.renderer.setSize(this.width, this.height);
 
-
 		// Collision Detection Setup!
 		this.setupCollisionDetection();
 
 		// add controls:
 		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup, document, this.obstacles);
-
+		// TODO adjust speed for lower framerates:
+		// this.controls.moveSpeed = 0.2;
+		// this.controls.turnSpeed = 0.02;
 
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
-		// proof of concept hyperlink
-		this.createHyperlinkedMesh(-25, 0, -15, "http://www.example.com");
 
 		// environment map from three.js examples
 		this.loadBackground();
@@ -269,7 +271,7 @@ class Scene {
 
 	loadFloorModel() {
 		this.GLTFLoader = new THREE.GLTFLoader();
-		let scaleFactor = 2;
+		let scaleFactor = 4;
 
 		this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true);
@@ -319,14 +321,10 @@ class Scene {
 
 	// add a client meshes, a video element and  canvas for three.js video texture
 	addClient(_id) {
-
 		let _body = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
 			new THREE.MeshNormalMaterial()
 		);
-
-
-		// createClientVideoElement(_id);
 
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
 
@@ -347,9 +345,7 @@ class Scene {
 		// add group to scene
 		this.scene.add(group);
 
-		console.log("adding client group for client with id: " + _id);
-		console.log(this.clients);
-
+		console.log("Adding client to scene: " + _id);
 
 		this.clients[_id].group = group;
 		this.clients[_id].texture = videoTexture;
@@ -378,6 +374,7 @@ class Scene {
 		}
 	}
 
+	// TODO make this simpler...? more performant?
 	updatePositions() {
 		let snapDistance = 0.5;
 		let snapAngle = 0.2; // radians
@@ -397,7 +394,7 @@ class Scene {
 
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
-	// Interaction 🤾‍♀️
+	// Collision Detection 🤾‍♀️
 
 
 	setupCollisionDetection() {
@@ -413,7 +410,7 @@ class Scene {
 		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
 
 		this.collidableMeshList = [];
-		
+
 		this.obstacles = {
 			forward: false,
 			backward: false,
@@ -454,7 +451,7 @@ class Scene {
 	}
 
 
-	detectCollisionsWalls() {
+	detectCollisions() {
 		// reset obstacles: 
 		this.obstacles = {
 			forward: false,
@@ -600,7 +597,26 @@ class Scene {
 		this.controls.obstacles = this.obstacles;
 	}
 
-	createHyperlinkedMesh(x, y, z, url) {
+	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	// Interactable Hyperlinks for Spring Show 💎
+
+	updateProjects(projects) {
+
+		// first, empty the project
+		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+			this.scene.remove(this.hyperlinkedObjects[i]);
+		}
+		for (let i = 0; i < projects.length; i++) {
+			let project = projects[i];
+			let locX = -70;
+			let locZ = i * -10 + 40;
+			this.createHyperlinkedMesh(locX, 0, locZ, project);
+
+		}
+	}
+
+	createHyperlinkedMesh(x, y, z, _project) {
 		// load a image resource
 		let tex = new THREE.TextureLoader().load('images/grid.jpg');
 
@@ -610,39 +626,114 @@ class Scene {
 		mesh.position.set(x, y, z);
 
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
-		mesh.userData = { URL: url };
+		mesh.userData = {
+			project: _project
+		}
 		this.hyperlinkedObjects.push(mesh);
 		this.scene.add(mesh);
 	}
 
+	generateProjectModal(project) {
+		// parse project descriptions to render without &amp; etc.
+		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
+
+		// project:
+		// {
+		// 	"project_id": "1234",
+		// 	"project_name": "Cats",
+		// 	"elevator_pitch": "Cats are loving companions for now and all time.",
+		// 	"description": "Cats is about building a sustainable online community for earth humans.",
+		// 	"zoom_link": "http://example.com"
+		//   }
+
+		if (!document.getElementById(project.project_id + "_modal")) {
+			var parser = new DOMParser;
+
+			let id = project.project_id;
+			let name = project.project_name;
+			let pitch = project.elevator_pitch;
+			let description = project.description;
+			let link = project.zoom_link;
+
+			let modalEl = document.createElement('div');
+			modalEl.className = "project-modal";
+			modalEl.id = id + "_modal";
+
+			let contentEl = document.createElement('div');
+			contentEl.className = "project-modal-content";
+
+			let closeButton = document.createElement('button');
+			closeButton.addEventListener('click', () => {
+				modalEl.remove();
+			});
+			closeButton.innerHTML = "X";
+
+			let titleEl = document.createElement('h1');
+			titleEl.innerHTML = parser.parseFromString('<!doctype html><body>' + name, 'text/html').body.textContent;
+
+			let elevatorPitchEl = document.createElement('p');
+			elevatorPitchEl.innerHTML = parser.parseFromString('<!doctype html><body>' + pitch, 'text/html').body.textContent;
+
+			let descriptionEl = document.createElement('p');
+			descriptionEl.innerHTML = parser.parseFromString('<!doctype html><body>' + description, 'text/html').body.textContent;
+
+			let linkEl = document.createElement('p');
+			linkEl.innerHTML = link;
+
+			contentEl.appendChild(closeButton);
+			contentEl.appendChild(titleEl);
+			contentEl.appendChild(elevatorPitchEl);
+			contentEl.appendChild(descriptionEl);
+			contentEl.appendChild(linkEl);
+
+			modalEl.appendChild(contentEl);
+			document.body.appendChild(modalEl);
+		}
+	}
+
 	//https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
-	detectCollisions() {
-		// https://github.com/mrdoob/three.js/issues/1606
-		var matrix = new THREE.Matrix4();
-		matrix.extractRotation(this.playerGroup.matrix);
-
-		var dirVec = new THREE.Vector3(0, 1, 0);
-		dirVec = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
-		dirVec.normalize();
-
-		this.raycaster.set(this.playerGroup.position, dirVec);
-		var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
-
-		if (intersects.length > 0) {
-			for (let i = 0; i < intersects.length; i++) {
-				if (intersects[i].distance < 1) {
-					console.log("Approaching obstacle!");
-					console.log(intersects[i].object.userData.URL);
-					if (!intersects[i].object.userData.linkVisited) {
-						// open some sort of modal asking users if they wish to enter zoom link...
-						window.open(intersects[i].object.userData.URL);
-						intersects[i].object.userData.linkVisited = true
-					}
-				}
+	detectHyperlinks() {
+		console.log('Checking for nearby hyperlinks...');
+		console.log(this.playerGroup.position);
+		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+			let link = this.hyperlinkedObjects[i];
+			let distSquared = this.playerGroup.position.distanceToSquared(link.position);
+			if (distSquared < 2) {
+				this.generateProjectModal(link.userData.project);
 			}
 		}
+		// https://github.com/mrdoob/three.js/issues/1606
+		// var matrix = new THREE.Matrix4();
+		// matrix.extractRotation(this.playerGroup.matrix);
+
+		// var dirVec = new THREE.Vector3(0, 1, 0);
+		// dirVec = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
+		// dirVec.normalize();
+
+		// this.raycaster.set(this.playerGroup.position, dirVec);
+		// var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
+
+		// if (intersects.length > 0) {
+		// 	for (let i = 0; i < intersects.length; i++) {
+		// 		if (intersects[i].distance < 1) {
+		// 			console.log("Approaching link!");
+		// 			// console.log(intersects[i].object.userData.URL);
+		// 			if (!intersects[i].object.userData.linkVisited) {
+		// 				// open some sort of modal asking users if they wish to enter zoom link...
+		// 				// window.open(intersects[i].object.userData.URL);
+		// 				this.generateProjectModal(intersects[i].object.userData.project);
+		// 				intersects[i].object.userData.lastVisitedTime = Date.now();
+		// 				intersects[i].object.userData.linkVisited = true
+		// 			}
+		// 		}
+		// 	}
 		// }
 	}
+
+
+	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	// For socket update
 
 	getPlayerPosition() {
 		// TODO: use quaternion or are euler angles fine here?
@@ -653,12 +744,17 @@ class Scene {
 
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
-	// Rendering 🎥
+	// Loop ⭕️
 
 	update() {
 		requestAnimationFrame(() => this.update());
 
-		// send movement stats to the socket server if any of the keys are pressed
+		// FPS monitor for debugging:
+		// if (this.DEBUG_MODE) {
+		this.stats.update();
+		// }
+
+		// send movement stats to the socket server if any of the keys have been pressed
 		let sendStats = false;
 		for (let i in this.keyState) {
 			if (this.keyState[i]) {
@@ -669,14 +765,25 @@ class Scene {
 		if (sendStats) { this.movementCallback(); }
 
 
+		// update volumes every 10 frames
+		this.frameCount++;
+		if (this.frameCount % 10 == 0) {
+			this.updateClientVolumes();
+		}
+
 		this.updatePositions();
+
 		this.detectCollisions();
 
-		this.detectCollisionsWalls();
+		this.checkKeys();
 		this.controls.update();
-		this.stats.update();
+
 		this.render();
 	}
+
+	//////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+	// Rendering 🎥
 
 	render() {
 		// Update video canvases for each client
@@ -704,6 +811,27 @@ class Scene {
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
 			if (remoteVideo != null && remoteVideoCanvas != null) {
 				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture);
+			}
+		}
+	}
+
+	updateClientVolumes() {
+		let distanceThresholdSquared = 800; // over this distance, no sound is heard
+		// let rolloffFactor = 10;
+		let numerator = 50; // TODO rename this
+
+		for (let _id in this.clients) {
+			if (this.clients[_id].audioElement) {
+				let distSquared = this.playerGroup.position.distanceToSquared(this.clients[_id].group.position);
+				if (distSquared > distanceThresholdSquared) {
+					// TODO pause consumer here, rather than setting volume to zero
+					this.clients[_id].audioElement.volume = 0;
+				} else {
+					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
+
+					let volume = Math.min(1, numerator / distSquared);
+					this.clients[_id].audioElement.volume = volume;
+				}
 			}
 		}
 	}
@@ -754,6 +882,12 @@ class Scene {
 		this.keyState[event.keyCode || event.which] = false;
 	}
 
+	checkKeys() {
+		if (this.keyState[32]) {
+			this.detectHyperlinks();
+		}
+	}
+
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
 	// Utilities 🚂
@@ -789,19 +923,45 @@ class Scene {
 
 
 	// TODO check this
-	createOrUpdatePositionalAudio(_id, _audioStream) {
-		let audioSource;
-		if (positionalAudioSource in this.clients[_id]) {
-			audioSource = this.clients[_id].positionalAudioSource;
-		} else {
-			audioSource = new THREE.PositionalAudio(this.listener);
-			audioSource.setRefDistance(10);
-			audioSource.setRolloffFactor(10);
-			this.clients[_id].group.add(audioSource);
-			this.clients[_id].positionalAudioSource = audioSource;
+	createOrUpdatePositionalAudio(_id) {
+		let audioElement = document.getElementById(_id + "_audio");
+		if (audioElement == null) {
+			console.log("No audio element found for user with ID: " + _id);
+			return;
 		}
-		audioSource.setMediaStreamSource(audioStream);
+		this.clients[_id].audioElement = audioElement;
+		console.log("The following audio element attached to client with ID " + _id + ":");
+		console.log(this.clients[_id].audioElement);
+		// let audioSource;	
+		// if (this.clients[_id]) {
+		// 	if ("positionalAudioSource" in this.clients[_id]) {
+		// 		audioSource = this.clients[_id].positionalAudioSource;
+		// 		this.scene.remove(audioSource);
+		// 	}
+
+		// 	audioSource = new THREE.PositionalAudio(this.listener);
+		// 	audioSource.setRefDistance(10);
+		// 	audioSource.setRolloffFactor(10);
+		// 	audioSource.setVolume(1);
+		// 	this.clients[_id].positionalAudioSource = audioSource;
+		// 	this.clients[_id].group.add(audioSource);
+
+		// 	// audioSource.setMediaStreamSource(_audioStream);
+		// 	audioSource.setMediaElementSource(audioElement);
+		// 	console.log(audioSource);
+		// }
 	}
 }
 
 export default Scene;
+
+
+// pseudo random number generator from https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript/47593316#47593316
+function mulberry32(a) {
+	return function () {
+		var t = a += 0x6D2B79F5;
+		t = Math.imul(t ^ t >>> 15, t | 1);
+		t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+		return ((t ^ t >>> 14) >>> 0) / 4294967296;
+	}
+}

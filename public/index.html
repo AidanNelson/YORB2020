@@ -44,17 +44,110 @@
 		}
 
 		#gl_context {
-			border: 5px solid blue;
+			border: 15px inset blue;
+			/* border-style:inset; */
 			margin: 0;
 			padding: 0;
 			width: 90%;
 			margin: 0 auto;
+		}
+
+		#overlay {
+			position: absolute;
+			z-index: 2;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 1;
+			background-color: #000000;
+			color: yellow;
+		}
+
+		#overlay>div {
+			text-align: center;
+		}
+
+		#overlay>div>button {
+			height: 80px;
+			background: transparent;
+			color: yellow;
+			outline: 4px dashed yellow;
+			border: 0px;
+			cursor: pointer;
+			font-size: 3em;
+			padding: 2em;
+			padding-bottom: 3em;
+		}
+
+		#overlay>div>p {
+			color: #777777;
+			font-size: 16px;
+		}
+
+		/* https://www.w3schools.com/howto/howto_css_modals.asp */
+		/* The Modal (background) */
+		.project-modal {
+			/* display: none; */
+			/* Hidden by default */
+			position: fixed;
+			/* Stay in place */
+			z-index: 1;
+			/* Sit on top */
+			left: 0;
+			top: 0;
+			width: 100%;
+			/* Full width */
+			height: 100%;
+			/* Full height */
+			overflow: auto;
+			/* Enable scroll if needed */
+			background-color: rgb(0, 0, 0);
+			/* Fallback color */
+			background-color: rgba(0, 0, 0, 0.4);
+			/* Black w/ opacity */
+		}
+
+		/* Modal Content/Box */
+		.project-modal-content {
+			background-color: #fefefe;
+			margin: 15% auto;
+			/* 15% from the top and centered */
+			padding: 20px;
+			border: 1px solid #888;
+			width: 80%;
+			/* Could be more or less, depending on screen size */
+		}
+
+		/* The Close Button */
+		.close {
+			color: #aaa;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+
+		.close:hover,
+		.close:focus {
+			color: black;
+			text-decoration: none;
+			cursor: pointer;
 		}
 	</style>
 
 </head>
 
 <body>
+	<!-- https://github.com/mrdoob/three.js/blob/master/examples/webaudio_orientation.html -->
+	<div id="overlay">
+		<div>
+			<button id="startButton">Enter YORB</button>
+			<p></p>
+		</div>
+	</div>
 
 	<div id="full-width-column">
 

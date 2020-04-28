@@ -61,14 +61,16 @@ export let mySocketID,
 	screenShareVideoPaused = false,
 	screenShareAudioPaused = false,
 	clients = {}, // array of connected clients for three.js scene
-	glScene; // Variable to store our three.js scene:
+	glScene,
+	projects = []; 
 
 // limit video size / framerate for bandwidth or use bandwidth limitation through encoding?
 // TODO deal with overconstrained errors?
 let localMediaConstraints = {
 	audio: {
 		echoCancellation: true,
-		noiseSuppression: true
+		noiseSuppression: true,
+		autoGainControl: true
 	},
 	video: true
 };
@@ -78,7 +80,16 @@ let localMediaConstraints = {
 // Start-Up Sequence:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-window.onload = async () => {
+window.onload = () => {
+	var startButton = document.getElementById('startButton');
+	startButton.addEventListener('click', init);
+}
+
+async function init() {
+
+	var overlay = document.getElementById('overlay');
+	overlay.remove();
+
 	console.log("Window loaded.");
 	setupButtons();
 
@@ -159,7 +170,6 @@ function initSocketConnection() {
 			// for each existing user, add them as a client and add tracks to their peer connection
 			for (let i = 0; i < _ids.length; i++) {
 				if (_ids[i] != mySocketID) {
-					console.log
 					addClient(_ids[i]);
 				}
 			}
@@ -176,6 +186,11 @@ function initSocketConnection() {
 					addClient(_id);
 				}
 			}
+		});
+
+		socket.on('projects', _projects => {
+			console.log("Received project list from server.");
+			updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (clientCount, _id, _ids) => {
@@ -214,6 +229,13 @@ async function addClient(_id) {
 	glScene.addClient(_id);
 }
 
+function updateProjects(_projects) {
+	projects = _projects;
+	if (glScene.updateProjects) {
+		glScene.updateProjects(projects);
+	}
+}
+
 
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -236,6 +258,8 @@ function createScene() {
 		onPlayerMove,
 		clients,
 		mySocketID);
+
+	glScene.updateProjects(projects);
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -334,7 +358,6 @@ export async function joinRoom() {
 		// mediasoup-client device, if this is our first time connecting
 		let resp = await socket.request('join-as-new-peer');
 		let { routerRtpCapabilities } = resp;
-		console.log(resp);
 		if (!device.loaded) {
 			await device.load({ routerRtpCapabilities });
 		}
@@ -481,8 +504,9 @@ export async function startCamera() {
 	log('start camera');
 	try {
 		localCam = await navigator.mediaDevices.getUserMedia(localMediaConstraints);
+		console.log(localCam.getAudioTracks()[0].getConstraints());
 		if (localCam) {
-			createOrUpdateClientVideo('local', localCam);
+			createOrUpdateClientVideo('local', new MediaStream([localCam.getVideoTracks()[0]]));
 		}
 	} catch (e) {
 		console.error('start camera error', e);
@@ -660,6 +684,31 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 		await closeConsumer(consumer);
 	} catch (e) {
 		console.error(e);
+	}
+}
+
+// TODO check these functions
+export async function pauseAllConsumersForPeer(_id) {
+	console.log("Pausing all consumers for peer with ID: " + _id);
+	if (!(_id === mySocketID)) {
+		for (let [mediaTag, info] of Object.entries(peers[_id].media)) {
+			let consumer = findConsumerForTrack(peerId, mediaTag);
+			if (consumer) {
+				await pauseConsumer(consumer);
+			}
+		}
+	}
+}
+
+export async function resumeAllConsumersForPeer(_id) {
+	console.log("Resuming all consumers for peer with ID: " + _id);
+	if (!(_id === mySocketID)) {
+		for (let [mediaTag, info] of Object.entries(peers[_id].media)) {
+			let consumer = findConsumerForTrack(peerId, mediaTag);
+			if (consumer) {
+				await resumeConsumer(consumer);
+			}
+		}
 	}
 }
 
@@ -960,29 +1009,86 @@ function addVideoAudio(consumer, peerId) {
 	if (!(consumer && consumer.track)) {
 		return;
 	}
-	let el = document.createElement(consumer.kind);
+	let elementID = `${peerId}_${consumer.kind}`;
+
+
+	let el = document.getElementById(elementID);
+	// let el = document.createElement(consumer.kind);
+
 	// set some attributes on our audio and video elements to make
 	// mobile Safari happy. note that for audio to play you need to be
 	// capturing from the mic/camera
 	if (consumer.kind === 'video') {
-		el.setAttribute('playsinline', true);
-	} else {
-		el.setAttribute('playsinline', true);
-		el.setAttribute('autoplay', true);
-	}
-	el.id = `${peerId}_${consumer.kind}`;
-	document.body.appendChild(el);
+		if (el == null) {
+			console.log("Creating video element for user with ID: " + peerId);
+			el = document.createElement('video');
+			el.id = `${peerId}_${consumer.kind}`;
+			el.autoplay = true;
+			el.style = "visibility: hidden;";
+			document.body.appendChild(el);
+			el.setAttribute('playsinline', true);
+		}
 
-	el.srcObject = new MediaStream([consumer.track.clone()]);
-	el.consumer = consumer;
-	// let's "yield" and return before playing, rather than awaiting on
-	// play() succeeding. play() will not succeed on a producer-paused
-	// track until the producer unpauses.
-	el.play()
-		.then(() => { })
-		.catch((e) => {
-			err(e);
-		});
+		// TODO: do i need to update video width and height? or is that based on stream...?
+		console.log("Updating video source for user with ID: " + peerId);
+		el.srcObject = new MediaStream([consumer.track.clone()]);
+		el.consumer = consumer;
+
+
+		// let's "yield" and return before playing, rather than awaiting on
+		// play() succeeding. play() will not succeed on a producer-paused
+		// track until the producer unpauses.
+		el.play()
+			.then(() => { })
+			.catch((e) => {
+				err(e);
+			});
+	} else {
+		// Positional Audio Works in Firefox:
+		// glScene.createOrUpdatePositionalAudio(peerId,  new MediaStream([consumer.track.clone()])); // TODO make this function
+		let sourceEl;
+		// Global Audio:
+		if (el == null) {
+			console.log("Creating audio element for user with ID: " + peerId);
+			el = document.createElement('audio');
+			// sourceEl = document.createElement('source');
+			// el.appendChild(sourceEl);
+			el.id = `${peerId}_${consumer.kind}`;
+			document.body.appendChild(el);
+			el.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
+			el.setAttribute('playsinline', true);
+			// el.setAttribute('autoplay', true);
+		}
+
+		console.log("Updating <audio> source object for client with ID: " + peerId);
+		el.srcObject = new MediaStream([consumer.track.clone()]);
+		// sourceEl.srcObject = new MediaStream([consumer.track.clone()]);
+		el.consumer = consumer;
+		// el.play();
+		el.volume = 0; // start at 0 and let the three.js scene take over from here...
+		glScene.createOrUpdatePositionalAudio(peerId);
+
+
+		// let's "yield" and return before playing, rather than awaiting on
+		// play() succeeding. play() will not succeed on a producer-paused
+		// track until the producer unpauses.
+		el.play()
+			.then(() => { })
+			.catch((e) => {
+				err(e);
+			});
+	}
+	// document.body.appendChild(el);
+	// el.srcObject = new MediaStream([consumer.track.clone()]);
+	// el.consumer = consumer;
+	// // let's "yield" and return before playing, rather than awaiting on
+	// // play() succeeding. play() will not succeed on a producer-paused
+	// // track until the producer unpauses.
+	// el.play()
+	// 	.then(() => { })
+	// 	.catch((e) => {
+	// 		err(e);
+	// 	});
 }
 
 function removeVideoAudio(consumer) {
