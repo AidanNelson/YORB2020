@@ -73,8 +73,8 @@ class Scene {
 		// add controls:
 		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup, document, this.obstacles);
 		// TODO adjust speed for lower framerates:
-		// this.controls.moveSpeed = 0.2;
-		// this.controls.turnSpeed = 0.02;
+		this.controls.moveSpeed = 0.4;
+		this.controls.turnSpeed = 0.05;
 
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
@@ -396,14 +396,25 @@ class Scene {
 	//////////////////////////////////////////////////////////////////////
 	// Collision Detection 🤾‍♀️
 
-
+	/*
+	* setupCollisionDetection()
+	*
+	* Description:
+	* This function sets up collision detection:
+	* 	- creates this.collidableMeshList which will be populated by this.loadFloorModel function
+	* 	- creates this.obstacles object which will be queried by player controls before performing movement
+	* 	- generates arrays of collision detection points, from which we will perform raycasts in this.detectCollisions()
+	*
+	*/
 	setupCollisionDetection() {
-		this.numCollisionDetectionPoints = 4 * 4;
+		var numCollisionDetectionPointsPerSide = 4;
+		var numTotalCollisionDetectionPoints = numCollisionDetectionPointsPerSide * 4;
 
 		// get the headMesh vertices
-		// var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
+		var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
 
 		// these are the four vertices of each side:
+		// figured out which ones were which with pen and paper...
 		// var forwardVertices = [headMeshVertices[1], headMeshVertices[3], headMeshVertices[4], headMeshVertices[6]];
 		// var backwardVertices = [headMeshVertices[0], headMeshVertices[2], headMeshVertices[5], headMeshVertices[7]];
 		// var rightVertices = [headMeshVertices[0], headMeshVertices[1], headMeshVertices[2], headMeshVertices[3]];
@@ -418,19 +429,15 @@ class Scene {
 			left: false
 		}
 
-		// vertex indices discovered by manual labor...
-		var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
-		var numPoints = this.numCollisionDetectionPoints / 4;
-
-		this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numPoints);
-		this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numPoints);
-		this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numPoints);
-		this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numPoints);
+		this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numCollisionDetectionPointsPerSide);
+		this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numCollisionDetectionPointsPerSide);
+		this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numCollisionDetectionPointsPerSide);
+		this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numCollisionDetectionPointsPerSide);
 
 		// for use debugging collision detection
 		if (this.DEBUG_MODE) {
 			this.collisionDetectionDebugArrows = [];
-			for (let i = 0; i < this.numCollisionDetectionPoints; i++) {
+			for (let i = 0; i < numTotalCollisionDetectionPoints; i++) {
 				var arrow = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 1, 0x000000)
 				this.collisionDetectionDebugArrows.push(arrow)
 				this.scene.add(arrow)
@@ -438,8 +445,16 @@ class Scene {
 		}
 	}
 
-	// https://stackoverflow.com/questions/21249739/how-to-calculate-the-points-between-two-given-points-and-given-distance
-	// returns an array of vectors from A to B, including A and B
+	/*
+	* getPointsBetweenPoints()
+	*
+	* Description:
+	* Returns an array of numPoints THREE.Vector3 objects evenly spaced between vecA and vecB, including vecA and vecB
+	* 
+	* based on:
+	* https://stackoverflow.com/questions/21249739/how-to-calculate-the-points-between-two-given-points-and-given-distance
+	*
+	*/
 	getPointsBetweenPoints(vecA, vecB, numPoints) {
 		var points = [];
 		var dirVec = vecB.clone().sub(vecA);
@@ -451,6 +466,22 @@ class Scene {
 	}
 
 
+	/*
+	* detectCollisions()
+	*
+	* based on method shown here: 
+	* https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
+	*
+	* Description:
+	* 1. Creates THREE.Vector3 objects representing the current forward, left, right, backward direction of the character.
+	* 2. For each side of the cube, 
+	* 		- uses the collision detection points created in this.setupCollisionDetection()
+	*		- sends a ray out from each point in the direction set up above 
+	* 		- if any one of the rays hits an object, set this.obstacles.SIDE (i.e. right or left) to true
+	* 3. Give this.obstacles object to this.controls
+	*
+	* To Do: setup helper function to avoid repetitive code
+	*/
 	detectCollisions() {
 		// reset obstacles: 
 		this.obstacles = {
@@ -503,6 +534,7 @@ class Scene {
 					console.log("Forward hit on vertex " + vertexIndex + "!");
 				}
 				this.obstacles.forward = true;
+				break;
 			}
 		}
 
@@ -531,6 +563,7 @@ class Scene {
 			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
 				if (this.DEBUG_MODE) { console.log("Backward hit on vertex " + vertexIndex + "!"); }
 				this.obstacles.backward = true;
+				break;
 			}
 		}
 
@@ -561,6 +594,7 @@ class Scene {
 					console.log("Right hit on vertex " + vertexIndex + "!");
 				}
 				this.obstacles.right = true;
+				break;
 			}
 		}
 
@@ -591,6 +625,7 @@ class Scene {
 					console.log("Left hit on vertex " + vertexIndex + "!");
 				}
 				this.obstacles.left = true;
+				break;
 			}
 		}
 
@@ -601,6 +636,16 @@ class Scene {
 	//////////////////////////////////////////////////////////////////////
 	// Interactable Hyperlinks for Spring Show 💎
 
+	/*
+	* updateProjects(projects) 
+	*
+	* Description:
+	* 	- empties out the existing projects array and any existing hyperlink objects within it
+	* 	- creates XYZ locations for each of the new project hyperlinks
+	* 	- calls this.createHyperlinkedMesh for each project in the projects array
+	* 	- places returned objects in this.hyperlinkedObjects array and adds them to the scene
+	*
+	*/
 	updateProjects(projects) {
 
 		// first, empty the project
@@ -611,11 +656,20 @@ class Scene {
 			let project = projects[i];
 			let locX = -70;
 			let locZ = i * -10 + 40;
-			this.createHyperlinkedMesh(locX, 0, locZ, project);
-
+			let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, project);
+			this.hyperlinkedObjects.push(hyperlink);
+			this.scene.add(hyperlink);
 		}
 	}
 
+	/*
+	* createHyperlinkedMesh(x,y,z,_project) 
+	*
+	* Description:
+	* 	- creates an object3D for each project at position x,y,z 
+	*	- adds _project as userData to the object3D
+	*	- returns object3D
+	*/
 	createHyperlinkedMesh(x, y, z, _project) {
 		// load a image resource
 		let tex = new THREE.TextureLoader().load('images/grid.jpg');
@@ -629,22 +683,29 @@ class Scene {
 		mesh.userData = {
 			project: _project
 		}
-		this.hyperlinkedObjects.push(mesh);
-		this.scene.add(mesh);
+		return mesh;
 	}
 
+	/*
+	* generateProjectModal(project) 
+	* 
+	* Description:
+	* 	- generates a modal pop up for a given project object 
+	* 	- project objects look like this: 
+	*		{
+	*			"project_id": "1234",
+	*			"project_name": "Cats",
+	*			"elevator_pitch": "Cats are loving companions for now and all time.",
+	*			"description": "Cats is about building a sustainable online community for earth humans.",
+	*			"zoom_link": "http://example.com"
+	*		}
+	* 
+	*/
 	generateProjectModal(project) {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
-		// project:
-		// {
-		// 	"project_id": "1234",
-		// 	"project_name": "Cats",
-		// 	"elevator_pitch": "Cats are loving companions for now and all time.",
-		// 	"description": "Cats is about building a sustainable online community for earth humans.",
-		// 	"zoom_link": "http://example.com"
-		//   }
+		
 
 		if (!document.getElementById(project.project_id + "_modal")) {
 			var parser = new DOMParser;
@@ -691,43 +752,23 @@ class Scene {
 		}
 	}
 
-	//https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
+	/*
+	* detectHyperlinks() 
+	* 
+	* Description:
+	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array, 
+	* 	- calls this.generateProjectModal for any projects under a threshold distance
+	* 
+	*/
 	detectHyperlinks() {
-		console.log('Checking for nearby hyperlinks...');
-		console.log(this.playerGroup.position);
+		let thresholdDistanceSquared = 2;
 		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
 			let link = this.hyperlinkedObjects[i];
 			let distSquared = this.playerGroup.position.distanceToSquared(link.position);
-			if (distSquared < 2) {
+			if (distSquared < thresholdDistanceSquared) {
 				this.generateProjectModal(link.userData.project);
 			}
 		}
-		// https://github.com/mrdoob/three.js/issues/1606
-		// var matrix = new THREE.Matrix4();
-		// matrix.extractRotation(this.playerGroup.matrix);
-
-		// var dirVec = new THREE.Vector3(0, 1, 0);
-		// dirVec = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
-		// dirVec.normalize();
-
-		// this.raycaster.set(this.playerGroup.position, dirVec);
-		// var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
-
-		// if (intersects.length > 0) {
-		// 	for (let i = 0; i < intersects.length; i++) {
-		// 		if (intersects[i].distance < 1) {
-		// 			console.log("Approaching link!");
-		// 			// console.log(intersects[i].object.userData.URL);
-		// 			if (!intersects[i].object.userData.linkVisited) {
-		// 				// open some sort of modal asking users if they wish to enter zoom link...
-		// 				// window.open(intersects[i].object.userData.URL);
-		// 				this.generateProjectModal(intersects[i].object.userData.project);
-		// 				intersects[i].object.userData.lastVisitedTime = Date.now();
-		// 				intersects[i].object.userData.linkVisited = true
-		// 			}
-		// 		}
-		// 	}
-		// }
 	}
 
 
@@ -748,11 +789,7 @@ class Scene {
 
 	update() {
 		requestAnimationFrame(() => this.update());
-
-		// FPS monitor for debugging:
-		// if (this.DEBUG_MODE) {
 		this.stats.update();
-		// }
 
 		// send movement stats to the socket server if any of the keys have been pressed
 		let sendStats = false;
@@ -772,7 +809,6 @@ class Scene {
 		}
 
 		this.updatePositions();
-
 		this.detectCollisions();
 
 		this.checkKeys();
@@ -817,7 +853,6 @@ class Scene {
 
 	updateClientVolumes() {
 		let distanceThresholdSquared = 800; // over this distance, no sound is heard
-		// let rolloffFactor = 10;
 		let numerator = 50; // TODO rename this
 
 		for (let _id in this.clients) {
