@@ -14,27 +14,12 @@ For more information about *YORB*, see the *YARCHIVE* at [yorb.online](yorb.onli
 **YORB2020** is a project built by a number of the current [Researchers in Residence](https://itp.nyu.edu/residents/) at ITP.  Inspired by YORB and created in response to the quarantine conditions of COVID-19, this project attempts to provide the ITP community with a shared virtual space to hang out, collaborate and work near each other.  
 
 
-## Technology:
+### Getting Involved:
 
-This space is built using a number of technologies, including:
-
-* [three.js](https://threejs.org/) provides rendering / 3D environment interactivity
-* [socket.io](https://socket.io/) provides the three.js multiplayer functionality, and acts as a WebRTC signaling server
-* [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) provides video / audio chat functionality
-* [Rhino3D](https://www.rhino3d.com/) for building the floor model
-* [Blender](blender.org) conversion of model into GLTF files
-* [SimplePeer](https://github.com/feross/simple-peer) provides a level of abstraction around the WebRTC [PeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
-
-
-And uses code from a number of sources, including: 
-
-* Or Fleisher - [THREE.Multiplayer](https://github.com/juniorxsound/THREE.Multiplayer) server and client setup socket.io
-* Mikołaj Wargowski - [Simple Chat App](https://github.com/Miczeq22/simple-chat-app) using [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
-* Zachary Stenger - [Three.js Video Chat](https://github.com/zacharystenger/three-js-video-chat) using [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
+For more information about how the project is built and how you could be involved, take a look at [CONTRIBUTING.md](/docs/CONTRIBUTING.md).
 
 
 ### Credits
 
-Ellen Nickles, Aidan Nelson, Nicole Aptekar, Jesse Simpson, Alden Rivendale Jones
-
+Ellen Nickles, Aidan Nelson, Nicole Aptekar, Jesse Simpson, Alden Rivendale Jones and many [open source projects](/docs/CREDITS.md).
 
