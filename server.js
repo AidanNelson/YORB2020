@@ -428,6 +428,7 @@ async function updateProjects() {
       projects = json;
       console.log("Updated projects from database.");
       console.log(projects);
+      io.sockets.emit('projects', projects);
     });
   }).on('error', function (e) {
     console.log("Got an error: ", e);
