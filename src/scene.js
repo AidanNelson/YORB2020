@@ -7,7 +7,7 @@
 
 // import  * as THREE from 'three';
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
+import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 class Scene {
 	constructor(
@@ -42,6 +42,8 @@ class Scene {
 
 		//Add Player
 		this.addSelf();
+
+		this.loadFont();
 
 		// Raycaster
 		this.raycaster = new THREE.Raycaster();
@@ -677,7 +679,16 @@ class Scene {
 		var geometry = new THREE.CylinderGeometry(1, 1, 8, 32);
 		var material = new THREE.MeshBasicMaterial({ map: tex, color: 0xffff00 });
 		var mesh = new THREE.Mesh(geometry, material);
+
+		let textMesh = this.createText(_project.project_name, 1, 0.5, 4, 0.1, 0.1, false);
+		// textMesh.position.x += x;
+		// textMesh.position.y += y
+		// textMesh.position.z += z;
+		// this.scene.add(textMesh);
+		mesh.add(textMesh)
 		mesh.position.set(x, y, z);
+
+
 
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
 		mesh.userData = {
@@ -705,7 +716,7 @@ class Scene {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
-		
+
 
 		if (!document.getElementById(project.project_id + "_modal")) {
 			var parser = new DOMParser;
@@ -771,6 +782,119 @@ class Scene {
 		}
 	}
 
+	loadFont() {
+		var loader = new THREE.FontLoader();
+		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
+			console.log('font loader response');
+			console.log(response);
+			this.font = response;
+		});
+	}
+
+	// from https://threejs.org/examples/?q=text#webgl_geometry_text
+	createText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled) {
+
+		let textGeo = new THREE.TextGeometry(text, {
+
+			font: this.font,
+
+			size: size,
+			height: height,
+			curveSegments: curveSegments,
+
+			bevelThickness: bevelThickness,
+			bevelSize: bevelSize,
+			bevelEnabled: bevelEnabled
+
+		});
+
+		textGeo.computeBoundingBox();
+		textGeo.computeVertexNormals();
+
+		var triangle = new THREE.Triangle();
+
+		let materials = [
+			new THREE.MeshPhongMaterial({ color: 0xffffee, flatShading: true }), // front
+			new THREE.MeshPhongMaterial({ color: 0x000000 }) // side
+		];
+
+		// "fix" side normals by removing z-component of normals for side faces
+		// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
+
+		if (!bevelEnabled) {
+
+			var triangleAreaHeuristics = 0.1 * (height * size);
+
+			for (var i = 0; i < textGeo.faces.length; i++) {
+
+				var face = textGeo.faces[i];
+
+				if (face.materialIndex == 1) {
+
+					for (var j = 0; j < face.vertexNormals.length; j++) {
+
+						face.vertexNormals[j].z = 0;
+						face.vertexNormals[j].normalize();
+
+					}
+
+					var va = textGeo.vertices[face.a];
+					var vb = textGeo.vertices[face.b];
+					var vc = textGeo.vertices[face.c];
+
+					var s = triangle.set(va, vb, vc).getArea();
+
+					if (s > triangleAreaHeuristics) {
+
+						for (var j = 0; j < face.vertexNormals.length; j++) {
+
+							face.vertexNormals[j].copy(face.normal);
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		var centerOffset = - 0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+
+		textGeo = new THREE.BufferGeometry().fromGeometry(textGeo);
+
+		let textMesh = new THREE.Mesh(textGeo, materials);
+		let hover = 5;
+
+		textMesh.position.x = centerOffset;
+		textMesh.position.y = hover;
+		textMesh.position.z = 0;
+
+		textMesh.rotation.x = 0;
+		textMesh.rotation.y = Math.PI * 2;
+
+		// let group = new THREE.Group();
+		// group.add(textMesh);
+
+		return textMesh;
+
+		// if (mirror) {
+
+		// 	textMesh2 = new THREE.Mesh(textGeo, materials);
+
+		// 	textMesh2.position.x = centerOffset;
+		// 	textMesh2.position.y = - hover;
+		// 	textMesh2.position.z = height;
+
+		// 	textMesh2.rotation.x = Math.PI;
+		// 	textMesh2.rotation.y = Math.PI * 2;
+
+		// 	group.add(textMesh2);
+
+		// }
+
+	}
 
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -852,7 +976,7 @@ class Scene {
 	}
 
 	updateClientVolumes() {
-		let distanceThresholdSquared = 800; // over this distance, no sound is heard
+		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
 		let numerator = 50; // TODO rename this
 
 		for (let _id in this.clients) {
@@ -861,7 +985,9 @@ class Scene {
 				if (distSquared > distanceThresholdSquared) {
 					// TODO pause consumer here, rather than setting volume to zero
 					this.clients[_id].audioElement.volume = 0;
+					pauseAllConsumersForPeer(_id);
 				} else {
+					resumeAllConsumersForPeer(_id);
 					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
 
 					let volume = Math.min(1, numerator / distSquared);

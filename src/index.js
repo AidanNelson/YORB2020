@@ -53,16 +53,17 @@ export let mySocketID,
 	screenVideoProducer,
 	screenAudioProducer,
 	currentActiveSpeaker = {},
-	lastPollSyncData = {},
 	consumers = [],
 	pollingInterval,
 	webcamVideoPaused = false,
 	webcamAudioPaused = false,
 	screenShareVideoPaused = false,
 	screenShareAudioPaused = false,
-	clients = {}, // array of connected clients for three.js scene
 	glScene,
-	projects = []; 
+	projects = [];
+
+window.clients = {}; // array of connected clients for three.js scene
+window.lastPollSyncData = {};
 
 // limit video size / framerate for bandwidth or use bandwidth limitation through encoding?
 // TODO deal with overconstrained errors?
@@ -80,19 +81,23 @@ let localMediaConstraints = {
 // Start-Up Sequence:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
+// start with user interaction with the DOM so we can auto-play audio/video from 
+// now on...
 window.onload = () => {
 	var startButton = document.getElementById('startButton');
 	startButton.addEventListener('click', init);
 }
 
 async function init() {
+	console.log("Window loaded.");
 
+	// remove overlay
 	var overlay = document.getElementById('overlay');
 	overlay.remove();
 
-	console.log("Window loaded.");
 	setupButtons();
 
+	// create mediasoup Device
 	try {
 		device = new mediasoup.Device();
 	} catch (e) {
@@ -104,13 +109,12 @@ async function init() {
 		}
 	}
 
+
 	createScene();
 
-	// then initialize socket connection
 	await initSocketConnection();
 
 	await joinRoom();
-	// sendCameraStreams(); // send feeds on user input
 
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads
@@ -119,31 +123,6 @@ async function init() {
 		// sig('leave', {}, true)
 	});
 }
-
-
-
-
-//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-// Local media stream setup
-//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-
-// // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-// async function getLocalMediaStreams(_mediaConstraintsArray) {
-// 	let streams = [];
-// 	for (let i = 0; i < _mediaConstraintsArray.length; i++) {
-// 		let stream = null;
-// 		try {
-// 			stream = await navigator.mediaDevices.getUserMedia(_mediaConstraintsArray[i]);
-// 			streams.push(stream);
-// 		} catch (err) {
-// 			console.log("Failed to get user media!");
-// 			console.warn(err);
-// 			return;
-// 		}
-// 	}
-// 	gotMediaAccess = true;
-// 	return streams;
-// }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Socket.io
@@ -193,11 +172,13 @@ function initSocketConnection() {
 			updateProjects(_projects);
 		});
 
-		socket.on('userDisconnected', (clientCount, _id, _ids) => {
+		socket.on('userDisconnected', (_id, _ids) => {
 			// Update the data from the server
 
 			if (_id in clients) {
-				if (_id != mySocketID) {
+				if (_id == mySocketID) {
+					console.log("Uh oh!  The server thinks we disconnected!");
+				} else {
 					console.log('A user disconnected with the id: ' + _id);
 					glScene.removeClient(_id);
 					removeClientDOMElements(_id);
@@ -689,25 +670,31 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 
 // TODO check these functions
 export async function pauseAllConsumersForPeer(_id) {
-	console.log("Pausing all consumers for peer with ID: " + _id);
-	if (!(_id === mySocketID)) {
-		for (let [mediaTag, info] of Object.entries(peers[_id].media)) {
-			let consumer = findConsumerForTrack(peerId, mediaTag);
-			if (consumer) {
-				await pauseConsumer(consumer);
+	if (!lastPollSyncData[_id].paused) {
+		if (!(_id === mySocketID)) {
+			console.log("Pausing all consumers for peer with ID: " + _id);
+			for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
+				let consumer = findConsumerForTrack(_id, mediaTag);
+				if (consumer) {
+					await pauseConsumer(consumer);
+				}
 			}
+			lastPollSyncData[_id].paused = true;
 		}
 	}
 }
 
 export async function resumeAllConsumersForPeer(_id) {
-	console.log("Resuming all consumers for peer with ID: " + _id);
-	if (!(_id === mySocketID)) {
-		for (let [mediaTag, info] of Object.entries(peers[_id].media)) {
-			let consumer = findConsumerForTrack(peerId, mediaTag);
-			if (consumer) {
-				await resumeConsumer(consumer);
+	if (lastPollSyncData[_id].paused) {
+		console.log("Resuming all consumers for peer with ID: " + _id);
+		if (!(_id === mySocketID)) {
+			for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
+				let consumer = findConsumerForTrack(_id, mediaTag);
+				if (consumer) {
+					await resumeConsumer(consumer);
+				}
 			}
+			lastPollSyncData[_id].paused = false;
 		}
 	}
 }
@@ -891,7 +878,7 @@ async function pollAndUpdate() {
 	// comparison. compare this list with the cached list from last
 	// poll.
 
-	// if a new peer has connected, auto-subscribe to their feeds:
+	// auto-subscribe to their feeds:
 	// TODO auto subscribe at lowest spatial layer
 	for (let id in peers) {
 		if (id === mySocketID) {
@@ -931,7 +918,17 @@ async function pollAndUpdate() {
 		}
 	});
 
-	lastPollSyncData = peers;
+	// push through the paused state to new sync list
+	let newLastPollSyncData = peers;
+	for (let id in lastPollSyncData) {
+		if (lastPollSyncData[id].paused) {
+			if (newLastPollSyncData[id]) {
+				newLastPollSyncData[id].paused = true;
+			}
+		}
+	}
+	lastPollSyncData = newLastPollSyncData;
+	// lastPollSyncData = peers;
 	return ({}); // return an empty object if there isn't an error
 }
 
@@ -1041,6 +1038,7 @@ function addVideoAudio(consumer, peerId) {
 		el.play()
 			.then(() => { })
 			.catch((e) => {
+				console.log("Play video error: " + e);
 				err(e);
 			});
 	} else {
@@ -1051,13 +1049,11 @@ function addVideoAudio(consumer, peerId) {
 		if (el == null) {
 			console.log("Creating audio element for user with ID: " + peerId);
 			el = document.createElement('audio');
-			// sourceEl = document.createElement('source');
-			// el.appendChild(sourceEl);
 			el.id = `${peerId}_${consumer.kind}`;
 			document.body.appendChild(el);
-			el.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
+			// el.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
 			el.setAttribute('playsinline', true);
-			// el.setAttribute('autoplay', true);
+			el.setAttribute('autoplay', true);
 		}
 
 		console.log("Updating <audio> source object for client with ID: " + peerId);
@@ -1075,6 +1071,7 @@ function addVideoAudio(consumer, peerId) {
 		el.play()
 			.then(() => { })
 			.catch((e) => {
+				console.log("Play audio error: " + e);
 				err(e);
 			});
 	}
@@ -1126,8 +1123,9 @@ export async function getCurrentDeviceId() {
 //
 const CAM_VIDEO_SIMULCAST_ENCODINGS =
 	[
-		{ maxBitrate: 96000, scaleResolutionDownBy: 4 },
-		{ maxBitrate: 680000, scaleResolutionDownBy: 1 },
+		{ maxBitrate: 24000, scaleResolutionDownBy: 1 },
+		// { maxBitrate: 96000, scaleResolutionDownBy: 4 },
+		// { maxBitrate: 680000, scaleResolutionDownBy: 1 },
 	];
 
 function camEncodings() {

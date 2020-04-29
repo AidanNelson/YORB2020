@@ -478,7 +478,7 @@ async function runSocketServer() {
     socket.on('disconnect', () => {
       //Delete this client from the object
       delete clients[socket.id];
-      io.sockets.emit('userDisconnected', io.engine.clientsCount, socket.id, Object.keys(clients));
+      io.sockets.emit('userDisconnected', socket.id, Object.keys(clients));
       console.log('User ' + socket.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
     });
 
