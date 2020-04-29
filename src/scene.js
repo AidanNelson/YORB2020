@@ -496,8 +496,7 @@ class Scene {
 		// for debugging:
 		var arrowHelperOffset = 0;
 
-		// distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
-		var detectCollisionDistance = 1;
+
 
 		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)... 
 		// Weird, but this function respects those directions for the sake of not having to make conversions
@@ -511,13 +510,27 @@ class Scene {
 
 
 		// check forward
-		for (var vertexIndex = 0; vertexIndex < this.forwardCollisionDetectionPoints.length; vertexIndex++) {
+		this.obstacles.forward = this.checkCollisions(this.forwardCollisionDetectionPoints, forwardDir, 0);
+		this.obstacles.backward = this.checkCollisions(this.backwardCollisionDetectionPoints, backwardDir, 4);
+		this.obstacles.left = this.checkCollisions(this.leftCollisionDetectionPoints, leftDir, 8);
+		this.obstacles.right = this.checkCollisions(this.rightCollisionDetectionPoints, rightDir, 12);
 
-			var vertex = this.forwardCollisionDetectionPoints[vertexIndex].clone();
+
+
+		this.controls.obstacles = this.obstacles;
+	}
+
+	checkCollisions(pts, dir, arrowHelperOffset) {
+		// distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
+		var detectCollisionDistance = 1;
+
+		for (var vertexIndex = 0; vertexIndex < pts.length; vertexIndex++) {
+
+			var vertex = pts[vertexIndex].clone();
 			vertex.applyMatrix4(this.playerGroup.matrix);
 			vertex.y += 1.0; // bias upward to head area of player
 
-			this.raycaster.set(vertex, forwardDir);
+			this.raycaster.set(vertex, dir);
 			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
 
 			// arrow helpers for debugging
@@ -528,112 +541,15 @@ class Scene {
 				a.position.x = vertex.x;
 				a.position.y = vertex.y;
 				a.position.z = vertex.z;
-				a.setDirection(forwardDir);
+				a.setDirection(dir);
 			}
 
 			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
-				if (this.DEBUG_MODE) {
-					console.log("Forward hit on vertex " + vertexIndex + "!");
-				}
-				this.obstacles.forward = true;
-				break;
+				return true;
 			}
 		}
-
-		// check backward
-		arrowHelperOffset += 4;
-		for (var vertexIndex = 0; vertexIndex < this.backwardCollisionDetectionPoints.length; vertexIndex++) {
-
-			var vertex = this.backwardCollisionDetectionPoints[vertexIndex].clone();
-			vertex.applyMatrix4(this.playerGroup.matrix);
-			vertex.y += 1.0; // bias upward to head area of player
-
-			this.raycaster.set(vertex, backwardDir);
-			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
-
-			// arrow helpers for debugging
-			if (this.DEBUG_MODE) {
-				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
-				a.setLength(detectCollisionDistance);
-				a.setColor(new THREE.Color("rgb(0, 255, 255)"));
-				a.position.x = vertex.x;
-				a.position.y = vertex.y;
-				a.position.z = vertex.z;
-				a.setDirection(backwardDir);
-			}
-
-			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
-				if (this.DEBUG_MODE) { console.log("Backward hit on vertex " + vertexIndex + "!"); }
-				this.obstacles.backward = true;
-				break;
-			}
-		}
-
-		// check right
-		arrowHelperOffset += 4;
-		for (var vertexIndex = 0; vertexIndex < this.rightCollisionDetectionPoints.length; vertexIndex++) {
-
-			var vertex = this.rightCollisionDetectionPoints[vertexIndex].clone();
-			vertex.applyMatrix4(this.playerGroup.matrix);
-			vertex.y += 1.0; // bias upward to head area of player
-
-			this.raycaster.set(vertex, rightDir);
-			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
-
-			// arrow helpers for debugging
-			if (this.DEBUG_MODE) {
-				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
-				a.setLength(detectCollisionDistance);
-				a.setColor(new THREE.Color("rgb(255, 255, 0)"));
-				a.position.x = vertex.x;
-				a.position.y = vertex.y;
-				a.position.z = vertex.z;
-				a.setDirection(rightDir);
-			}
-
-			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
-				if (this.DEBUG_MODE) {
-					console.log("Right hit on vertex " + vertexIndex + "!");
-				}
-				this.obstacles.right = true;
-				break;
-			}
-		}
-
-		// check left
-		arrowHelperOffset += 4;
-		for (var vertexIndex = 0; vertexIndex < this.leftCollisionDetectionPoints.length; vertexIndex++) {
-
-			var vertex = this.leftCollisionDetectionPoints[vertexIndex].clone();
-			vertex.applyMatrix4(this.playerGroup.matrix);
-			vertex.y += 1.0; // bias upward to head area of player
-
-			this.raycaster.set(vertex, leftDir);
-			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
-
-			// arrow helpers for debugging
-			if (this.DEBUG_MODE) {
-				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
-				a.setLength(detectCollisionDistance);
-				a.setColor(new THREE.Color("rgb(255, 0, 0)"));
-				a.position.x = vertex.x;
-				a.position.y = vertex.y;
-				a.position.z = vertex.z;
-				a.setDirection(leftDir);
-			}
-
-			if (collisions.length > 0 && collisions[0].distance < detectCollisionDistance) {
-				if (this.DEBUG_MODE) {
-					console.log("Left hit on vertex " + vertexIndex + "!");
-				}
-				this.obstacles.left = true;
-				break;
-			}
-		}
-
-		this.controls.obstacles = this.obstacles;
+		return false;
 	}
-
 	//////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
 	// Interactable Hyperlinks for Spring Show 💎
@@ -934,9 +850,9 @@ class Scene {
 
 		this.updatePositions();
 		this.detectCollisions();
-
-		this.checkKeys();
 		this.controls.update();
+		this.checkKeys();
+		
 
 		this.render();
 	}
@@ -1093,6 +1009,9 @@ class Scene {
 		this.clients[_id].audioElement = audioElement;
 		console.log("The following audio element attached to client with ID " + _id + ":");
 		console.log(this.clients[_id].audioElement);
+
+		// for the moment, positional audio using webAudio and THREE.PositionalAudio doesn't work...
+		// see the issues on github
 		// let audioSource;	
 		// if (this.clients[_id]) {
 		// 	if ("positionalAudioSource" in this.clients[_id]) {

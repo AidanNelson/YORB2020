@@ -91,6 +91,8 @@ window.onload = () => {
 async function init() {
 	console.log("Window loaded.");
 
+	createOrUpdateClientVideo('local', null);
+
 	// remove overlay
 	var overlay = document.getElementById('overlay');
 	overlay.remove();
@@ -169,7 +171,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			updateProjects(_projects);
+			// updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (_id, _ids) => {
@@ -282,6 +284,9 @@ function createOrUpdateClientVideo(_id, _videoStream) {
 	console.log("Updating video source for user with ID: " + _id);
 	if (_videoStream != null) {
 		videoEl.srcObject = _videoStream
+	} else {
+		videoEl.src = "images/particle-dreams.mp4"
+		videoEl.loop = true;
 	}
 	videoEl.autoplay = true;
 }
@@ -487,7 +492,8 @@ export async function startCamera() {
 		localCam = await navigator.mediaDevices.getUserMedia(localMediaConstraints);
 		console.log(localCam.getAudioTracks()[0].getConstraints());
 		if (localCam) {
-			createOrUpdateClientVideo('local', new MediaStream([localCam.getVideoTracks()[0]]));
+			// createOrUpdateClientVideo('local', new MediaStream([localCam.getVideoTracks()[0]]));
+
 		}
 	} catch (e) {
 		console.error('start camera error', e);
