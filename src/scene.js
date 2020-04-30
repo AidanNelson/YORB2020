@@ -5,19 +5,24 @@
 *
 */
 
-// import  * as THREE from 'three';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
+
+const THREE = require('./libs/three.min.js');
+
+// slightly awkward syntax, but these statements add these functions to THREE
+require('./libs/GLTFLoader.js')(THREE);
+require('./libs/playerControls.js')(THREE);
+require('./libs/fpscontrols.js')(THREE);
+
+const Stats = require('./libs/stats.min.js');
 
 class Scene {
 	constructor(
 		domElement = document.getElementById('gl_context'),
-		_width = window.innerWidth,
-		_height = window.innerHeight,
-		clearColor = 'lightblue',
 		_movementCallback,
 		clientsArr,
 		mySocketID) {
+
 
 		// keep track of 
 		this.frameCount = 0;
@@ -32,13 +37,13 @@ class Scene {
 		this.keyState = {};
 
 		//Utility
-		this.width = _width;
-		// this.width = domElement.width;
-		this.height = _height;
-		// if (this.DEBUG_MODE) {
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.8);
+
+
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
-		// }
+
 
 		//Add Player
 		this.addSelf();
@@ -53,12 +58,9 @@ class Scene {
 
 		//THREE Camera
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0, 3, 6);
+		this.camera.position.set(0, 3, 0);
 		this.scene.add(this.camera);
 
-		// create an AudioListener and add it to the camera
-		this.listener = new THREE.AudioListener();
-		this.playerGroup.add(this.listener);
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
@@ -66,7 +68,7 @@ class Scene {
 		});
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-		this.renderer.setClearColor(new THREE.Color(clearColor));
+		this.renderer.setClearColor(new THREE.Color('lightblue'));
 		this.renderer.setSize(this.width, this.height);
 
 		// Collision Detection Setup!
@@ -77,6 +79,8 @@ class Scene {
 		// TODO adjust speed for lower framerates:
 		this.controls.moveSpeed = 0.4;
 		this.controls.turnSpeed = 0.05;
+
+		// this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
 
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
@@ -109,8 +113,8 @@ class Scene {
 	}
 
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Lighting 💡
 
 	addLights() {
@@ -149,8 +153,8 @@ class Scene {
 		this.scene.add(dirLight2);
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Model 🏗
 
 	loadBackground() {
@@ -289,8 +293,8 @@ class Scene {
 		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true);
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Clients 👫
 
 	addSelf() {
@@ -316,6 +320,11 @@ class Scene {
 		this.playerGroup.add(_body);
 		this.playerGroup.add(_head);
 		this.playerVideoTexture = videoTexture;
+
+
+		// create an AudioListener and add it to the camera
+		this.listener = new THREE.AudioListener();
+		this.playerGroup.add(this.listener);
 
 		// add group to scene
 		this.scene.add(this.playerGroup);
@@ -394,8 +403,8 @@ class Scene {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Collision Detection 🤾‍♀️
 
 	/*
@@ -409,7 +418,7 @@ class Scene {
 	*
 	*/
 	setupCollisionDetection() {
-		var numCollisionDetectionPointsPerSide = 4;
+		var numCollisionDetectionPointsPerSide = 3;
 		var numTotalCollisionDetectionPoints = numCollisionDetectionPointsPerSide * 4;
 
 		// get the headMesh vertices
@@ -550,8 +559,8 @@ class Scene {
 		}
 		return false;
 	}
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Interactable Hyperlinks for Spring Show 💎
 
 	/*
@@ -812,9 +821,9 @@ class Scene {
 
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
-	// For socket update
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Position Update for Socket
 
 	getPlayerPosition() {
 		// TODO: use quaternion or are euler angles fine here?
@@ -823,8 +832,8 @@ class Scene {
 			[this.playerGroup.quaternion._x, this.playerGroup.quaternion._y, this.playerGroup.quaternion._z, this.playerGroup.quaternion._w]];
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Loop ⭕️
 
 	update() {
@@ -852,13 +861,13 @@ class Scene {
 		this.detectCollisions();
 		this.controls.update();
 		this.checkKeys();
-		
+
 
 		this.render();
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Rendering 🎥
 
 	render() {
@@ -927,13 +936,15 @@ class Scene {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Event Handlers 🍽
 
 	onWindowResize(e) {
-		this.width = window.innerWidth;
-		this.height = Math.floor(window.innerHeight - (window.innerHeight * 0.3));
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.8);
+		// this.width = window.innerWidth;
+		// this.height = Math.floor(window.innerHeight - (window.innerHeight * 0.3));
 		this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(this.width, this.height);
@@ -965,8 +976,8 @@ class Scene {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Utilities 🚂
 
 	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
@@ -1034,14 +1045,3 @@ class Scene {
 }
 
 export default Scene;
-
-
-// pseudo random number generator from https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript/47593316#47593316
-function mulberry32(a) {
-	return function () {
-		var t = a += 0x6D2B79F5;
-		t = Math.imul(t ^ t >>> 15, t | 1);
-		t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-		return ((t ^ t >>> 14) >>> 0) / 4294967296;
-	}
-}
