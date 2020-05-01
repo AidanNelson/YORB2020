@@ -156,7 +156,7 @@
 		#bottom_bar>div {
 			border: 1px solid black;
 			padding: 5px;
-			height:80%;
+			height: 80%;
 			width: 20%;
 			margin: 10px;
 			/* line-height: 150px; */
@@ -164,6 +164,42 @@
 			font-weight: bold;
 			font-size: 0.2em;
 			text-align: center;
+		}
+
+		#blocker {
+			position: fixed;
+			width: 90%;
+			height: 80%;
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+
+		#instructions {
+			width: 100%;
+			height: 100%;
+
+			display: -webkit-box;
+			display: -moz-box;
+			display: box;
+
+			-webkit-box-orient: horizontal;
+			-moz-box-orient: horizontal;
+			box-orient: horizontal;
+
+			-webkit-box-pack: center;
+			-moz-box-pack: center;
+			box-pack: center;
+
+			-webkit-box-align: center;
+			-moz-box-align: center;
+			box-align: center;
+
+			color: #ffffff;
+			text-align: center;
+			font-family: Arial;
+			font-size: 14px;
+			line-height: 24px;
+
+			cursor: pointer;
 		}
 	</style>
 
@@ -210,9 +246,19 @@
 
 
 		<!-- WebGL context -->
-		<div id="gl_context"></div>
+		<div id="gl_context">
+			<div id="blocker">
+				<div id="instructions">
+					<span style="font-size:36px">Click to play</span>
+					<br /><br />
+					Move: WASD<br />
+					Jump: SPACE<br />
+					Look: MOUSE
+				</div>
+			</div>
+		</div>
 
-		<div id="bottom_bar">
+		<!-- <div id="bottom_bar">
 			<div id="inventory">
 				1 LED
 				1 Soldering Iron
@@ -236,7 +282,7 @@
 				1 Soldering Iron
 				1 Arduino Nano (fried)
 			</div>
-		</div>
+		</div> -->
 	</div>
 
 </body>

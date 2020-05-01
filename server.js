@@ -451,7 +451,8 @@ async function runSocketServer() {
     //Add a new client indexed by his id
     clients[socket.id] = {
       position: [0, 0.5, 0],
-      rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
+      // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
+      rotation: [0,0,0]
     }
 
     socket.emit('introduction', socket.id, Object.keys(clients));
