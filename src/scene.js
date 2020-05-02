@@ -60,7 +60,7 @@ class Scene {
 		this.addLights();
 
 		//THREE Camera
-		this.cameraHeight = 2.5;
+		this.cameraHeight = 1.5;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
 		this.camera.position.set(0, this.cameraHeight, 0);
 		// create an AudioListener and add it to the camera
@@ -372,9 +372,9 @@ class Scene {
 			// we'll update ourselves separately to avoid lag...
 			if (_id in this.clients) {
 				if (_id != this.mySocketID) {
-					this.clients[_id].desiredPosition = new THREE.Vector3(_clientProps[_id].position[0],halfClientHeight, _clientProps[_id].position[2]);
+					this.clients[_id].desiredPosition = new THREE.Vector3(_clientProps[_id].position[0], _clientProps[_id].position[1], _clientProps[_id].position[2]);
 					// this.clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
-					let euler = new THREE.Euler( 0, _clientProps[_id].rotation[1], 0, 'XYZ' );
+					let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ');
 					this.clients[_id].group.setRotationFromEuler(euler);
 				}
 			}
@@ -895,7 +895,7 @@ class Scene {
 					break;
 
 				case 32: // space
-					if (this.canJump === true) this.velocity.y += jumpSpeed;
+					if (this.canJump === true) this.velocity.y = jumpSpeed;
 					this.canJump = false;
 					break;
 
@@ -932,8 +932,10 @@ class Scene {
 		}, false);
 
 
-		this.raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, this.cameraHeight);
+		// this.raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 1);
 		window.controls = this.controls; // for debugging
+
+		this.velocity.y = jumpSpeed;
 	}
 
 	// update for these controls, which are unfortunately not included in the controls directly...
@@ -947,7 +949,7 @@ class Scene {
 			this.raycaster.set(origin, new THREE.Vector3(0, - 1, 0));
 
 			var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList);
-			var onObject = intersectionsDown.length > 0;
+			var onObject = (intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1);
 
 
 			var time = performance.now();
@@ -972,9 +974,12 @@ class Scene {
 			}
 
 			if (onObject === true) {
+				console.log(this.controls.getObject().position.y);
+				console.log(intersectionsDown);
 				this.velocity.y = Math.max(0, this.velocity.y);
 				this.canJump = true;
-
+			} else {
+				console.log('not on object');
 			}
 
 
@@ -987,13 +992,15 @@ class Scene {
 
 			this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
 
-			if (this.controls.getObject().position.y < this.cameraHeight) {
 
+			if (this.controls.getObject().position.y < this.cameraHeight) {
+				console.log('resetting camera height to ' + this.cameraHeight);
 				this.velocity.y = 0;
 				this.controls.getObject().position.y = this.cameraHeight;
-
 				this.canJump = true;
 			}
+
+
 
 			this.prevTime = time;
 
@@ -1007,7 +1014,7 @@ class Scene {
 	getPlayerPosition() {
 		// TODO: use quaternion or are euler angles fine here?
 		return [
-			[this.camera.position.x, this.camera.position.y - this.cameraHeight, this.camera.position.z],
+			[this.camera.position.x, this.camera.position.y - (this.cameraHeight-0.5), this.camera.position.z],
 			[this.camera.rotation.x, this.camera.rotation.y, this.camera.rotation.z]];
 	}
 
