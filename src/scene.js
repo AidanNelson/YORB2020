@@ -974,12 +974,8 @@ class Scene {
 			}
 
 			if (onObject === true) {
-				console.log(this.controls.getObject().position.y);
-				console.log(intersectionsDown);
 				this.velocity.y = Math.max(0, this.velocity.y);
 				this.canJump = true;
-			} else {
-				console.log('not on object');
 			}
 
 
@@ -994,16 +990,12 @@ class Scene {
 
 
 			if (this.controls.getObject().position.y < this.cameraHeight) {
-				console.log('resetting camera height to ' + this.cameraHeight);
 				this.velocity.y = 0;
 				this.controls.getObject().position.y = this.cameraHeight;
 				this.canJump = true;
 			}
 
-
-
 			this.prevTime = time;
-
 		}
 	}
 

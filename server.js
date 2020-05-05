@@ -444,6 +444,12 @@ async function runSocketServer() {
 
   io = socketIO(httpsServer);
 
+  // update all sockets at regular intervals
+  setInterval(() => {
+    io.sockets.emit('userPositions', clients);
+  }, 200);
+
+
   io.on('connection', (socket) => {
 
     console.log('User ' + socket.id + ' connected, there are ' + io.engine.clientsCount + ' clients connected');
@@ -472,7 +478,7 @@ async function runSocketServer() {
         clients[socket.id].position = data[0];
         clients[socket.id].rotation = data[1];
       }
-      io.sockets.emit('userPositions', clients);
+      // io.sockets.emit('userPositions', clients);
     });
 
     // Handle the disconnection
