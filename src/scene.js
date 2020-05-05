@@ -1026,18 +1026,7 @@ class Scene {
 		requestAnimationFrame(() => this.update());
 		this.stats.update();
 
-		// send movement stats to the socket server if any of the keys have been pressed
-		// let sendStats = false;
-		// for (let i in this.keyState) {
-		// 	if (this.keyState[i]) {
-		// 		sendStats = true;
-		// 		break;
-		// 	}
-		// }
-
-		// if (sendStats) { this.movementCallback(); }
-
-		// update volumes every 10 frames
+		// update volumes every X frames
 		this.frameCount++;
 		if (this.frameCount % 20 == 0) {
 			this.updateClientVolumes();
