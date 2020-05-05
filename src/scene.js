@@ -5,19 +5,27 @@
 *
 */
 
-// import  * as THREE from 'three';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
+
+const THREE = require('./libs/three.min.js');
+
+// slightly awkward syntax, but these statements add these functions to THREE
+require('./libs/GLTFLoader.js')(THREE);
+// require('./libs/playerControls.js')(THREE);
+// require('./libs/fpscontrols.js')(THREE);
+require('./libs/pointerLockControls.js')(THREE);
+
+const Stats = require('./libs/stats.min.js');
 
 class Scene {
 	constructor(
 		domElement = document.getElementById('gl_context'),
-		_width = window.innerWidth,
-		_height = window.innerHeight,
-		clearColor = 'lightblue',
 		_movementCallback,
 		clientsArr,
 		mySocketID) {
+
+		this.clock = new THREE.Clock();
+
 
 		// keep track of 
 		this.frameCount = 0;
@@ -32,16 +40,16 @@ class Scene {
 		this.keyState = {};
 
 		//Utility
-		this.width = _width;
-		// this.width = domElement.width;
-		this.height = _height;
-		// if (this.DEBUG_MODE) {
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.8);
+
+
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
-		// }
+
 
 		//Add Player
-		this.addSelf();
+		// this.addSelf();
 
 		this.loadFont();
 
@@ -52,13 +60,14 @@ class Scene {
 		this.addLights();
 
 		//THREE Camera
+		this.cameraHeight = 1.5;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0, 3, 6);
-		this.scene.add(this.camera);
-
+		this.camera.position.set(0, this.cameraHeight, 0);
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
-		this.playerGroup.add(this.listener);
+		this.camera.add(this.listener);
+		this.scene.add(this.camera);
+		window.camera = this.camera;
 
 		//THREE WebGL renderer
 		this.renderer = new THREE.WebGLRenderer({
@@ -66,17 +75,11 @@ class Scene {
 		});
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-		this.renderer.setClearColor(new THREE.Color(clearColor));
+		this.renderer.setClearColor(new THREE.Color('lightblue'));
 		this.renderer.setSize(this.width, this.height);
 
-		// Collision Detection Setup!
 		this.setupCollisionDetection();
-
-		// add controls:
-		this.controls = new THREE.PlayerControls(this.camera, this.playerGroup, document, this.obstacles);
-		// TODO adjust speed for lower framerates:
-		this.controls.moveSpeed = 0.4;
-		this.controls.turnSpeed = 0.05;
+		this.setupControls();
 
 		// array to store interactable hyperlinked meshes
 		this.hyperlinkedObjects = [];
@@ -109,8 +112,8 @@ class Scene {
 	}
 
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Lighting 💡
 
 	addLights() {
@@ -138,8 +141,8 @@ class Scene {
 		dirLight.shadow.camera.far = 3500;
 		dirLight.shadow.bias = - 0.0001;
 
-		let dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10);
-		this.scene.add(dirLightHeper);
+		// let dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10);
+		// this.scene.add(dirLightHeper);
 
 		// secondary directional light without shadows:
 		let dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -149,8 +152,8 @@ class Scene {
 		this.scene.add(dirLight2);
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Model 🏗
 
 	loadBackground() {
@@ -276,7 +279,7 @@ class Scene {
 		let scaleFactor = 4;
 
 		this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false);
-		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true);
+		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true, true);
 		this.loadModel('models/itp/glass-fixturing.glb', this.glassFixturingMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/glass.glb', this.glassMaterial, scaleFactor, false, false, true);
 		this.loadModel('models/itp/granite-bar.glb', this.graniteBarMaterial, scaleFactor, true, false, true);
@@ -289,8 +292,8 @@ class Scene {
 		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true);
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Clients 👫
 
 	addSelf() {
@@ -305,6 +308,8 @@ class Scene {
 			new THREE.BoxGeometry(1, 1, 1),
 			videoMaterial
 		);
+
+		_head.visible = false; // for first person
 
 		// set position of head before adding to parent object
 		_body.position.set(0, 0, 0);
@@ -352,10 +357,7 @@ class Scene {
 		this.clients[_id].group = group;
 		this.clients[_id].texture = videoTexture;
 		this.clients[_id].desiredPosition = new THREE.Vector3();
-		this.clients[_id].desiredRotation = new THREE.Quaternion();
-		this.clients[_id].oldPos = group.position
-		this.clients[_id].oldRot = group.quaternion;
-		this.clients[_id].movementAlpha = 0;
+		// this.clients[_id].desiredRotation = new THREE.Quaternion();
 	}
 
 	removeClient(_id) {
@@ -364,13 +366,16 @@ class Scene {
 
 	// overloaded function can deal with new info or not
 	updateClientPositions(_clientProps) {
+		let halfClientHeight = 1;
 
 		for (let _id in _clientProps) {
 			// we'll update ourselves separately to avoid lag...
 			if (_id in this.clients) {
 				if (_id != this.mySocketID) {
-					this.clients[_id].desiredPosition = new THREE.Vector3().fromArray(_clientProps[_id].position);
-					this.clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
+					this.clients[_id].desiredPosition = new THREE.Vector3(_clientProps[_id].position[0], _clientProps[_id].position[1], _clientProps[_id].position[2]);
+					// this.clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
+					let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ');
+					this.clients[_id].group.setRotationFromEuler(euler);
 				}
 			}
 		}
@@ -379,23 +384,24 @@ class Scene {
 	// TODO make this simpler...? more performant?
 	updatePositions() {
 		let snapDistance = 0.5;
-		let snapAngle = 0.2; // radians
+		// let snapAngle = 0.2; // radians
 		for (let _id in this.clients) {
 			if (this.clients[_id].group) {
 				this.clients[_id].group.position.lerp(this.clients[_id].desiredPosition, 0.2);
-				this.clients[_id].group.quaternion.slerp(this.clients[_id].desiredRotation, 0.2);
 				if (this.clients[_id].group.position.distanceTo(this.clients[_id].desiredPosition) < snapDistance) {
 					this.clients[_id].group.position.set(this.clients[_id].desiredPosition.x, this.clients[_id].desiredPosition.y, this.clients[_id].desiredPosition.z);
 				}
-				if (this.clients[_id].group.quaternion.angleTo(this.clients[_id].desiredRotation) < snapAngle) {
-					this.clients[_id].group.quaternion.set(this.clients[_id].desiredRotation.x, this.clients[_id].desiredRotation.y, this.clients[_id].desiredRotation.z, this.clients[_id].desiredRotation.w);
-				}
+
+				// this.clients[_id].group.quaternion.slerp(this.clients[_id].desiredRotation, 0.2);
+				// if (this.clients[_id].group.quaternion.angleTo(this.clients[_id].desiredRotation) < snapAngle) {
+				// 	this.clients[_id].group.quaternion.set(this.clients[_id].desiredRotation.x, this.clients[_id].desiredRotation.y, this.clients[_id].desiredRotation.z, this.clients[_id].desiredRotation.w);
+				// }
 			}
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Collision Detection 🤾‍♀️
 
 	/*
@@ -409,19 +415,6 @@ class Scene {
 	*
 	*/
 	setupCollisionDetection() {
-		var numCollisionDetectionPointsPerSide = 4;
-		var numTotalCollisionDetectionPoints = numCollisionDetectionPointsPerSide * 4;
-
-		// get the headMesh vertices
-		var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
-
-		// these are the four vertices of each side:
-		// figured out which ones were which with pen and paper...
-		// var forwardVertices = [headMeshVertices[1], headMeshVertices[3], headMeshVertices[4], headMeshVertices[6]];
-		// var backwardVertices = [headMeshVertices[0], headMeshVertices[2], headMeshVertices[5], headMeshVertices[7]];
-		// var rightVertices = [headMeshVertices[0], headMeshVertices[1], headMeshVertices[2], headMeshVertices[3]];
-		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
-
 		this.collidableMeshList = [];
 
 		this.obstacles = {
@@ -431,10 +424,23 @@ class Scene {
 			left: false
 		}
 
-		this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numCollisionDetectionPointsPerSide);
-		this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numCollisionDetectionPointsPerSide);
-		this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numCollisionDetectionPointsPerSide);
-		this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numCollisionDetectionPointsPerSide);
+		// var numCollisionDetectionPointsPerSide = 3;
+		// var numTotalCollisionDetectionPoints = numCollisionDetectionPointsPerSide * 4;
+
+		// get the headMesh vertices
+		// var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
+
+		// these are the four vertices of each side:
+		// figured out which ones were which with pen and paper...
+		// var forwardVertices = [headMeshVertices[1], headMeshVertices[3], headMeshVertices[4], headMeshVertices[6]];
+		// var backwardVertices = [headMeshVertices[0], headMeshVertices[2], headMeshVertices[5], headMeshVertices[7]];
+		// var rightVertices = [headMeshVertices[0], headMeshVertices[1], headMeshVertices[2], headMeshVertices[3]];
+		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
+
+		// this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numCollisionDetectionPointsPerSide);
+		// this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numCollisionDetectionPointsPerSide);
+		// this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numCollisionDetectionPointsPerSide);
+		// this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numCollisionDetectionPointsPerSide);
 
 		// for use debugging collision detection
 		if (this.DEBUG_MODE) {
@@ -493,20 +499,32 @@ class Scene {
 			left: false
 		}
 
-		// for debugging:
-		var arrowHelperOffset = 0;
 
-
-
+		// TODO only use XZ components of forward DIR in case we are looking up or down while travelling forward
 		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)... 
 		// Weird, but this function respects those directions for the sake of not having to make conversions
 		// https://github.com/mrdoob/three.js/issues/1606
 		var matrix = new THREE.Matrix4();
-		matrix.extractRotation(this.playerGroup.matrix);
+		matrix.extractRotation(this.camera.matrix);
 		var backwardDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
 		var forwardDir = backwardDir.clone().negate();
 		var rightDir = forwardDir.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
 		var leftDir = rightDir.clone().negate();
+
+		// let forwardDir = new THREE.Vector3();
+		// this.controls.getDirection(forwardDir);
+		// var backwardDir = forwardDir.clone().negate();
+		// var rightDir = forwardDir.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
+		// var leftDir = rightDir.clone().negate();
+
+		// TODO more points around avatar so we can't be inside of walls
+		let pt = this.controls.getObject().position.clone();
+
+		this.forwardCollisionDetectionPoints = [pt];
+		this.backwardCollisionDetectionPoints = [pt];
+		this.rightCollisionDetectionPoints = [pt];
+		this.leftCollisionDetectionPoints = [pt];
+
 
 
 		// check forward
@@ -515,32 +533,30 @@ class Scene {
 		this.obstacles.left = this.checkCollisions(this.leftCollisionDetectionPoints, leftDir, 8);
 		this.obstacles.right = this.checkCollisions(this.rightCollisionDetectionPoints, rightDir, 12);
 
-
-
-		this.controls.obstacles = this.obstacles;
+		// this.controls.obstacles = this.obstacles;
 	}
 
 	checkCollisions(pts, dir, arrowHelperOffset) {
 		// distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
 		var detectCollisionDistance = 1;
 
-		for (var vertexIndex = 0; vertexIndex < pts.length; vertexIndex++) {
+		for (var i = 0; i < pts.length; i++) {
 
-			var vertex = pts[vertexIndex].clone();
-			vertex.applyMatrix4(this.playerGroup.matrix);
-			vertex.y += 1.0; // bias upward to head area of player
+			var pt = pts[i].clone();
+			// pt.applyMatrix4(this.playerGroup.matrix);
+			// pt.y += 1.0; // bias upward to head area of player
 
-			this.raycaster.set(vertex, dir);
+			this.raycaster.set(pt, dir);
 			var collisions = this.raycaster.intersectObjects(this.collidableMeshList);
 
 			// arrow helpers for debugging
 			if (this.DEBUG_MODE) {
-				var a = this.collisionDetectionDebugArrows[vertexIndex + arrowHelperOffset];
+				var a = this.collisionDetectionDebugArrows[i + arrowHelperOffset];
 				a.setLength(detectCollisionDistance);
 				a.setColor(new THREE.Color("rgb(0, 0, 255)"));
-				a.position.x = vertex.x;
-				a.position.y = vertex.y;
-				a.position.z = vertex.z;
+				a.position.x = pt.x;
+				a.position.y = pt.y;
+				a.position.z = pt.z;
 				a.setDirection(dir);
 			}
 
@@ -550,8 +566,8 @@ class Scene {
 		}
 		return false;
 	}
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Interactable Hyperlinks for Spring Show 💎
 
 	/*
@@ -631,8 +647,6 @@ class Scene {
 	generateProjectModal(project) {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
-
-
 
 		if (!document.getElementById(project.project_id + "_modal")) {
 			var parser = new DOMParser;
@@ -812,53 +826,217 @@ class Scene {
 
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
-	// For socket update
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Player Controls:
+
+	// Set up pointer lock controls and corresponding event listeners
+	setupControls() {
+		let jumpSpeed = 75;
+		this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);
+
+		this.moveForward = false;
+		this.moveBackward = false;
+		this.moveLeft = false;
+		this.moveRight = false;
+		this.canJump = false;
+
+		this.prevTime = performance.now();
+		this.velocity = new THREE.Vector3();
+		this.direction = new THREE.Vector3();
+		this.vertex = new THREE.Vector3();
+		this.color = new THREE.Color();
+
+		var blocker = document.getElementById('blocker');
+		var instructions = document.getElementById('instructions');
+
+		blocker.addEventListener('click', () => {
+
+			this.controls.lock();
+
+		}, false);
+
+		this.controls.addEventListener('lock', function () {
+
+			instructions.style.display = 'none';
+			blocker.style.display = 'none';
+
+		});
+
+		this.controls.addEventListener('unlock', function () {
+
+			blocker.style.display = 'block';
+			instructions.style.display = '';
+
+		});
+
+		document.addEventListener('keydown', (event) => {
+
+			switch (event.keyCode) {
+
+				case 38: // up
+				case 87: // w
+					this.moveForward = true;
+					break;
+
+				case 37: // left
+				case 65: // a
+					this.moveLeft = true;
+					break;
+
+				case 40: // down
+				case 83: // s
+					this.moveBackward = true;
+					break;
+
+				case 39: // right
+				case 68: // d
+					this.moveRight = true;
+					break;
+
+				case 32: // space
+					if (this.canJump === true) this.velocity.y = jumpSpeed;
+					this.canJump = false;
+					break;
+
+			}
+
+		}, false);
+
+		document.addEventListener('keyup', (event) => {
+
+			switch (event.keyCode) {
+
+				case 38: // up
+				case 87: // w
+					this.moveForward = false;
+					break;
+
+				case 37: // left
+				case 65: // a
+					this.moveLeft = false;
+					break;
+
+				case 40: // down
+				case 83: // s
+					this.moveBackward = false;
+					break;
+
+				case 39: // right
+				case 68: // d
+					this.moveRight = false;
+					break;
+
+			}
+
+		}, false);
+
+
+		// this.raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 1);
+		window.controls = this.controls; // for debugging
+
+		this.velocity.y = jumpSpeed;
+	}
+
+	// update for these controls, which are unfortunately not included in the controls directly...
+	// see: https://github.com/mrdoob/three.js/issues/5566
+	updateControls() {
+		let speed = 200;
+		if (this.controls.isLocked === true) {
+			var origin = this.controls.getObject().position.clone();
+			origin.y -= this.cameraHeight; // origin is at floor level
+
+			this.raycaster.set(origin, new THREE.Vector3(0, - 1, 0));
+
+			var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList);
+			var onObject = (intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1);
+
+
+			var time = performance.now();
+			var delta = (time - this.prevTime) / 1000;
+
+			this.velocity.x -= this.velocity.x * 10.0 * delta;
+			this.velocity.z -= this.velocity.z * 10.0 * delta;
+
+			this.velocity.y -= 9.8 * 50.0 * delta; // 100.0 = mass
+
+			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+			this.direction.normalize(); // this ensures consistent this.movements in all this.directions
+
+
+			if (this.moveForward || this.moveBackward) {
+				this.velocity.z -= this.direction.z * speed * delta;
+			}
+
+			if (this.moveLeft || this.moveRight) {
+				this.velocity.x -= this.direction.x * speed * delta;
+			}
+
+			if (onObject === true) {
+				this.velocity.y = Math.max(0, this.velocity.y);
+				this.canJump = true;
+			}
+
+
+			if ((this.velocity.x > 0 && !this.obstacles.left) || (this.velocity.x < 0 && !this.obstacles.right)) {
+				this.controls.moveRight(- this.velocity.x * delta);
+			}
+			if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
+				this.controls.moveForward(- this.velocity.z * delta);
+			}
+
+			this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
+
+
+			if (this.controls.getObject().position.y < this.cameraHeight) {
+				this.velocity.y = 0;
+				this.controls.getObject().position.y = this.cameraHeight;
+				this.canJump = true;
+			}
+
+			this.prevTime = time;
+		}
+	}
+
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Position Update for Socket
 
 	getPlayerPosition() {
 		// TODO: use quaternion or are euler angles fine here?
 		return [
-			[this.playerGroup.position.x, this.playerGroup.position.y, this.playerGroup.position.z],
-			[this.playerGroup.quaternion._x, this.playerGroup.quaternion._y, this.playerGroup.quaternion._z, this.playerGroup.quaternion._w]];
+			[this.camera.position.x, this.camera.position.y - (this.cameraHeight-0.5), this.camera.position.z],
+			[this.camera.rotation.x, this.camera.rotation.y, this.camera.rotation.z]];
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Loop ⭕️
 
 	update() {
 		requestAnimationFrame(() => this.update());
 		this.stats.update();
 
-		// send movement stats to the socket server if any of the keys have been pressed
-		let sendStats = false;
-		for (let i in this.keyState) {
-			if (this.keyState[i]) {
-				sendStats = true;
-				break;
-			}
-		}
-		if (sendStats) { this.movementCallback(); }
-
-
-		// update volumes every 10 frames
+		// update volumes every X frames
 		this.frameCount++;
-		if (this.frameCount % 10 == 0) {
+		if (this.frameCount % 20 == 0) {
 			this.updateClientVolumes();
+			this.movementCallback();
 		}
 
 		this.updatePositions();
 		this.detectCollisions();
-		this.controls.update();
-		this.checkKeys();
-		
+		this.updateControls();
 
+		this.checkKeys();
 		this.render();
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+
+
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Rendering 🎥
 
 	render() {
@@ -891,13 +1069,28 @@ class Scene {
 		}
 	}
 
+	// this function redraws on a 2D <canvas> from a <video> and indicates to three.js
+	// that the _videoTex should be updated
+	redrawVideoCanvas(_videoEl, _canvasEl, _videoTex) {
+		let _canvasDrawingContext = _canvasEl.getContext('2d');
+
+		// check that we have enough data on the video element to redraw the canvas
+		if (_videoEl.readyState === _videoEl.HAVE_ENOUGH_DATA) {
+			// if so, redraw the canvas from the video element
+			_canvasDrawingContext.drawImage(_videoEl, 0, 0, _canvasEl.width, _canvasEl.height);
+			// and indicate to three.js that the texture needs to be redrawn from the canvas
+			_videoTex.needsUpdate = true;
+		}
+	}
+
+
 	updateClientVolumes() {
 		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
 		let numerator = 50; // TODO rename this
 
 		for (let _id in this.clients) {
 			if (this.clients[_id].audioElement) {
-				let distSquared = this.playerGroup.position.distanceToSquared(this.clients[_id].group.position);
+				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
 				if (distSquared > distanceThresholdSquared) {
 					// TODO pause consumer here, rather than setting volume to zero
 					this.clients[_id].audioElement.volume = 0;
@@ -913,27 +1106,15 @@ class Scene {
 		}
 	}
 
-	// this function redraws on a 2D <canvas> from a <video> and indicates to three.js
-	// that the _videoTex should be updated
-	redrawVideoCanvas(_videoEl, _canvasEl, _videoTex) {
-		let _canvasDrawingContext = _canvasEl.getContext('2d');
-
-		// check that we have enough data on the video element to redraw the canvas
-		if (_videoEl.readyState === _videoEl.HAVE_ENOUGH_DATA) {
-			// if so, redraw the canvas from the video element
-			_canvasDrawingContext.drawImage(_videoEl, 0, 0, _canvasEl.width, _canvasEl.height);
-			// and indicate to three.js that the texture needs to be redrawn from the canvas
-			_videoTex.needsUpdate = true;
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Event Handlers 🍽
 
 	onWindowResize(e) {
-		this.width = window.innerWidth;
-		this.height = Math.floor(window.innerHeight - (window.innerHeight * 0.3));
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.8);
+		// this.width = window.innerWidth;
+		// this.height = Math.floor(window.innerHeight - (window.innerHeight * 0.3));
 		this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(this.width, this.height);
@@ -965,8 +1146,8 @@ class Scene {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Utilities 🚂
 
 	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
@@ -1034,14 +1215,3 @@ class Scene {
 }
 
 export default Scene;
-
-
-// pseudo random number generator from https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript/47593316#47593316
-function mulberry32(a) {
-	return function () {
-		var t = a += 0x6D2B79F5;
-		t = Math.imul(t ^ t >>> 15, t | 1);
-		t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-		return ((t ^ t >>> 14) >>> 0) / 4294967296;
-	}
-}

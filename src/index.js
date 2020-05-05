@@ -235,9 +235,6 @@ function createScene() {
 
 	glScene = new Scene(
 		document.getElementById('gl_context'),
-		(window.innerWidth * 0.9),
-		(window.innerHeight * 0.8),
-		'lightblue',
 		onPlayerMove,
 		clients,
 		mySocketID);

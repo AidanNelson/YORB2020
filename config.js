@@ -1,7 +1,7 @@
 module.exports = {
   // http server ip, port, and peer timeout constant
   //
-  httpIp: '192.168.1.76',
+  httpIp: '192.168.1.145',
   httpPort: 3000,
   httpPeerStale: 15000,
 
@@ -80,7 +80,7 @@ module.exports = {
     webRtcTransport: {
       listenIps: [
        { ip: '127.0.0.1', announcedIp: null },
-       { ip: '192.168.1.76', announcedIp: null },
+       { ip: '192.168.1.145', announcedIp: null },
       //  { ip: '10.10.23.101', announcedIp: null },
       ],
       initialAvailableOutgoingBitrate: 800000,

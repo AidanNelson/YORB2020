@@ -444,6 +444,12 @@ async function runSocketServer() {
 
   io = socketIO(httpsServer);
 
+  // update all sockets at regular intervals
+  setInterval(() => {
+    io.sockets.emit('userPositions', clients);
+  }, 200);
+
+
   io.on('connection', (socket) => {
 
     console.log('User ' + socket.id + ' connected, there are ' + io.engine.clientsCount + ' clients connected');
@@ -451,7 +457,8 @@ async function runSocketServer() {
     //Add a new client indexed by his id
     clients[socket.id] = {
       position: [0, 0.5, 0],
-      rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
+      // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
+      rotation: [0,0,0]
     }
 
     socket.emit('introduction', socket.id, Object.keys(clients));
@@ -471,7 +478,7 @@ async function runSocketServer() {
         clients[socket.id].position = data[0];
         clients[socket.id].rotation = data[1];
       }
-      io.sockets.emit('userPositions', clients);
+      // io.sockets.emit('userPositions', clients);
     });
 
     // Handle the disconnection
