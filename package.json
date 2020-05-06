@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify src/index.js -o ./public/js/bundle.js",
     "start": "concurrently \"nodemon server.js\" \"watchify src/index.js -o public/js/bundle.js -v\"",
-    "production": "forever start server.js && forever start httpserver.js"
+    "production": "export NODE_ENV=production && browserify src/index.js -o ./public/js/bundle.js && forever start server.js && forever start httpserver.js"
   },
   "author": "",
   "license": "ISC",

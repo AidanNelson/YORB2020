@@ -16,9 +16,18 @@ const mediasoup = require('mediasoup');
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
-// use dotenv for local environment variables
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+
+require('dotenv').config();
+// if we are in production environment, copy over config from .env file:
+if (process.env.NODE_ENV == 'production') {
+  config.sslCrt = provess.env.PRODUCTION_CERT;
+  config.sslKey = process.env.PRODUCTION_KEY;
+  config.httpIp = process.env.PRODUCTION_IP;
+
+  config.mediasoup.webRtcTransport.listenIps = [
+    { ip: '127.0.0.1', announcedIp: null },
+    { ip: process.env.PRODUCTION_IP, announcedIp: null }
+  ];
 }
 
 const expressApp = express();
@@ -360,6 +369,8 @@ async function main() {
   // start https server, falling back to http if https fails
   console.log('starting express');
   try {
+
+
     const tls = {
       cert: fs.readFileSync(config.sslCrt),
       key: fs.readFileSync(config.sslKey),
@@ -458,7 +469,7 @@ async function runSocketServer() {
     clients[socket.id] = {
       position: [0, 0.5, 0],
       // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
-      rotation: [0,0,0]
+      rotation: [0, 0, 0]
     }
 
     socket.emit('introduction', socket.id, Object.keys(clients));

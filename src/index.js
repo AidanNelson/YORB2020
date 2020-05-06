@@ -67,12 +67,16 @@ window.lastPollSyncData = {};
 
 // limit video size / framerate for bandwidth or use bandwidth limitation through encoding?
 // TODO deal with overconstrained errors?
+// let localMediaConstraints = {
+// 	audio: {
+// 		echoCancellation: true,
+// 		noiseSuppression: true,
+// 		autoGainControl: true
+// 	},
+// 	video: true
+// };
 let localMediaConstraints = {
-	audio: {
-		echoCancellation: true,
-		noiseSuppression: true,
-		autoGainControl: true
-	},
+	audio: true,
 	video: true
 };
 
@@ -97,7 +101,7 @@ async function init() {
 	var overlay = document.getElementById('overlay');
 	overlay.remove();
 
-	setupButtons();
+	
 
 	// create mediasoup Device
 	try {
@@ -117,6 +121,8 @@ async function init() {
 	await initSocketConnection();
 
 	await joinRoom();
+
+	setupButtons();
 
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads

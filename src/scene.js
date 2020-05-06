@@ -612,12 +612,12 @@ class Scene {
 		var material = new THREE.MeshBasicMaterial({ map: tex, color: 0xffff00 });
 		var mesh = new THREE.Mesh(geometry, material);
 
-		let textMesh = this.createText(_project.project_name, 1, 0.5, 4, 0.1, 0.1, false);
+		// let textMesh = this.createText(_project.project_name, 1, 0.5, 4, 0.1, 0.1, false);
 		// textMesh.position.x += x;
 		// textMesh.position.y += y
 		// textMesh.position.z += z;
 		// this.scene.add(textMesh);
-		mesh.add(textMesh)
+		// mesh.add(textMesh)
 		mesh.position.set(x, y, z);
 
 
@@ -705,7 +705,7 @@ class Scene {
 		let thresholdDistanceSquared = 2;
 		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
 			let link = this.hyperlinkedObjects[i];
-			let distSquared = this.playerGroup.position.distanceToSquared(link.position);
+			let distSquared = this.camera.position.distanceToSquared(link.position);
 			if (distSquared < thresholdDistanceSquared) {
 				this.generateProjectModal(link.userData.project);
 			}
@@ -1141,7 +1141,7 @@ class Scene {
 	}
 
 	checkKeys() {
-		if (this.keyState[32]) {
+		if (this.keyState[76]) {
 			this.detectHyperlinks();
 		}
 	}
