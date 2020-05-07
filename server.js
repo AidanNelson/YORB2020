@@ -20,7 +20,7 @@ const fs = require('fs');
 require('dotenv').config();
 // if we are in production environment, copy over config from .env file:
 if (process.env.NODE_ENV == 'production') {
-  config.sslCrt = provess.env.PRODUCTION_CERT;
+  config.sslCrt = process.env.PRODUCTION_CERT;
   config.sslKey = process.env.PRODUCTION_KEY;
   config.httpIp = process.env.PRODUCTION_IP;
 
