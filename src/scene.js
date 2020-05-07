@@ -5,17 +5,15 @@
 *
 */
 
+
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 const THREE = require('./libs/three.min.js');
+const Stats = require('./libs/stats.min.js');
 
 // slightly awkward syntax, but these statements add these functions to THREE
 require('./libs/GLTFLoader.js')(THREE);
-// require('./libs/playerControls.js')(THREE);
-// require('./libs/fpscontrols.js')(THREE);
 require('./libs/pointerLockControls.js')(THREE);
-
-const Stats = require('./libs/stats.min.js');
 
 class Scene {
 	constructor(
@@ -24,7 +22,9 @@ class Scene {
 		clientsArr,
 		mySocketID) {
 
-		this.clock = new THREE.Clock();
+		window.scene = this;
+
+		this.paused = false;
 
 
 		// keep track of 
@@ -47,11 +47,10 @@ class Scene {
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
 
-
-		//Add Player
+		// Add Player
 		// this.addSelf();
 
-		this.loadFont();
+		// this.loadFont();
 
 		// Raycaster
 		this.raycaster = new THREE.Raycaster();
@@ -60,7 +59,7 @@ class Scene {
 		this.addLights();
 
 		//THREE Camera
-		this.cameraHeight = 1.5;
+		this.cameraHeight = 1.75;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
 		this.camera.position.set(0, this.cameraHeight, 0);
 		// create an AudioListener and add it to the camera
@@ -106,8 +105,6 @@ class Scene {
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
 		this.scene.add(this.helperGrid);
 
-		this.scene.add(new THREE.AxesHelper(10));
-
 		this.update();
 	}
 
@@ -140,9 +137,6 @@ class Scene {
 
 		dirLight.shadow.camera.far = 3500;
 		dirLight.shadow.bias = - 0.0001;
-
-		// let dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10);
-		// this.scene.add(dirLightHeper);
 
 		// secondary directional light without shadows:
 		let dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -276,7 +270,7 @@ class Scene {
 
 	loadFloorModel() {
 		this.GLTFLoader = new THREE.GLTFLoader();
-		let scaleFactor = 4;
+		let scaleFactor = 1.25;
 
 		this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true, true);
@@ -329,7 +323,7 @@ class Scene {
 	// add a client meshes, a video element and  canvas for three.js video texture
 	addClient(_id) {
 		let _body = new THREE.Mesh(
-			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.BoxGeometry(0.5, 1, 0.5),
 			new THREE.MeshNormalMaterial()
 		);
 
@@ -612,15 +606,7 @@ class Scene {
 		var material = new THREE.MeshBasicMaterial({ map: tex, color: 0xffff00 });
 		var mesh = new THREE.Mesh(geometry, material);
 
-		// let textMesh = this.createText(_project.project_name, 1, 0.5, 4, 0.1, 0.1, false);
-		// textMesh.position.x += x;
-		// textMesh.position.y += y
-		// textMesh.position.z += z;
-		// this.scene.add(textMesh);
-		// mesh.add(textMesh)
 		mesh.position.set(x, y, z);
-
-
 
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
 		mesh.userData = {
@@ -721,8 +707,9 @@ class Scene {
 		});
 	}
 
+	// this function returns 3D text object
 	// from https://threejs.org/examples/?q=text#webgl_geometry_text
-	createText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled) {
+	createText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror) {
 
 		let textGeo = new THREE.TextGeometry(text, {
 
@@ -804,25 +791,21 @@ class Scene {
 		textMesh.rotation.x = 0;
 		textMesh.rotation.y = Math.PI * 2;
 
-		// let group = new THREE.Group();
-		// group.add(textMesh);
+		if (mirror) {
+
+			let textMesh2 = new THREE.Mesh(textGeo, materials);
+
+			textMesh2.position.x = centerOffset;
+			textMesh2.position.y = - hover;
+			textMesh2.position.z = height;
+
+			textMesh2.rotation.x = Math.PI;
+			textMesh2.rotation.y = Math.PI * 2;
+
+			return textMesh2;
+		}
 
 		return textMesh;
-
-		// if (mirror) {
-
-		// 	textMesh2 = new THREE.Mesh(textGeo, materials);
-
-		// 	textMesh2.position.x = centerOffset;
-		// 	textMesh2.position.y = - hover;
-		// 	textMesh2.position.z = height;
-
-		// 	textMesh2.rotation.x = Math.PI;
-		// 	textMesh2.rotation.y = Math.PI * 2;
-
-		// 	group.add(textMesh2);
-
-		// }
 
 	}
 
@@ -931,8 +914,6 @@ class Scene {
 
 		}, false);
 
-
-		// this.raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 1);
 		window.controls = this.controls; // for debugging
 
 		this.velocity.y = jumpSpeed;
@@ -1006,7 +987,7 @@ class Scene {
 	getPlayerPosition() {
 		// TODO: use quaternion or are euler angles fine here?
 		return [
-			[this.camera.position.x, this.camera.position.y - (this.cameraHeight-0.5), this.camera.position.z],
+			[this.camera.position.x, this.camera.position.y - (this.cameraHeight - 0.5), this.camera.position.z],
 			[this.camera.rotation.x, this.camera.rotation.y, this.camera.rotation.z]];
 	}
 
@@ -1016,21 +997,27 @@ class Scene {
 
 	update() {
 		requestAnimationFrame(() => this.update());
-		this.stats.update();
 
-		// update volumes every X frames
-		this.frameCount++;
-		if (this.frameCount % 20 == 0) {
-			this.updateClientVolumes();
-			this.movementCallback();
+		if (!this.paused) {
+			this.stats.update();
+
+			// update volumes every X frames
+			this.frameCount++;
+			if (this.frameCount % 20 == 0) {
+				this.updateClientVolumes();
+				this.movementCallback();
+			}
+			if (this.frameCount % 50 == 0) {
+				this.selectivelyPauseAndResumeConsumers();
+			}
+
+			this.updatePositions();
+			this.detectCollisions();
+			this.updateControls();
+
+			this.checkKeys();
+			this.render();
 		}
-
-		this.updatePositions();
-		this.detectCollisions();
-		this.updateControls();
-
-		this.checkKeys();
-		this.render();
 	}
 
 
@@ -1083,73 +1070,6 @@ class Scene {
 		}
 	}
 
-
-	updateClientVolumes() {
-		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
-		let numerator = 50; // TODO rename this
-
-		for (let _id in this.clients) {
-			if (this.clients[_id].audioElement) {
-				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
-				if (distSquared > distanceThresholdSquared) {
-					// TODO pause consumer here, rather than setting volume to zero
-					this.clients[_id].audioElement.volume = 0;
-					pauseAllConsumersForPeer(_id);
-				} else {
-					resumeAllConsumersForPeer(_id);
-					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
-
-					let volume = Math.min(1, numerator / distSquared);
-					this.clients[_id].audioElement.volume = volume;
-				}
-			}
-		}
-	}
-
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	// Event Handlers 🍽
-
-	onWindowResize(e) {
-		this.width = (window.innerWidth * 0.9);
-		this.height = (window.innerHeight * 0.8);
-		// this.width = window.innerWidth;
-		// this.height = Math.floor(window.innerHeight - (window.innerHeight * 0.3));
-		this.camera.aspect = this.width / this.height;
-		this.camera.updateProjectionMatrix();
-		this.renderer.setSize(this.width, this.height);
-	}
-
-	onLeaveCanvas(e) {
-		this.controls.enabled = false;
-	}
-	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
-	// controls to be stuck on
-	onEnterCanvas(e) {
-		this.controls.enabled = true;
-	}
-
-	// keystate functions from playercontrols
-	onKeyDown(event) {
-		event = event || window.event;
-		this.keyState[event.keyCode || event.which] = true;
-	}
-
-	onKeyUp(event) {
-		event = event || window.event;
-		this.keyState[event.keyCode || event.which] = false;
-	}
-
-	checkKeys() {
-		if (this.keyState[76]) {
-			this.detectHyperlinks();
-		}
-	}
-
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	// Utilities 🚂
-
 	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
 	makeVideoTextureAndMaterial(_id) {
 		// create a canvas and add it to the body
@@ -1179,8 +1099,49 @@ class Scene {
 		return [videoTexture, movieMaterial];
 	}
 
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Audio 📣
 
-	// TODO check this
+
+
+	updateClientVolumes() {
+		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
+		let numerator = 50; // TODO rename this
+
+		for (let _id in this.clients) {
+			if (this.clients[_id].audioElement) {
+				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
+				if (distSquared > distanceThresholdSquared) {
+					// TODO pause consumer here, rather than setting volume to zero
+					this.clients[_id].audioElement.volume = 0;
+				} else {
+					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
+
+					let volume = Math.min(1, numerator / distSquared);
+					this.clients[_id].audioElement.volume = volume;
+				}
+			}
+		}
+	}
+
+	selectivelyPauseAndResumeConsumers() {
+		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
+
+		for (let _id in this.clients) {
+			if (this.clients[_id].audioElement) {
+				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
+				if (distSquared > distanceThresholdSquared) {
+					pauseAllConsumersForPeer(_id);
+				} else {
+					resumeAllConsumersForPeer(_id);
+				}
+			}
+		}
+	}
+
+	// At the moment, this just adds a .audioElement parameter to a client stored under _id 
+	// which will be updated above
 	createOrUpdatePositionalAudio(_id) {
 		let audioElement = document.getElementById(_id + "_audio");
 		if (audioElement == null) {
@@ -1212,6 +1173,46 @@ class Scene {
 		// 	console.log(audioSource);
 		// }
 	}
+
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Event Handlers 🍽
+
+	onWindowResize(e) {
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.8);
+		this.camera.aspect = this.width / this.height;
+		this.camera.updateProjectionMatrix();
+		this.renderer.setSize(this.width, this.height);
+	}
+
+	onLeaveCanvas(e) {
+		this.controls.enabled = false;
+	}
+	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
+	// controls to be stuck on
+	onEnterCanvas(e) {
+		this.controls.enabled = true;
+	}
+
+	// keystate functions from playercontrols
+	onKeyDown(event) {
+		event = event || window.event;
+		this.keyState[event.keyCode || event.which] = true;
+	}
+
+	onKeyUp(event) {
+		event = event || window.event;
+		this.keyState[event.keyCode || event.which] = false;
+	}
+
+	checkKeys() {
+		if (this.keyState[76]) {
+			this.detectHyperlinks();
+		}
+	}
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 }
 
 export default Scene;

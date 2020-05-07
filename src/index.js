@@ -475,14 +475,9 @@ export async function startScreenshare() {
 		} catch (e) {
 			console.error(e);
 		}
-		// $('#local-screen-pause-ctrl').style.display = 'none';
-		// $('#local-screen-audio-pause-ctrl').style.display = 'none';
-		// $('#share-screen').style.display = 'initial';
 	}
 
-	// $('#local-screen-pause-ctrl').style.display = 'block';
 	if (screenAudioProducer) {
-		// $('#local-screen-audio-pause-ctrl').style.display = 'block';
 	}
 }
 
@@ -496,7 +491,6 @@ export async function startCamera() {
 		console.log(localCam.getAudioTracks()[0].getConstraints());
 		if (localCam) {
 			// createOrUpdateClientVideo('local', new MediaStream([localCam.getVideoTracks()[0]]));
-
 		}
 	} catch (e) {
 		console.error('start camera error', e);
