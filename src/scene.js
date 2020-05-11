@@ -17,55 +17,51 @@ require('./libs/pointerLockControls.js')(THREE);
 
 class Scene {
 	constructor(
-		domElement = document.getElementById('gl_context'),
 		_movementCallback,
-		clientsArr,
+		_clients,
 		mySocketID) {
 
+		// add this to window to allow javascript console debugging
 		window.scene = this;
 
-		this.paused = false;
+		// this pauses or restarts rendering and updating
+		this.paused = true;
+		let domElement = document.getElementById('scene-container');
 
-
-		// keep track of 
 		this.frameCount = 0;
-		this.clients = clientsArr;
+		this.clients = _clients;
 		this.mySocketID = mySocketID;
-
+		this.hyperlinkedObjects = []; // array to store interactable hyperlinked meshes
 		this.DEBUG_MODE = false;
 		this.movementCallback = _movementCallback;
-
-		//THREE scene
-		this.scene = new THREE.Scene();
 		this.keyState = {};
-
-		//Utility
 		this.width = (window.innerWidth * 0.9);
-		this.height = (window.innerHeight * 0.8);
+		this.height = (window.innerHeight * 0.7);
+		// this.width = window.innerWidth;
+		// this.height = window.innerHeight;
+		this.scene = new THREE.Scene();
+		this.raycaster = new THREE.Raycaster();
 
-
+		// STATS for debugging:
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
 
-		// Add Player
-		// this.addSelf();
 
-		// this.loadFont();
-
-		// Raycaster
-		this.raycaster = new THREE.Raycaster();
-
-		// add lights
-		this.addLights();
 
 		//THREE Camera
 		this.cameraHeight = 1.75;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0, this.cameraHeight, 0);
+
+		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
+		//https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range#1527820
+		let randX = Math.random() * (28 - 3) + 3;
+		let randZ = Math.random() * (1.5 - 2.5) - 2.5;
+		this.camera.position.set(randX, this.cameraHeight, randZ);
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
 		this.scene.add(this.camera);
+		this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
 		window.camera = this.camera;
 
 		//THREE WebGL renderer
@@ -77,17 +73,14 @@ class Scene {
 		this.renderer.setClearColor(new THREE.Color('lightblue'));
 		this.renderer.setSize(this.width, this.height);
 
+
+		// this.addSelf();
+		// this.loadFont();
+		this.addLights();
 		this.setupCollisionDetection();
 		this.setupControls();
-
-		// array to store interactable hyperlinked meshes
-		this.hyperlinkedObjects = [];
-
-		// environment map from three.js examples
-		this.loadBackground();
-
-		// load floor model
 		this.createMaterials();
+		this.loadBackground();
 		this.loadFloorModel();
 
 		//Push the canvas to the DOM
@@ -106,6 +99,7 @@ class Scene {
 		this.scene.add(this.helperGrid);
 
 		this.update();
+		this.render();
 	}
 
 
@@ -815,7 +809,7 @@ class Scene {
 
 	// Set up pointer lock controls and corresponding event listeners
 	setupControls() {
-		let jumpSpeed = 75;
+		let jumpSpeed = 15;
 		this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);
 
 		this.moveForward = false;
@@ -830,27 +824,18 @@ class Scene {
 		this.vertex = new THREE.Vector3();
 		this.color = new THREE.Color();
 
-		var blocker = document.getElementById('blocker');
-		var instructions = document.getElementById('instructions');
+		var overlay = document.getElementById('overlay');
 
-		blocker.addEventListener('click', () => {
-
-			this.controls.lock();
-
-		}, false);
-
-		this.controls.addEventListener('lock', function () {
-
-			instructions.style.display = 'none';
-			blocker.style.display = 'none';
-
+		this.controls.addEventListener('lock', () => {
+			this.paused = false;
+			overlay.style.visibility = 'hidden';
 		});
 
-		this.controls.addEventListener('unlock', function () {
+		this.controls.addEventListener('unlock', () => {
 
-			blocker.style.display = 'block';
-			instructions.style.display = '';
-
+			overlay.style.visibility = 'visible';
+			this.paused = true;
+			this.clearControls();
 		});
 
 		document.addEventListener('keydown', (event) => {
@@ -914,20 +899,30 @@ class Scene {
 
 		}, false);
 
-		window.controls = this.controls; // for debugging
+		this.velocity.y = 0;
+	}
 
-		this.velocity.y = jumpSpeed;
+	// clear control state every time we reenter the game
+	clearControls() {
+		this.moveForward = false;
+		this.moveBackward = false;
+		this.moveLeft = false;
+		this.moveRight = false;
+		this.canJump = false;
+		this.velocity.x = 0;
+		this.velocity.z = 0;
+		this.velocity.y = 0;
 	}
 
 	// update for these controls, which are unfortunately not included in the controls directly...
 	// see: https://github.com/mrdoob/three.js/issues/5566
 	updateControls() {
-		let speed = 200;
+		let speed = 50;
 		if (this.controls.isLocked === true) {
 			var origin = this.controls.getObject().position.clone();
 			origin.y -= this.cameraHeight; // origin is at floor level
 
-			this.raycaster.set(origin, new THREE.Vector3(0, - 1, 0));
+			this.raycaster.set(origin, new THREE.Vector3(0, - this.cameraHeight, 0));
 
 			var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList);
 			var onObject = (intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1);
@@ -939,7 +934,7 @@ class Scene {
 			this.velocity.x -= this.velocity.x * 10.0 * delta;
 			this.velocity.z -= this.velocity.z * 10.0 * delta;
 
-			this.velocity.y -= 9.8 * 50.0 * delta; // 100.0 = mass
+			this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
 
 			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
 			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
@@ -999,25 +994,27 @@ class Scene {
 		requestAnimationFrame(() => this.update());
 
 		if (!this.paused) {
-			this.stats.update();
-
-			// update volumes every X frames
-			this.frameCount++;
-			if (this.frameCount % 20 == 0) {
-				this.updateClientVolumes();
-				this.movementCallback();
-			}
-			if (this.frameCount % 50 == 0) {
-				this.selectivelyPauseAndResumeConsumers();
-			}
-
-			this.updatePositions();
-			this.detectCollisions();
 			this.updateControls();
-
-			this.checkKeys();
-			this.render();
 		}
+		this.stats.update();
+
+		// update volumes every X frames
+		this.frameCount++;
+		if (this.frameCount % 20 == 0) {
+			this.updateClientVolumes();
+			this.movementCallback();
+		}
+		if (this.frameCount % 50 == 0) {
+			this.selectivelyPauseAndResumeConsumers();
+		}
+
+		this.updatePositions();
+		this.detectCollisions();
+		this.updateControls();
+
+		this.checkKeys();
+
+		this.render();
 	}
 
 
@@ -1179,8 +1176,10 @@ class Scene {
 	// Event Handlers 🍽
 
 	onWindowResize(e) {
+		// this.width = window.innerWidth;
+		// this.height = window.innerHeight;
 		this.width = (window.innerWidth * 0.9);
-		this.height = (window.innerHeight * 0.8);
+		this.height = (window.innerHeight * 0.7);
 		this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(this.width, this.height);
@@ -1209,6 +1208,9 @@ class Scene {
 	checkKeys() {
 		if (this.keyState[76]) {
 			this.detectHyperlinks();
+		}
+		if (this.keyState[80]) {
+			console.log(this.camera.position);
 		}
 	}
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//

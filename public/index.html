@@ -12,90 +12,84 @@
 		window.localStorage.setItem('debug', 'demo-app');
 	</script>
 	<script src="js/bundle.js"></script>
-
 	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link rel="shortcut icon" type="image/gif" href="images/favicon.png" />
+
 
 
 </head>
 
 <body>
-	<!-- https://github.com/mrdoob/three.js/blob/master/examples/webaudio_orientation.html -->
-	<div id="overlay">
-		<div>
-			<button id="startButton">Enter YORB</button>
-			<p></p>
-		</div>
-	</div>
-
-	<div id="full-width-column">
-
-		<div id="title">
-			<h1>YORB 2020</h1>
-		</div>
-
-		<div id="video-control">
-
-			<div id="camera-control">
-				<button id="send-camera">
-					Start Webcam
-				</button>
-				<button id="stop-streams">
-					Stop Webcam
-				</button>
-				<div></div>
+	<div class="full-width-column">
+		
+		<div class="main-content-container">
+			<div id="scene-container"></div>
+			<div id="overlay">
 				<div>
-					<label id="local-cam-label">Camera Active:</label>
-					<input id="local-cam-checkbox" type="checkbox" checked></input>
+					Welcome to the ITP Spring Show 2020.<br />
+					Enter any of the project pylons to learn more about a project or enter it's zoom room!
 				</div>
 				<div>
-					<label id="local-mic-label">Mic Active:</label>
-					<input id="local-mic-checkbox" type="checkbox" checked></input>
+					<button id="startButton"><img src="images/yorb.gif" /></button>
+				</div>
+			</div>
+			<div class="webcam-status-overlay">
+				<div class="vertical-positioning-container">
+					<div class="centered-container">
+						<img id="webcam-status-image" src="images/webcam-cropped.png" />
+						<img id="microphone-status-image" src="images/microphone-cropped.png" />
+					</div>
 				</div>
 			</div>
 		</div>
 
-		</br>
 
+		<div class="bottom_bar_container">
+			<div class="bottom_bar">
+				<div>
+					<div class="box-title">ITP Spring Show 2020</div>
+					<img src="images/itp_logo.gif">
+				</div>
 
+				<div>
+					<div class="box-title">CONTROLS:</div>
+					<div class="box-content">
+						WASD.........move<br />
+						SPACEBAR.....jump<br />
+						MOUSE........look<br />
+						ESCAPE.......exit<br />
+						C............toggle webcam<br />
+						M............toggle mic
+					</div>
+				</div>
 
-		<!-- WebGL context -->
-		<div id="gl_context">
-			<div id="blocker">
-				<div id="instructions">
-					<span style="font-size:36px">Click to play</span>
-					<br /><br />
-					Move: WASD<br />
-					Jump: SPACE<br />
-					Look: MOUSE
+				<div id="self-view-box">
+					<div id="self-view-canvas-container">
+					</div>
+				</div>
+
+				<div>
+					<div class="box-title">CREDITS:</div>
+					<div class="box-content">
+						<a target="_blank" rel="noopener noreferrer" href="https://github.com/AidanNelson/YORB2020">Aidan Nelson (code)</a> <br />
+						Nicole Aptekar (model) <br />
+						The YORB Team ❤️! <br />
+						With Special Thanks to... <br />
+						Shawn Van Every<br />
+						Based on a project by...<br />
+						<a target="_blank" rel="noopener noreferrer" href="https://itp.nyu.edu/~dbo3/blog/yorb/">Dan O'Sullivan</a><br />
+					</div>
+				</div>
+
+				<div id="mini-map-box">
+					<div id="mini-map-canvas-container">
+					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- <div id="bottom_bar">
-			<div id="inventory">
-				1 LED
-				1 Soldering Iron
-				1 Arduino Nano (fried)
-			</div>
-			<div id="status">
-				4 projects due
-				Sleeping in red square
-			</div>
-			<div id="selfie-cam">
-				1 LED
-				1 Soldering Iron
-				1 Arduino Nano (fried)
-			</div>
-			<div id="status">
-				4 projects due
-				Sleeping in red square
-			</div>
-			<div id="inventory">
-				1 LED
-				1 Soldering Iron
-				1 Arduino Nano (fried)
-			</div>
-		</div> -->
+
+
 	</div>
 
 </body>

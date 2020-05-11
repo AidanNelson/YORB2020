@@ -20,12 +20,17 @@ import * as config from '../config';
 import * as mediasoup from 'mediasoup-client';
 import debugModule from 'debug';
 
-const $ = document.querySelector.bind(document);
-const $$ = document.querySelectorAll.bind(document);
+// const $ = document.querySelector.bind(document);
+// const $$ = document.querySelectorAll.bind(document);
 
 const log = debugModule('demo-app');
 const warn = debugModule('demo-app:WARN');
 const err = debugModule('demo-app:ERROR');
+
+// load p5 for self view
+const p5 = require('p5');
+
+
 
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -59,8 +64,10 @@ export let mySocketID,
 	webcamAudioPaused = false,
 	screenShareVideoPaused = false,
 	screenShareAudioPaused = false,
-	glScene,
-	projects = [];
+	yorbScene,
+	projects = [],
+	miniMapSketch,
+	selfViewSketch;
 
 window.clients = {}; // array of connected clients for three.js scene
 window.lastPollSyncData = {};
@@ -87,21 +94,10 @@ let localMediaConstraints = {
 
 // start with user interaction with the DOM so we can auto-play audio/video from 
 // now on...
-window.onload = () => {
-	var startButton = document.getElementById('startButton');
-	startButton.addEventListener('click', init);
-}
-
-async function init() {
+window.onload = async () => {
 	console.log("Window loaded.");
 
-	createOrUpdateClientVideo('local', null);
-
-	// remove overlay
-	var overlay = document.getElementById('overlay');
-	overlay.remove();
-
-	
+	createScene();
 
 	// create mediasoup Device
 	try {
@@ -115,14 +111,7 @@ async function init() {
 		}
 	}
 
-
-	createScene();
-
 	await initSocketConnection();
-
-	await joinRoom();
-
-	setupButtons();
 
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads
@@ -130,7 +119,23 @@ async function init() {
 		socket.request('leave', {});
 		// sig('leave', {}, true)
 	});
+
+
+	await joinRoom();
+	alert("Allow YORB to access your webcam for the full experience");
+	sendCameraStreams();
+
+	var startButton = document.getElementById('startButton');
+	startButton.addEventListener('click', init);
 }
+
+async function init() {
+	setupButtons();
+	yorbScene.controls.lock();
+
+	// ensure that all previously started audio video elements play?
+}
+
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Socket.io
@@ -188,7 +193,7 @@ function initSocketConnection() {
 					console.log("Uh oh!  The server thinks we disconnected!");
 				} else {
 					console.log('A user disconnected with the id: ' + _id);
-					glScene.removeClient(_id);
+					yorbScene.removeClient(_id);
 					removeClientDOMElements(_id);
 					delete clients[_id];
 				}
@@ -197,7 +202,7 @@ function initSocketConnection() {
 
 		// Update when one of the users moves in space
 		socket.on('userPositions', _clientProps => {
-			glScene.updateClientPositions(_clientProps);
+			yorbScene.updateClientPositions(_clientProps);
 		});
 
 	});
@@ -215,13 +220,13 @@ function initSocketConnection() {
 async function addClient(_id) {
 	console.log("Adding client with id " + _id);
 	clients[_id] = {};
-	glScene.addClient(_id);
+	yorbScene.addClient(_id);
 }
 
 function updateProjects(_projects) {
 	projects = _projects;
-	if (glScene.updateProjects) {
-		glScene.updateProjects(projects);
+	if (yorbScene.updateProjects) {
+		yorbScene.updateProjects(projects);
 	}
 }
 
@@ -232,87 +237,214 @@ function updateProjects(_projects) {
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 function onPlayerMove() {
-	socket.emit('move', glScene.getPlayerPosition());
+	socket.emit('move', yorbScene.getPlayerPosition());
 }
 
 function createScene() {
 	// initialize three.js scene
 	console.log("Creating three.js scene...")
 
-	glScene = new Scene(
-		document.getElementById('gl_context'),
+	yorbScene = new Scene(
 		onPlayerMove,
 		clients,
 		mySocketID);
 
-	glScene.updateProjects(projects);
+	yorbScene.updateProjects(projects);
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // User Interface 🚂
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
+// the webcam can be in a few different states:
+// 	- we have not yet requested user media
+// 	- we have requested user media but have been denied
+// 	- we do have user media
+
+// the send transport can be in a few different states:
+// 	- we have not yet set it up
+// 	- we have set it up and are currently sending camera and microphone feeds
+// 	- we have set it up, but are not sending camera or microphone feeds (i.e. we are paused)
+
 function setupButtons() {
-	// const joinButton = document.getElementById('join-button');
-	const sendCameraButton = document.getElementById('send-camera');
-	const stopStreamsButton = document.getElementById('stop-streams');
-	// const startScreenshareButton = document.getElementById('share-screen');
-	// const leaveRoomButton = document.getElementById('leave-room');
-	const camPauseRadioButton = document.getElementById('local-cam-checkbox');
-	const micPauseRadioButton = document.getElementById('local-mic-checkbox');
 
+	window.addEventListener('keyup', e => {
+		if (e.keyCode == 67) { // "C"
+			toggleWebcamVideoPauseState();
+			if (selfViewSketch) {
+				selfViewSketch.toggleActive();
+			}
+			toggleWebcamImage();
+		}
 
-	// joinButton.addEventListener('click', joinRoom);
-	sendCameraButton.addEventListener('click', sendCameraStreams);
-	stopStreamsButton.addEventListener('click', stopStreams);
-	// startScreenshareButton.addEventListener('click', startScreenshare);
-	// leaveRoomButton.addEventListener('click', leaveRoom);
-	camPauseRadioButton.addEventListener('change', toggleWebcamVideoPauseState);
-	micPauseRadioButton.addEventListener('change', toggleWebcamAudioPauseState);
+		if (e.keyCode == 77) { // "M"
+			toggleWebcamAudioPauseState();
+			toggleMicrophoneImage();
+		}
+	}, false);
 }
 
 
-function createOrUpdateClientVideo(_id, _videoStream) {
-	let videoEl = document.getElementById(_id + "_video");
-	if (videoEl == null) {
-		console.log("Creating video element for user with ID: " + _id);
-		videoEl = document.createElement('video');
-		videoEl.id = _id + "_video";
-		videoEl.style = "visibility: hidden;";
-		document.body.appendChild(videoEl);
-	}
 
-	// Question: do i need to update video width and height? or is that based on stream...?
-
-	console.log("Updating video source for user with ID: " + _id);
-	if (_videoStream != null) {
-		videoEl.srcObject = _videoStream
+function toggleWebcamImage() {
+	let webcamImage = document.getElementById("webcam-status-image");
+	if (webcamImage.style.visibility == "hidden") {
+		webcamImage.style.visibility = "visible";
 	} else {
-		videoEl.src = "images/particle-dreams.mp4"
-		videoEl.loop = true;
+		webcamImage.style.visibility = "hidden";
 	}
-	videoEl.autoplay = true;
+
 }
 
-// TODO positional audio in chrome with adjustment of volume...? 
-function createOrUpdateClientAudio(_id, _audioStream) {
-	// Positional Audio Works in Firefox:
-	// glScene.createOrUpdatePositionalAudio(_id, audioStream); // TODO make this function
-
-	// Global Audio:
-	let remoteAudioElement = document.getElementById(_id + "_audio");
-	if (remoteAudioElement == null) {
-		console.log("Creating audio element for user with ID: " + _id);
-		remoteAudioElement = document.createElement('audio');
-		remoteAudioElement.id = _id + "_audio";
-		document.body.appendChild(remoteAudioElement);
+function toggleMicrophoneImage() {
+	let micImg = document.getElementById("microphone-status-image");
+	if (micImg.style.visibility == "hidden") {
+		micImg.style.visibility = "visible";
+	} else {
+		micImg.style.visibility = "hidden";
 	}
+}
 
-	console.log("Updating <audio> source object for client with ID: " + _id);
-	remoteAudioElement.srcObject = _audioStream;
-	remoteAudioElement.play();
-	// remoteAudioElement.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
-	// remoteAudioElement.volume = 1;
+
+// adapted (with ❤️) from Dan Shiffman: https://www.youtube.com/watch?v=rNqaw8LT2ZU
+async function createSelfView() {
+	const s = (sketch) => {
+		let video;
+		var vScale = 10;
+		let paused = false;
+		let ballX = 100;
+		let ballY = 100;
+		let velocityX = sketch.random(-5, 5);
+		let velocityY = sketch.random(-5, 5);
+		let buffer = 10;
+
+		sketch.setup = () => {
+			let canvas = sketch.createCanvas(260, 200);
+			ballX = sketch.width / 2;
+			ballY = sketch.height / 2;
+			sketch.pixelDensity(1);
+			video = sketch.createCapture(sketch.VIDEO);
+			video.size(sketch.width / vScale, sketch.height / vScale);
+			video.hide();
+			sketch.frameRate(5);
+			sketch.rectMode(sketch.CENTER);
+			sketch.ellipseMode(sketch.CENTER);
+
+		};
+
+		sketch.draw = () => {
+			if (paused) {
+				// bouncing ball easter egg sketch:
+				sketch.background(220, 140, 140);
+				ballX += velocityX;
+				ballY += velocityY;
+				if (ballX >= (sketch.width - buffer) || ballX <= buffer) {
+					velocityX = -velocityX;
+				}
+				if (ballY >= (sketch.height - buffer) || ballY <= buffer) {
+					velocityY = -velocityY;
+				}
+				sketch.fill(0);
+				sketch.ellipse(ballX, ballY, 10, 10);
+
+			} else {
+				sketch.background(0);
+				video.loadPixels();
+				for (var y = 0; y < video.height; y++) {
+					for (var x = 0; x < video.width; x++) {
+						var index = (video.width - x + 1 + (y * video.width)) * 4;
+						var r = video.pixels[index + 0];
+						var g = video.pixels[index + 1];
+						var b = video.pixels[index + 2];
+						var bright = (r + g + b) / 3;
+						var w = sketch.map(bright, 0, 255, 0, vScale);
+						sketch.noStroke();
+						sketch.fill(255);
+						sketch.rectMode(sketch.CENTER);
+						sketch.rect(x * vScale, y * vScale, w, w);
+					}
+				}
+			}
+		};
+
+		sketch.toggleActive = () => {
+			paused = !paused;
+			if (paused) {
+				console.log("Self view sketch is now paused.");
+			} else {
+				console.log("Self view sketch is now running.");
+			}
+		}
+
+	};
+	selfViewSketch = new p5(s, document.getElementById("self-view-canvas-container"));
+	selfViewSketch.canvas.style = "display: block; margin: 0 auto;";
+}
+
+async function createMiniMap() {
+	const s = (sketch) => {
+
+		let mapImg = false;
+
+		sketch.setup = () => {
+			mapImg = sketch.loadImage("images/map.png");
+			sketch.createCanvas(300, 300);
+			sketch.pixelDensity(1);
+			sketch.frameRate(1);
+			sketch.ellipseMode(sketch.CENTER);
+			sketch.imageMode(sketch.CENTER);
+			sketch.angleMode(sketch.RADIANS);
+		};
+
+		sketch.draw = () => {
+			sketch.background(0);
+			sketch.push();
+
+			// translate to center of sketch
+			sketch.translate(sketch.width / 2, sketch.height / 2);
+			//translate to 0,0 position of map and make all translations from there
+			let playerPosition = yorbScene.getPlayerPosition();
+			let posX = playerPosition[0][0];
+			let posZ = playerPosition[0][2];
+
+			// TODO add in direction...
+			// let myDir = playerPosition[1][1]; // camera rotation about Y in Euler Radians
+
+			// always draw player at center:
+			sketch.push();
+			sketch.fill(255, 255, 0);
+			sketch.ellipse(0, 0, 7, 7);
+			// TODO add in direction...
+			// sketch.fill(0, 0, 255,150);
+			// sketch.rotate(myDir);
+			// sketch.triangle(0, 0, -10, -30, 10, -30);
+			sketch.pop();
+
+			let mappedX = sketch.map(posZ, 0, 32, 0, -225, false);
+			let mappedY = sketch.map(posX, 0, 32, 0, 225, false);
+			// allow for map load time without using preload, which seems to mess with things in p5 instance mode...
+			sketch.push();
+			sketch.translate(mappedX, mappedY);
+			if (mapImg) {
+				sketch.image(mapImg, 0, 0, mapImg.width, mapImg.height);
+			}
+			for (let id in clients) {
+				let pos = clients[id].group.position; // [x,y,z] array of position
+				let yPos = sketch.map(pos.x, 0, 32, 0, -225, false);
+				let xPos = sketch.map(pos.z, 0, 32, 0, 225, false);
+				sketch.push();
+				sketch.fill(100, 100, 255);
+				sketch.translate(xPos, yPos);
+				sketch.ellipse(0, 0, 5, 5);
+				sketch.pop();
+			}
+			sketch.pop();
+			sketch.pop();
+		};
+
+	};
+	miniMapSketch = new p5(s, document.getElementById("mini-map-canvas-container"));
+	miniMapSketch.canvas.style = "display: block; margin: 0 auto;";
 }
 
 // remove <video> element and corresponding <canvas> using client ID
@@ -372,6 +504,7 @@ export async function sendCameraStreams() {
 	// make sure we've joined the room and started our camera. these
 	// functions don't do anything if they've already been called this
 	// session
+
 	await joinRoom();
 	await startCamera();
 
@@ -418,7 +551,7 @@ export async function sendCameraStreams() {
 
 export async function startScreenshare() {
 	log('start screen share');
-	$('#share-screen').style.display = 'none';
+	// $('#share-screen').style.display = 'none';
 
 	// make sure we've joined the room and that we have a sending
 	// transport
@@ -488,12 +621,11 @@ export async function startCamera() {
 	log('start camera');
 	try {
 		localCam = await navigator.mediaDevices.getUserMedia(localMediaConstraints);
-		console.log(localCam.getAudioTracks()[0].getConstraints());
-		if (localCam) {
-			// createOrUpdateClientVideo('local', new MediaStream([localCam.getVideoTracks()[0]]));
-		}
+		createSelfView();
+		createMiniMap();
+
 	} catch (e) {
-		console.error('start camera error', e);
+		console.error('Start camera error', e);
 	}
 }
 
@@ -884,13 +1016,12 @@ async function pollAndUpdate() {
 	// auto-subscribe to their feeds:
 	// TODO auto subscribe at lowest spatial layer
 	for (let id in peers) {
-		if (id === mySocketID) {
-			continue;
-		}
-		for (let [mediaTag, info] of Object.entries(peers[id].media)) {
-			if (!findConsumerForTrack(id, mediaTag)) {
-				log(`auto subscribing to track that ${id} has added`);
-				await subscribeToTrack(id, mediaTag);
+		if (id !== mySocketID) {
+			for (let [mediaTag, info] of Object.entries(peers[id].media)) {
+				if (!findConsumerForTrack(id, mediaTag)) {
+					log(`auto subscribing to track that ${id} has added`);
+					await subscribeToTrack(id, mediaTag);
+				}
 			}
 		}
 	}
@@ -1010,10 +1141,7 @@ function addVideoAudio(consumer, peerId) {
 		return;
 	}
 	let elementID = `${peerId}_${consumer.kind}`;
-
-
 	let el = document.getElementById(elementID);
-	// let el = document.createElement(consumer.kind);
 
 	// set some attributes on our audio and video elements to make
 	// mobile Safari happy. note that for audio to play you need to be
@@ -1024,6 +1152,7 @@ function addVideoAudio(consumer, peerId) {
 			el = document.createElement('video');
 			el.id = `${peerId}_${consumer.kind}`;
 			el.autoplay = true;
+			el.muted = true; // necessary for 
 			el.style = "visibility: hidden;";
 			document.body.appendChild(el);
 			el.setAttribute('playsinline', true);
@@ -1046,26 +1175,21 @@ function addVideoAudio(consumer, peerId) {
 			});
 	} else {
 		// Positional Audio Works in Firefox:
-		// glScene.createOrUpdatePositionalAudio(peerId,  new MediaStream([consumer.track.clone()])); // TODO make this function
-		let sourceEl;
 		// Global Audio:
 		if (el == null) {
 			console.log("Creating audio element for user with ID: " + peerId);
 			el = document.createElement('audio');
 			el.id = `${peerId}_${consumer.kind}`;
 			document.body.appendChild(el);
-			// el.controls = 'controls'; // if we want to do a sanity-check, this makes the html object visible
 			el.setAttribute('playsinline', true);
 			el.setAttribute('autoplay', true);
 		}
 
 		console.log("Updating <audio> source object for client with ID: " + peerId);
 		el.srcObject = new MediaStream([consumer.track.clone()]);
-		// sourceEl.srcObject = new MediaStream([consumer.track.clone()]);
 		el.consumer = consumer;
-		// el.play();
 		el.volume = 0; // start at 0 and let the three.js scene take over from here...
-		glScene.createOrUpdatePositionalAudio(peerId);
+		yorbScene.createOrUpdatePositionalAudio(peerId);
 
 
 		// let's "yield" and return before playing, rather than awaiting on
@@ -1078,17 +1202,6 @@ function addVideoAudio(consumer, peerId) {
 				err(e);
 			});
 	}
-	// document.body.appendChild(el);
-	// el.srcObject = new MediaStream([consumer.track.clone()]);
-	// el.consumer = consumer;
-	// // let's "yield" and return before playing, rather than awaiting on
-	// // play() succeeding. play() will not succeed on a producer-paused
-	// // track until the producer unpauses.
-	// el.play()
-	// 	.then(() => { })
-	// 	.catch((e) => {
-	// 		err(e);
-	// 	});
 }
 
 function removeVideoAudio(consumer) {
@@ -1126,8 +1239,10 @@ export async function getCurrentDeviceId() {
 //
 const CAM_VIDEO_SIMULCAST_ENCODINGS =
 	[
-		{ maxBitrate: 24000, scaleResolutionDownBy: 1 },
-		// { maxBitrate: 96000, scaleResolutionDownBy: 4 },
+		{ scaleResolutionDownBy: 1 },
+		{ scaleResolutionDownBy: 2 }
+		// { maxBitrate: 24000, scaleResolutionDownBy: 1 },
+		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
 		// { maxBitrate: 680000, scaleResolutionDownBy: 1 },
 	];
 
