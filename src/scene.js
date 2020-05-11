@@ -34,13 +34,14 @@ class Scene {
 		this.hyperlinkedObjects = []; // array to store interactable hyperlinked meshes
 		this.DEBUG_MODE = false;
 		this.movementCallback = _movementCallback;
-		this.keyState = {};
 		this.width = (window.innerWidth * 0.9);
 		this.height = (window.innerHeight * 0.7);
 		// this.width = window.innerWidth;
 		// this.height = window.innerHeight;
 		this.scene = new THREE.Scene();
 		this.raycaster = new THREE.Raycaster();
+		this.textParser = new DOMParser;
+
 
 		// STATS for debugging:
 		this.stats = new Stats();
@@ -75,7 +76,7 @@ class Scene {
 
 
 		// this.addSelf();
-		// this.loadFont();
+		this.loadFont();
 		this.addLights();
 		this.setupCollisionDetection();
 		this.setupControls();
@@ -88,10 +89,6 @@ class Scene {
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
-		domElement.addEventListener('mouseenter', e => this.onEnterCanvas(e), false);
-		domElement.addEventListener('mouseleave', e => this.onLeaveCanvas(e), false);
-		window.addEventListener('keydown', e => this.onKeyDown(e), false);
-		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
@@ -576,11 +573,39 @@ class Scene {
 		}
 		for (let i = 0; i < projects.length; i++) {
 			let project = projects[i];
-			let locX = -70;
-			let locZ = i * -10 + 40;
+			let locX = -23;
+			let locZ = -80 + (i * 1.5);
 			let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, project);
 			this.hyperlinkedObjects.push(hyperlink);
 			this.scene.add(hyperlink);
+		}
+	}
+
+	// this decodes the text twice because the project database seems to be double wrapped in html...
+	// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
+	parseText(encodedStr) {
+		var dom = this.textParser.parseFromString(
+			'<!doctype html><body>' + encodedStr,
+			'text/html');
+		var decodedString = dom.body.textContent;
+		var dom2 = this.textParser.parseFromString(
+			'<!doctype html><body>' + decodedString,
+			'text/html');
+		var decodedString2 = dom2.body.textContent;
+		return decodedString2;
+	}
+
+	addLineBreak(longString) {
+		let spaceIndex = longString.indexOf(" ", 15);
+		if (spaceIndex != -1) {
+			let firstHalf = longString.slice(0, spaceIndex);
+			let secondHalf = longString.slice(spaceIndex, longString.length);
+			if (secondHalf.length > 20){
+				secondHalf = this.addLineBreak(secondHalf);
+			}
+			return firstHalf.trim() + "\n" + secondHalf.trim();
+		} else {
+			return longString;
 		}
 	}
 
@@ -593,20 +618,32 @@ class Scene {
 	*	- returns object3D
 	*/
 	createHyperlinkedMesh(x, y, z, _project) {
-		// load a image resource
-		let tex = new THREE.TextureLoader().load('images/grid.jpg');
+		let linkHeight = 1.5;
+		var mat = new THREE.MeshLambertMaterial({ color: 0xA4A4A4 });
+		var geometry = new THREE.BoxGeometry(0.25, 1, 1.25);
+		var sign = new THREE.Mesh(geometry, mat);
 
-		var geometry = new THREE.CylinderGeometry(1, 1, 8, 32);
-		var material = new THREE.MeshBasicMaterial({ map: tex, color: 0xffff00 });
-		var mesh = new THREE.Mesh(geometry, material);
-
-		mesh.position.set(x, y, z);
-
-		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
-		mesh.userData = {
-			project: _project
+		var name = this.parseText(_project.project_name)
+		if (name.length > 20) {
+			name = this.addLineBreak(name);
 		}
-		return mesh;
+		var textMesh = this.createSimpleText(name);
+		textMesh.rotateY(Math.PI / 2);
+		textMesh.position.y += 0.2; // offset up
+		textMesh.position.x += (0.25 / 2) + 0.05; // offset forward
+		sign.position.set(x, linkHeight, z);
+
+		sign.add(textMesh);
+		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
+		let now = Date.now();
+		sign.userData = {
+			project: _project,
+			lastVisitedTime: now
+		}
+
+		sign.name = _project.project_id;
+
+		return sign;
 	}
 
 	/*
@@ -629,7 +666,6 @@ class Scene {
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
 		if (!document.getElementById(project.project_id + "_modal")) {
-			var parser = new DOMParser;
 
 			let id = project.project_id;
 			let name = project.project_name;
@@ -647,20 +683,28 @@ class Scene {
 			let closeButton = document.createElement('button');
 			closeButton.addEventListener('click', () => {
 				modalEl.remove();
+				this.controls.lock();
+				// https://stackoverflow.com/questions/19426559/three-js-access-scene-objects-by-name-or-id
+				let now = Date.now();
+				let link = this.scene.getObjectByName( id );
+				link.userData.lastVisitedTime = now;
 			});
 			closeButton.innerHTML = "X";
 
 			let titleEl = document.createElement('h1');
-			titleEl.innerHTML = parser.parseFromString('<!doctype html><body>' + name, 'text/html').body.textContent;
+			titleEl.innerHTML = this.parseText(name);
 
 			let elevatorPitchEl = document.createElement('p');
-			elevatorPitchEl.innerHTML = parser.parseFromString('<!doctype html><body>' + pitch, 'text/html').body.textContent;
+			elevatorPitchEl.innerHTML = this.parseText(pitch);
 
 			let descriptionEl = document.createElement('p');
-			descriptionEl.innerHTML = parser.parseFromString('<!doctype html><body>' + description, 'text/html').body.textContent;
+			descriptionEl.innerHTML = this.parseText(description);
 
-			let linkEl = document.createElement('p');
-			linkEl.innerHTML = link;
+			let linkEl = document.createElement('a');
+			linkEl.href = link;
+			linkEl.innerHTML = "Zoom Link";
+			linkEl.target="_blank" ;
+			linkEl.rel="noopener noreferrer";
 
 			contentEl.appendChild(closeButton);
 			contentEl.appendChild(titleEl);
@@ -682,12 +726,17 @@ class Scene {
 	* 
 	*/
 	detectHyperlinks() {
-		let thresholdDistanceSquared = 2;
+		let thresholdDistanceSquared = 1.25;
+		let now = Date.now();
 		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
 			let link = this.hyperlinkedObjects[i];
 			let distSquared = this.camera.position.distanceToSquared(link.position);
 			if (distSquared < thresholdDistanceSquared) {
-				this.generateProjectModal(link.userData.project);
+				if (now - link.userData.lastVisitedTime > 3000) { // cooldown period for the link
+					this.controls.unlock();
+					link.userData.lastVisitedTime = now;
+					this.generateProjectModal(link.userData.project);
+				}
 			}
 		}
 	}
@@ -699,6 +748,41 @@ class Scene {
 			console.log(response);
 			this.font = response;
 		});
+	}
+
+	createSimpleText(message) {
+		var xMid, yMid, text;
+
+		var color = 0xF8F34E;
+
+		var matDark = new THREE.LineBasicMaterial({
+			color: color,
+			side: THREE.DoubleSide
+		});
+
+		var matLite = new THREE.MeshBasicMaterial({
+			color: color,
+			transparent: true,
+			opacity: 0.4,
+			side: THREE.DoubleSide
+		});
+
+		let fontSize = 0.05;
+		var shapes = this.font.generateShapes(message, fontSize);
+
+		var geometry = new THREE.ShapeBufferGeometry(shapes);
+
+		geometry.computeBoundingBox();
+
+		xMid = - 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+		yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+		// yMid = geometry.boundingBox.max.y
+
+		geometry.translate(xMid, 0, 0);
+
+		// make shape ( N.B. edge view not visible )
+		text = new THREE.Mesh(geometry, matDark);
+		return text;
 	}
 
 	// this function returns 3D text object
@@ -827,6 +911,7 @@ class Scene {
 		var overlay = document.getElementById('overlay');
 
 		this.controls.addEventListener('lock', () => {
+			this.clearControls();
 			this.paused = false;
 			overlay.style.visibility = 'hidden';
 		});
@@ -834,8 +919,8 @@ class Scene {
 		this.controls.addEventListener('unlock', () => {
 
 			overlay.style.visibility = 'visible';
-			this.paused = true;
 			this.clearControls();
+			this.paused = true;
 		});
 
 		document.addEventListener('keydown', (event) => {
@@ -995,8 +1080,6 @@ class Scene {
 
 		if (!this.paused) {
 			this.updateControls();
-		}
-		this.stats.update();
 
 		// update volumes every X frames
 		this.frameCount++;
@@ -1006,14 +1089,14 @@ class Scene {
 		}
 		if (this.frameCount % 50 == 0) {
 			this.selectivelyPauseAndResumeConsumers();
+			this.detectHyperlinks();
+		}
+		this.detectCollisions();
 		}
 
-		this.updatePositions();
-		this.detectCollisions();
-		this.updateControls();
 
-		this.checkKeys();
-
+		this.stats.update();
+		this.updatePositions(); // other users
 		this.render();
 	}
 
@@ -1185,34 +1268,6 @@ class Scene {
 		this.renderer.setSize(this.width, this.height);
 	}
 
-	onLeaveCanvas(e) {
-		this.controls.enabled = false;
-	}
-	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
-	// controls to be stuck on
-	onEnterCanvas(e) {
-		this.controls.enabled = true;
-	}
-
-	// keystate functions from playercontrols
-	onKeyDown(event) {
-		event = event || window.event;
-		this.keyState[event.keyCode || event.which] = true;
-	}
-
-	onKeyUp(event) {
-		event = event || window.event;
-		this.keyState[event.keyCode || event.which] = false;
-	}
-
-	checkKeys() {
-		if (this.keyState[76]) {
-			this.detectHyperlinks();
-		}
-		if (this.keyState[80]) {
-			console.log(this.camera.position);
-		}
-	}
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 }

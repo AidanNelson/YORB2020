@@ -69,7 +69,6 @@ body {
     text-align: center;
     margin-left: auto;
     margin-right: auto;
-    padding-top: 10%;
 }
 
 #overlay > div > button {
@@ -241,6 +240,21 @@ body {
     margin-top: -150px;
 }
 
+#credits-box {
+    text-align: center;
+    -webkit-animation: scroll 20s linear infinite;
+    -moz-animation: scroll 20s linear infinite;
+    animation: scroll 20s linear infinite;
+}
+
+@keyframes scroll {
+    from {
+        margin-top: 80%;
+    }
+    to {
+        margin-top: -100%;
+    }
+}
 /* PROJECT MODAL */
 /* https://www.w3schools.com/howto/howto_css_modals.asp */
 /* The Modal (background) */
@@ -249,7 +263,7 @@ body {
     /* Hidden by default */
     position: fixed;
     /* Stay in place */
-    z-index: 1;
+    z-index: 10;
     /* Sit on top */
     left: 0;
     top: 0;
@@ -268,7 +282,8 @@ body {
 /* Modal Content/Box */
 .project-modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin: 5% auto;
+    overflow-y: scroll;
     /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;

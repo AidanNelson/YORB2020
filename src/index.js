@@ -182,7 +182,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			// updateProjects(_projects);
+			updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (_id, _ids) => {
@@ -335,7 +335,7 @@ async function createSelfView() {
 		sketch.draw = () => {
 			if (paused) {
 				// bouncing ball easter egg sketch:
-				sketch.background(220, 140, 140);
+				sketch.background(10, 10, 200);
 				ballX += velocityX;
 				ballY += velocityY;
 				if (ballX >= (sketch.width - buffer) || ballX <= buffer) {
@@ -344,7 +344,7 @@ async function createSelfView() {
 				if (ballY >= (sketch.height - buffer) || ballY <= buffer) {
 					velocityY = -velocityY;
 				}
-				sketch.fill(0);
+				sketch.fill(240,120,0);
 				sketch.ellipse(ballX, ballY, 10, 10);
 
 			} else {
