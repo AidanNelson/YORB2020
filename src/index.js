@@ -135,6 +135,7 @@ async function init() {
 		await joinRoom();
 		sendCameraStreams();
 		setupButtons();
+		initialized = true;
 	}
 	yorbScene.controls.lock();
 	// ensure that all previously started audio video elements play?
