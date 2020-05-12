@@ -90,11 +90,6 @@ class Scene {
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
-		window.addEventListener('keyup', e => {
-			if (e.keyCode == 13) {
-				this.detectHyperlinks();
-			}
-		})
 
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);

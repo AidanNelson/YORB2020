@@ -800,7 +800,7 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 
 // TODO check these functions
 export async function pauseAllConsumersForPeer(_id) {
-	if (lastPollSyncData[id]) {
+	if (lastPollSyncData[_id]) {
 		if (!lastPollSyncData[_id].paused) {
 			if (!(_id === mySocketID)) {
 				console.log("Pausing all consumers for peer with ID: " + _id);
@@ -817,7 +817,7 @@ export async function pauseAllConsumersForPeer(_id) {
 }
 
 export async function resumeAllConsumersForPeer(_id) {
-	if (lastPollSyncData[id]) {
+	if (lastPollSyncData[_id]) {
 		if (lastPollSyncData[_id].paused) {
 			console.log("Resuming all consumers for peer with ID: " + _id);
 			if (!(_id === mySocketID)) {
