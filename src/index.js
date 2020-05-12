@@ -604,6 +604,7 @@ export async function startScreenshare() {
 	if (screenAudioProducer) {
 	}
 }
+window.screenshare = startScreenshare;
 
 export async function startCamera() {
 	if (localCam) {
