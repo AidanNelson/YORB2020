@@ -75,8 +75,7 @@ class Scene {
 		this.renderer.setSize(this.width, this.height);
 
 
-		// this.addSelf();
-		this.loadFont();
+
 		this.addLights();
 		this.setupCollisionDetection();
 		this.setupControls();
@@ -84,11 +83,18 @@ class Scene {
 		this.loadBackground();
 		this.loadFloorModel();
 
+		this.setupSpringShow();
+
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
+		window.addEventListener('keyup', e => {
+			if (e.keyCode == 13) {
+				this.detectHyperlinks();
+			}
+		})
 
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
@@ -156,6 +162,11 @@ class Scene {
 	// wall, ceiling, floor
 	createMaterials() {
 		this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
+
+		this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
+		this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
+
+
 
 		let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
 		paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
@@ -555,6 +566,33 @@ class Scene {
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Interactable Hyperlinks for Spring Show 💎
 
+	setupSpringShow() {
+		var loader = new THREE.FontLoader();
+		// https://gero3.github.io/facetype.js/
+		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
+		// loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
+			this.font = response;
+			this.createSignage();
+			this._updateProjects();
+		});
+	}
+
+	createSignage() {
+		let message = "Welcome to the ITP / IMA Spring Show";
+		let message2 = "Stand on a project portal and press \'Enter\' to activate!";
+
+		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		let text1 = this.create3DText(message, 0.4, 0.1, 3, 0.01, 0.01, false, false);
+		text1.position.set(-3, 2.25, 5);
+		text1.rotateY(Math.PI / 2);
+		this.scene.add(text1);
+
+		let text2 = this.create3DText(message2, 0.25, 0.1, 3, 0.01, 0.01, false, false);
+		text2.position.set(-3, 1.5, 5);
+		text2.rotateY(Math.PI / 2);
+		this.scene.add(text2);
+	}
+
 	/*
 	* updateProjects(projects) 
 	*
@@ -566,18 +604,97 @@ class Scene {
 	*
 	*/
 	updateProjects(projects) {
+		this.projects = projects;
+		this._updateProjects();
+	}
 
-		// first, empty the project
-		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-			this.scene.remove(this.hyperlinkedObjects[i]);
-		}
-		for (let i = 0; i < projects.length; i++) {
-			let project = projects[i];
-			let locX = -23;
-			let locZ = -80 + (i * 1.5);
-			let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, project);
-			this.hyperlinkedObjects.push(hyperlink);
-			this.scene.add(hyperlink);
+	_updateProjects() {
+		if (this.font) {
+			let projects = this.projects;
+
+			for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+				this.scene.remove(this.hyperlinkedObjects[i]);
+			}
+			this.hyperlinkedObjects = [];
+
+			// let thresholdDistanceSquared = 4;
+
+			// // dirty random spacing logic:
+			// for (let projectIndex = 0; projectIndex < 30; projectIndex++) {
+
+			// 	let positionFound = false;
+			// 	let pos;
+			// 	let randX, randZ;
+			// 	while (!positionFound) {
+			// 		// create random position in range
+			// 		randX = this.randomRange(-23,-18);
+			// 		randZ = this.randomRange(-80,-15);
+			// 		pos = new THREE.Vector3(randX, 0, randZ);
+
+			// 		// check against all others
+			// 		let positionFarEnoughFromOtherLinks = true
+
+			// 		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+			// 			let link = this.hyperlinkedObjects[i];
+			// 			console.log(link);
+			// 			let distSquared = pos.distanceToSquared(link.position);
+			// 			if (distSquared < thresholdDistanceSquared) {
+			// 				positionFarEnoughFromOtherLinks = false;
+			// 				break;
+			// 			}
+			// 		}
+			// 		if (positionFarEnoughFromOtherLinks) { positionFound = true;}
+			// 		console.log("Found position for project #", projectIndex,"!");
+			// 	}
+
+			// 	let hyperlink = this.createHyperlinkedMesh(randX, 0, randZ, projects[projectIndex]);
+			// 	this.hyperlinkedObjects.push(hyperlink);
+			// 	this.scene.add(hyperlink);
+			// }
+
+			// logic to arrange the projects...
+
+			let projectSpacing = 1.5;
+			let gapSpacing = 3;
+
+			let startingPosZ = -80;
+			let endingPosZ = 15;
+
+			let locX = -24.5; // back row
+			let gapIndex = 0;
+			let numProjectsPerRow = 45;
+			let gapCounter = 0;
+
+			for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
+
+				let locZ = startingPosZ + ((projectIndex % numProjectsPerRow) * projectSpacing);
+
+				// when we turn around the row, reset gap counter
+				if (projectIndex % numProjectsPerRow == 0) {
+					// locX = -22;
+					locX += 2;
+					gapIndex = 0;
+					gapCounter = 0;
+				}
+
+
+				//  every 5 projects, add a gap
+				if (gapCounter % 5 == 0) {
+					gapIndex += 1
+				};
+
+				locZ += (gapIndex * gapSpacing);
+
+				gapCounter++;
+
+				let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, projects[projectIndex]);
+				// hyperlink.rotateZ(Math.PI/2);
+				// if (projectIndex > numProjectsPerRow) {
+				// 	hyperlink.rotateY(Math.PI);
+				// }
+				this.hyperlinkedObjects.push(hyperlink);
+				this.scene.add(hyperlink);
+			}
 		}
 	}
 
@@ -596,11 +713,11 @@ class Scene {
 	}
 
 	addLineBreak(longString) {
-		let spaceIndex = longString.indexOf(" ", 15);
+		let spaceIndex = longString.indexOf(" ", 10);
 		if (spaceIndex != -1) {
 			let firstHalf = longString.slice(0, spaceIndex);
 			let secondHalf = longString.slice(spaceIndex, longString.length);
-			if (secondHalf.length > 20){
+			if (secondHalf.length > 15) {
 				secondHalf = this.addLineBreak(secondHalf);
 			}
 			return firstHalf.trim() + "\n" + secondHalf.trim();
@@ -618,20 +735,45 @@ class Scene {
 	*	- returns object3D
 	*/
 	createHyperlinkedMesh(x, y, z, _project) {
-		let linkHeight = 1.5;
-		var mat = new THREE.MeshLambertMaterial({ color: 0xA4A4A4 });
-		var geometry = new THREE.BoxGeometry(0.25, 1, 1.25);
+
+		// let linkHoverHeight = 1.5;
+		let linkHoverHeight = 0.0;
+		let linkRadius = 0.5;
+		// let linkHeight = 1;
+		// let linkWidth = 0.75;
+		let linkDepth = 0.25;
+		let fontColor = 0x232323;
+		let fontSize = 0.05;
+
+		var geometry = new THREE.CylinderGeometry(linkRadius, linkRadius, linkDepth, 16);
+		// var geometry = new THREE.BoxGeometry(linkDepth, linkHeight, linkWidth);
+		let mat;
+
+		// check whether we've visited the link before and set material accordingly
+		if (localStorage.getItem(_project.project_id) == "visited") {
+			mat = this.linkVisitedMaterial;
+		} else {
+			mat = this.linkMaterial;
+		}
+
 		var sign = new THREE.Mesh(geometry, mat);
 
+		// parse text of name and add line breaks if necessary
 		var name = this.parseText(_project.project_name)
-		if (name.length > 20) {
+		if (name.length > 15) {
 			name = this.addLineBreak(name);
 		}
-		var textMesh = this.createSimpleText(name);
+
+		// create name text mesh
+		var textMesh = this.createSimpleText(name, fontColor, fontSize);
+
+		// textMesh.position.y += 0.2; // offset up
+		// textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
+		textMesh.position.y += (linkDepth / 2) + 0.01; // offset forward
+		textMesh.rotateZ(Math.PI / 2);
 		textMesh.rotateY(Math.PI / 2);
-		textMesh.position.y += 0.2; // offset up
-		textMesh.position.x += (0.25 / 2) + 0.05; // offset forward
-		sign.position.set(x, linkHeight, z);
+
+		sign.position.set(x, linkHoverHeight, z);
 
 		sign.add(textMesh);
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
@@ -665,7 +807,10 @@ class Scene {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
-		if (!document.getElementById(project.project_id + "_modal")) {
+		if (!document.getElementsByClassName("project-modal")[0]) {
+			localStorage.setItem(project.project_id, "visited");
+			this.scene.getObjectByName(project.project_id).material = this.linkVisitedMaterial;
+
 
 			let id = project.project_id;
 			let name = project.project_name;
@@ -686,7 +831,7 @@ class Scene {
 				this.controls.lock();
 				// https://stackoverflow.com/questions/19426559/three-js-access-scene-objects-by-name-or-id
 				let now = Date.now();
-				let link = this.scene.getObjectByName( id );
+				let link = this.scene.getObjectByName(id);
 				link.userData.lastVisitedTime = now;
 			});
 			closeButton.innerHTML = "X";
@@ -701,10 +846,11 @@ class Scene {
 			descriptionEl.innerHTML = this.parseText(description);
 
 			let linkEl = document.createElement('a');
-			linkEl.href = link;
+			// linkEl.href = link;
+			linkEl.href = "https://itp.nyu.edu/shows/spring2020/";
 			linkEl.innerHTML = "Zoom Link";
-			linkEl.target="_blank" ;
-			linkEl.rel="noopener noreferrer";
+			linkEl.target = "_blank";
+			linkEl.rel = "noopener noreferrer";
 
 			contentEl.appendChild(closeButton);
 			contentEl.appendChild(titleEl);
@@ -728,9 +874,10 @@ class Scene {
 	detectHyperlinks() {
 		let thresholdDistanceSquared = 1.25;
 		let now = Date.now();
+		let pos = new THREE.Vector3(this.camera.position.x, 0, this.camera.position.z);
 		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
 			let link = this.hyperlinkedObjects[i];
-			let distSquared = this.camera.position.distanceToSquared(link.position);
+			let distSquared = pos.distanceToSquared(link.position);
 			if (distSquared < thresholdDistanceSquared) {
 				if (now - link.userData.lastVisitedTime > 3000) { // cooldown period for the link
 					this.controls.unlock();
@@ -741,33 +888,18 @@ class Scene {
 		}
 	}
 
-	loadFont() {
-		var loader = new THREE.FontLoader();
-		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
-			console.log('font loader response');
-			console.log(response);
-			this.font = response;
-		});
-	}
 
-	createSimpleText(message) {
+
+	// creates a text mesh and returns it, from: 
+	// https://threejs.org/examples/?q=text#webgl_geometry_text_shapes
+	createSimpleText(message, fontColor, fontSize) {
 		var xMid, yMid, text;
 
-		var color = 0xF8F34E;
-
-		var matDark = new THREE.LineBasicMaterial({
-			color: color,
+		var mat = new THREE.LineBasicMaterial({
+			color: fontColor,
 			side: THREE.DoubleSide
 		});
 
-		var matLite = new THREE.MeshBasicMaterial({
-			color: color,
-			transparent: true,
-			opacity: 0.4,
-			side: THREE.DoubleSide
-		});
-
-		let fontSize = 0.05;
 		var shapes = this.font.generateShapes(message, fontSize);
 
 		var geometry = new THREE.ShapeBufferGeometry(shapes);
@@ -776,18 +908,17 @@ class Scene {
 
 		xMid = - 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
 		yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-		// yMid = geometry.boundingBox.max.y
 
-		geometry.translate(xMid, 0, 0);
+		geometry.translate(xMid, yMid, 0);
 
 		// make shape ( N.B. edge view not visible )
-		text = new THREE.Mesh(geometry, matDark);
+		text = new THREE.Mesh(geometry, mat);
 		return text;
 	}
 
 	// this function returns 3D text object
 	// from https://threejs.org/examples/?q=text#webgl_geometry_text
-	createText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror) {
+	create3DText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror) {
 
 		let textGeo = new THREE.TextGeometry(text, {
 
@@ -809,7 +940,7 @@ class Scene {
 		var triangle = new THREE.Triangle();
 
 		let materials = [
-			new THREE.MeshPhongMaterial({ color: 0xffffee, flatShading: true }), // front
+			new THREE.MeshPhongMaterial({ color: 0x57068c, flatShading: true }), // front
 			new THREE.MeshPhongMaterial({ color: 0x000000 }) // side
 		];
 
@@ -893,7 +1024,7 @@ class Scene {
 
 	// Set up pointer lock controls and corresponding event listeners
 	setupControls() {
-		let jumpSpeed = 15;
+		let jumpSpeed = 12;
 		this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);
 
 		this.moveForward = false;
@@ -1081,17 +1212,17 @@ class Scene {
 		if (!this.paused) {
 			this.updateControls();
 
-		// update volumes every X frames
-		this.frameCount++;
-		if (this.frameCount % 20 == 0) {
-			this.updateClientVolumes();
-			this.movementCallback();
-		}
-		if (this.frameCount % 50 == 0) {
-			this.selectivelyPauseAndResumeConsumers();
-			this.detectHyperlinks();
-		}
-		this.detectCollisions();
+			// update volumes every X frames
+			this.frameCount++;
+			if (this.frameCount % 20 == 0) {
+				this.updateClientVolumes();
+				this.movementCallback();
+			}
+			if (this.frameCount % 50 == 0) {
+				this.selectivelyPauseAndResumeConsumers();
+				// this.detectHyperlinks();
+			}
+			this.detectCollisions();
 		}
 
 
@@ -1270,6 +1401,17 @@ class Scene {
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Utilities:
+
+	/**
+	 * Returns a random number between min (inclusive) and max (exclusive)
+	 * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range#1527820
+	 */
+	randomRange(min, max) {
+		return Math.random() * (max - min) + min;
+	}
+
+	//==//==//==//==//==//==//==//==// fin //==//==//==//==//==//==//==//==//==//
 }
 
 export default Scene;

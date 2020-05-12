@@ -98,6 +98,8 @@ window.onload = async () => {
 	console.log("Window loaded.");
 
 	createScene();
+	createMiniMap();
+
 
 	// create mediasoup Device
 	try {
@@ -256,6 +258,7 @@ function createScene() {
 // User Interface 🚂
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
+// notes for myself (and anyone else...)
 // the webcam can be in a few different states:
 // 	- we have not yet requested user media
 // 	- we have requested user media but have been denied
@@ -267,13 +270,9 @@ function createScene() {
 // 	- we have set it up, but are not sending camera or microphone feeds (i.e. we are paused)
 
 function setupButtons() {
-
 	window.addEventListener('keyup', e => {
 		if (e.keyCode == 67) { // "C"
 			toggleWebcamVideoPauseState();
-			if (selfViewSketch) {
-				selfViewSketch.toggleActive();
-			}
 			toggleWebcamImage();
 		}
 
@@ -285,23 +284,22 @@ function setupButtons() {
 }
 
 
-
 function toggleWebcamImage() {
 	let webcamImage = document.getElementById("webcam-status-image");
-	if (webcamImage.style.visibility == "hidden") {
-		webcamImage.style.visibility = "visible";
-	} else {
+	if (getCamPausedState()) {
 		webcamImage.style.visibility = "hidden";
+	} else {
+		webcamImage.style.visibility = "visible";
 	}
 
 }
 
 function toggleMicrophoneImage() {
 	let micImg = document.getElementById("microphone-status-image");
-	if (micImg.style.visibility == "hidden") {
-		micImg.style.visibility = "visible";
-	} else {
+	if (getMicPausedState()) {
 		micImg.style.visibility = "hidden";
+	} else {
+		micImg.style.visibility = "visible";
 	}
 }
 
@@ -311,7 +309,6 @@ async function createSelfView() {
 	const s = (sketch) => {
 		let video;
 		var vScale = 10;
-		let paused = false;
 		let ballX = 100;
 		let ballY = 100;
 		let velocityX = sketch.random(-5, 5);
@@ -333,7 +330,7 @@ async function createSelfView() {
 		};
 
 		sketch.draw = () => {
-			if (paused) {
+			if (webcamVideoPaused) {
 				// bouncing ball easter egg sketch:
 				sketch.background(10, 10, 200);
 				ballX += velocityX;
@@ -344,7 +341,7 @@ async function createSelfView() {
 				if (ballY >= (sketch.height - buffer) || ballY <= buffer) {
 					velocityY = -velocityY;
 				}
-				sketch.fill(240,120,0);
+				sketch.fill(240, 120, 0);
 				sketch.ellipse(ballX, ballY, 10, 10);
 
 			} else {
@@ -366,21 +363,12 @@ async function createSelfView() {
 				}
 			}
 		};
-
-		sketch.toggleActive = () => {
-			paused = !paused;
-			if (paused) {
-				console.log("Self view sketch is now paused.");
-			} else {
-				console.log("Self view sketch is now running.");
-			}
-		}
-
 	};
 	selfViewSketch = new p5(s, document.getElementById("self-view-canvas-container"));
 	selfViewSketch.canvas.style = "display: block; margin: 0 auto;";
 }
 
+// creates minimap p5 sketch
 async function createMiniMap() {
 	const s = (sketch) => {
 
@@ -390,7 +378,7 @@ async function createMiniMap() {
 			mapImg = sketch.loadImage("images/map.png");
 			sketch.createCanvas(300, 300);
 			sketch.pixelDensity(1);
-			sketch.frameRate(1);
+			sketch.frameRate(5);
 			sketch.ellipseMode(sketch.CENTER);
 			sketch.imageMode(sketch.CENTER);
 			sketch.angleMode(sketch.RADIANS);
@@ -424,6 +412,7 @@ async function createMiniMap() {
 			let mappedY = sketch.map(posX, 0, 32, 0, 225, false);
 			// allow for map load time without using preload, which seems to mess with things in p5 instance mode...
 			sketch.push();
+			sketch.rotate(Math.PI);
 			sketch.translate(mappedX, mappedY);
 			if (mapImg) {
 				sketch.image(mapImg, 0, 0, mapImg.width, mapImg.height);
@@ -520,31 +509,33 @@ export async function sendCameraStreams() {
 	// state, if the checkbox in our UI is unchecked. so as soon as we
 	// have a client-side camVideoProducer object, we need to set it to
 	// paused as appropriate, too.
-	camVideoProducer = await sendTransport.produce({
-		track: localCam.getVideoTracks()[0],
-		encodings: camEncodings(),
-		appData: { mediaTag: 'cam-video' }
-	});
+	if (localCam) {
+		camVideoProducer = await sendTransport.produce({
+			track: localCam.getVideoTracks()[0],
+			encodings: camEncodings(),
+			appData: { mediaTag: 'cam-video' }
+		});
 
-	if (getCamPausedState()) {
-		try {
-			await camVideoProducer.pause();
-		} catch (e) {
-			console.error(e);
+		if (getCamPausedState()) {
+			try {
+				await camVideoProducer.pause();
+			} catch (e) {
+				console.error(e);
+			}
 		}
-	}
 
-	// same thing for audio, but we can use our already-created
-	camAudioProducer = await sendTransport.produce({
-		track: localCam.getAudioTracks()[0],
-		appData: { mediaTag: 'cam-audio' }
-	});
+		// same thing for audio, but we can use our already-created
+		camAudioProducer = await sendTransport.produce({
+			track: localCam.getAudioTracks()[0],
+			appData: { mediaTag: 'cam-audio' }
+		});
 
-	if (getMicPausedState()) {
-		try {
-			camAudioProducer.pause();
-		} catch (e) {
-			console.error(e);
+		if (getMicPausedState()) {
+			try {
+				camAudioProducer.pause();
+			} catch (e) {
+				console.error(e);
+			}
 		}
 	}
 }
@@ -622,10 +613,12 @@ export async function startCamera() {
 	try {
 		localCam = await navigator.mediaDevices.getUserMedia(localMediaConstraints);
 		createSelfView();
-		createMiniMap();
-
 	} catch (e) {
 		console.error('Start camera error', e);
+		webcamAudioPaused = true;
+		webcamVideoPaused = true;
+		toggleWebcamImage();
+		toggleMicrophoneImage();
 	}
 }
 
