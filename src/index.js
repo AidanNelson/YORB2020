@@ -67,7 +67,8 @@ export let mySocketID,
 	yorbScene,
 	projects = [],
 	miniMapSketch,
-	selfViewSketch;
+	selfViewSketch,
+	initialized = false;
 
 window.clients = {}; // array of connected clients for three.js scene
 window.lastPollSyncData = {};
@@ -128,13 +129,14 @@ window.onload = async () => {
 	startButton.addEventListener('click', init);
 }
 
+
 async function init() {
-	await joinRoom();
-	sendCameraStreams();
-
-	setupButtons();
+	if (!initialized) {
+		await joinRoom();
+		sendCameraStreams();
+		setupButtons();
+	}
 	yorbScene.controls.lock();
-
 	// ensure that all previously started audio video elements play?
 }
 
