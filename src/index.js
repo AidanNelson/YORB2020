@@ -131,13 +131,14 @@ window.onload = async () => {
 
 
 async function init() {
+	yorbScene.controls.lock();
+	
 	if (!initialized) {
 		await joinRoom();
 		sendCameraStreams();
 		setupButtons();
 		initialized = true;
 	}
-	yorbScene.controls.lock();
 	// ensure that all previously started audio video elements play?
 }
 
@@ -277,7 +278,6 @@ function setupButtons() {
 		if (e.keyCode == 67) { // "C"
 			toggleWebcamVideoPauseState();
 		}
-
 		if (e.keyCode == 77) { // "M"
 			toggleWebcamAudioPauseState();
 		}

@@ -76,9 +76,9 @@ class Scene {
 
 
 
+		this.setupControls();
 		this.addLights();
 		this.setupCollisionDetection();
-		this.setupControls();
 		this.createMaterials();
 		this.loadBackground();
 		this.loadFloorModel();
