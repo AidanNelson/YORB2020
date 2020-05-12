@@ -122,16 +122,16 @@ window.onload = async () => {
 		// sig('leave', {}, true)
 	});
 
-
-	await joinRoom();
 	alert("Allow YORB to access your webcam for the full experience");
-	sendCameraStreams();
 
 	var startButton = document.getElementById('startButton');
 	startButton.addEventListener('click', init);
 }
 
 async function init() {
+	await joinRoom();
+	sendCameraStreams();
+
 	setupButtons();
 	yorbScene.controls.lock();
 
