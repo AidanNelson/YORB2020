@@ -273,12 +273,13 @@ function setupButtons() {
 	window.addEventListener('keyup', e => {
 		if (e.keyCode == 67) { // "C"
 			toggleWebcamVideoPauseState();
-			toggleWebcamImage();
 		}
 
 		if (e.keyCode == 77) { // "M"
 			toggleWebcamAudioPauseState();
-			toggleMicrophoneImage();
+		}
+		if (e.keyCode == 13) { // "Enter"
+			yorbScene.detectHyperlinks();
 		}
 	}, false);
 }
@@ -799,31 +800,35 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 
 // TODO check these functions
 export async function pauseAllConsumersForPeer(_id) {
-	if (!lastPollSyncData[_id].paused) {
-		if (!(_id === mySocketID)) {
-			console.log("Pausing all consumers for peer with ID: " + _id);
-			for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
-				let consumer = findConsumerForTrack(_id, mediaTag);
-				if (consumer) {
-					await pauseConsumer(consumer);
+	if (lastPollSyncData[id]) {
+		if (!lastPollSyncData[_id].paused) {
+			if (!(_id === mySocketID)) {
+				console.log("Pausing all consumers for peer with ID: " + _id);
+				for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
+					let consumer = findConsumerForTrack(_id, mediaTag);
+					if (consumer) {
+						await pauseConsumer(consumer);
+					}
 				}
+				lastPollSyncData[_id].paused = true;
 			}
-			lastPollSyncData[_id].paused = true;
 		}
 	}
 }
 
 export async function resumeAllConsumersForPeer(_id) {
-	if (lastPollSyncData[_id].paused) {
-		console.log("Resuming all consumers for peer with ID: " + _id);
-		if (!(_id === mySocketID)) {
-			for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
-				let consumer = findConsumerForTrack(_id, mediaTag);
-				if (consumer) {
-					await resumeConsumer(consumer);
+	if (lastPollSyncData[id]) {
+		if (lastPollSyncData[_id].paused) {
+			console.log("Resuming all consumers for peer with ID: " + _id);
+			if (!(_id === mySocketID)) {
+				for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
+					let consumer = findConsumerForTrack(_id, mediaTag);
+					if (consumer) {
+						await resumeConsumer(consumer);
+					}
 				}
+				lastPollSyncData[_id].paused = false;
 			}
-			lastPollSyncData[_id].paused = false;
 		}
 	}
 }
@@ -1098,6 +1103,7 @@ export async function toggleWebcamVideoPauseState() {
 		pauseProducer(camVideoProducer);
 	}
 	webcamVideoPaused = !webcamVideoPaused;
+	toggleWebcamImage();
 }
 
 export async function toggleWebcamAudioPauseState() {
@@ -1107,6 +1113,7 @@ export async function toggleWebcamAudioPauseState() {
 		pauseProducer(camAudioProducer);
 	}
 	webcamAudioPaused = !webcamAudioPaused;
+	toggleMicrophoneImage();
 }
 
 export async function toggleScreenshareVideoPauseState() {
