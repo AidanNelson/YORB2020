@@ -73,16 +73,6 @@ export let mySocketID,
 window.clients = {}; // array of connected clients for three.js scene
 window.lastPollSyncData = {};
 
-// limit video size / framerate for bandwidth or use bandwidth limitation through encoding?
-// TODO deal with overconstrained errors?
-// let localMediaConstraints = {
-// 	audio: {
-// 		echoCancellation: true,
-// 		noiseSuppression: true,
-// 		autoGainControl: true
-// 	},
-// 	video: true
-// };
 let localMediaConstraints = {
 	audio: true,
 	video: true
@@ -132,14 +122,14 @@ window.onload = async () => {
 
 async function init() {
 	yorbScene.controls.lock();
-	
+
+	// only join room after we user has interacted with DOM (to ensure that media elements play)
 	if (!initialized) {
 		await joinRoom();
 		sendCameraStreams();
-		setupButtons();
+		setupControls();
 		initialized = true;
 	}
-	// ensure that all previously started audio video elements play?
 }
 
 
@@ -273,7 +263,7 @@ function createScene() {
 // 	- we have set it up and are currently sending camera and microphone feeds
 // 	- we have set it up, but are not sending camera or microphone feeds (i.e. we are paused)
 
-function setupButtons() {
+function setupControls() {
 	window.addEventListener('keyup', e => {
 		if (e.keyCode == 67) { // "C"
 			toggleWebcamVideoPauseState();
@@ -283,6 +273,9 @@ function setupButtons() {
 		}
 		if (e.keyCode == 13) { // "Enter"
 			yorbScene.detectHyperlinks();
+		}
+		if (e.keyCode == 49) { // "1"
+			yorbScene.swapMaterials();
 		}
 	}, false);
 }
@@ -1243,9 +1236,7 @@ export async function getCurrentDeviceId() {
 //
 const CAM_VIDEO_SIMULCAST_ENCODINGS =
 	[
-		{ scaleResolutionDownBy: 1 },
-		{ scaleResolutionDownBy: 2 }
-		// { maxBitrate: 24000, scaleResolutionDownBy: 1 },
+		{ maxBitrate: 24000, scaleResolutionDownBy: 4 },
 		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
 		// { maxBitrate: 680000, scaleResolutionDownBy: 1 },
 	];

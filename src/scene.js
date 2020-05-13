@@ -27,7 +27,6 @@ class Scene {
 		// this pauses or restarts rendering and updating
 		this.paused = true;
 		let domElement = document.getElementById('scene-container');
-
 		this.frameCount = 0;
 		this.clients = _clients;
 		this.mySocketID = mySocketID;
@@ -36,8 +35,6 @@ class Scene {
 		this.movementCallback = _movementCallback;
 		this.width = (window.innerWidth * 0.9);
 		this.height = (window.innerHeight * 0.7);
-		// this.width = window.innerWidth;
-		// this.height = window.innerHeight;
 		this.scene = new THREE.Scene();
 		this.raycaster = new THREE.Raycaster();
 		this.textParser = new DOMParser;
@@ -47,16 +44,14 @@ class Scene {
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
 
-
-
 		//THREE Camera
 		this.cameraHeight = 1.75;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
 
+		// starting position
 		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
-		//https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range#1527820
-		let randX = Math.random() * (28 - 3) + 3;
-		let randZ = Math.random() * (1.5 - 2.5) - 2.5;
+		let randX = this.randomRange(3, 28);
+		let randZ = this.randomRange(-2.5, 1.5);
 		this.camera.position.set(randX, this.cameraHeight, randZ);
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
@@ -73,8 +68,6 @@ class Scene {
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.renderer.setClearColor(new THREE.Color('lightblue'));
 		this.renderer.setSize(this.width, this.height);
-
-
 
 		this.setupControls();
 		this.addLights();
@@ -171,12 +164,9 @@ class Scene {
 		// wall material:
 		this.wallMaterial = new THREE.MeshPhongMaterial({
 			color: 0xffffe6,
-			bumpMap: paintedRoughnessTexture,
-			bumpScale: 0.25,
 			specular: 0xfffff5,
 			reflectivity: 0.01,
 			shininess: 0.1,
-			envMap: null
 		});
 
 		// ceiling material
@@ -202,8 +192,8 @@ class Scene {
 
 		this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
 			color: 0x1a1a1a,
-			bumpMap: paintedRoughnessTexture,
 			bumpScale: 0.2,
+			flatShading: true,
 			specular: 0xffffff,
 			reflectivity: 0.01,
 			shininess: 1,
@@ -211,7 +201,7 @@ class Scene {
 		});
 
 		this.windowShelfMaterial = new THREE.MeshPhongMaterial({
-			color: 0xdddddd
+			color: 0x565656
 		});
 
 		// https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
@@ -223,7 +213,7 @@ class Scene {
 			depthWrite: false,
 			envMap: this.envMap,
 			envMapIntensity: 1,
-			transparency: 1, // use material.transparency for glass materials
+			transparency: 0.7, // use material.transparency for glass materials
 			opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
 			transparent: true
 		});
@@ -242,6 +232,92 @@ class Scene {
 
 		this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
 		this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+		// this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
+
+		// this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
+		// this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
+
+
+
+		// let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
+		// paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
+		// paintedRoughnessTexture.wrapT = THREE.RepeatWrapping;
+		// paintedRoughnessTexture.repeat.set(5, 5);
+
+		// // wall material:
+		// this.wallMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xffffe6,
+		// 	bumpMap: paintedRoughnessTexture,
+		// 	bumpScale: 0.25,
+		// 	specular: 0xfffff5,
+		// 	reflectivity: 0.01,
+		// 	shininess: 0.1,
+		// 	envMap: null
+		// });
+
+		// // ceiling material
+		// this.ceilingMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+
+		// // floor material
+		// // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
+		// let floorTexture = new THREE.TextureLoader().load("textures/floor.jpg");
+		// floorTexture.wrapS = THREE.RepeatWrapping;
+		// floorTexture.wrapT = THREE.RepeatWrapping;
+		// floorTexture.repeat.set(1, 1);
+
+		// this.floorMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xffffff,
+		// 	map: floorTexture,
+		// 	bumpMap: floorTexture,
+		// 	bumpScale: 0.005,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 0.5,
+		// 	shininess: 4,
+		// 	envMap: null
+		// });
+
+		// this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0x1a1a1a,
+		// 	bumpMap: paintedRoughnessTexture,
+		// 	bumpScale: 0.2,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 0.01,
+		// 	shininess: 1,
+		// 	envMap: null
+		// });
+
+		// this.windowShelfMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xdddddd
+		// });
+
+		// // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
+		// this.glassMaterial = new THREE.MeshPhysicalMaterial({
+		// 	color: 0xD9ECFF,
+		// 	metalness: 0.05,
+		// 	roughness: 0,
+		// 	alphaTest: 0.5,
+		// 	depthWrite: false,
+		// 	envMap: this.envMap,
+		// 	envMapIntensity: 1,
+		// 	transparency: 1, // use material.transparency for glass materials
+		// 	opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
+		// 	transparent: true
+		// });
+
+		// this.lightHousingMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
+
+		// this.lightDiffuserMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xcccccc,
+		// 	emissive: 0xffffff,
+		// 	emissiveIntensity: 10,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 0.01,
+		// 	shininess: 1,
+		// 	envMap: null
+		// });
+
+		// this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+		// this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
 	}
 
 	loadModel(_file, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {
@@ -260,6 +336,9 @@ class Scene {
 				}
 			});
 			this.scene.add(scene);
+			let name = _file.slice(11, _file.indexOf("."));
+			scene.name = name;
+			this.floorModelParts.push(scene);
 		}, undefined, function (e) {
 			console.error(e);
 		});
@@ -268,6 +347,8 @@ class Scene {
 	loadFloorModel() {
 		this.GLTFLoader = new THREE.GLTFLoader();
 		let scaleFactor = 1.25;
+		this.floorModelParts = [];
+		this.matMode = 0;
 
 		this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true, true);
@@ -281,6 +362,124 @@ class Scene {
 		this.loadModel('models/itp/walls.glb', this.wallMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/window-shelf.glb', this.windowShelfMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true);
+	}
+
+	swapMaterials() {
+		this.matMode ++;
+		if (this.matMode >= 3){
+			this.matMode = 0;
+		}
+		switch (this.matMode) {
+
+			case 0:
+				for (let i = 0; i < this.floorModelParts.length; i++) {
+					let scene = this.floorModelParts[i];
+					let mat = this.getMatFromName(scene.name);
+					scene.traverse((child) => {
+						if (child.isMesh) {
+							child.material = mat;
+						}
+					});
+				}
+				break;
+
+			case 1:
+				for (let i = 0; i < this.floorModelParts.length; i++) {
+					let scene = this.floorModelParts[i];
+					if (scene.name == "floor" || scene.name == "glass") {
+						continue;
+					} else {
+						scene.traverse((child) => {
+							if (child.isMesh) {
+								// https://stackoverflow.com/questions/43088424/setting-random-color-for-each-face-in-threejs-results-in-black-object
+								let col = new THREE.Color(0xffffff);
+								col.setHex(Math.random() * 0xffffff);
+								let mat = new THREE.MeshLambertMaterial({ color: col });
+								child.material = mat;
+
+							}
+						});
+					}
+
+				}
+				break;
+
+			case 2:
+				for (let i = 0; i < this.floorModelParts.length; i++) {
+					let scene = this.floorModelParts[i];
+					if (scene.name == "floor" || scene.name == "glass") {
+						continue;
+					} else {
+						scene.traverse((child) => {
+							if (child.isMesh) {
+								// https://stackoverflow.com/questions/43088424/setting-random-color-for-each-face-in-threejs-results-in-black-object
+								let col = new THREE.Color(0xffffff);
+								col.setHex(Math.random() * 0xffffff);
+								let mat = new THREE.MeshPhongMaterial({
+									color: col,
+									reflectivity: 0.4,
+									shininess: 1,
+									envMap: this.envMap
+								});
+								child.material = mat;
+
+							}
+						});
+					}
+
+				}
+				break;
+
+		}
+	}
+
+
+	getMatFromName(name) {
+		let mat = null;
+		switch (name) {
+			case "ceiling":
+				mat = this.ceilingMaterial;
+				break;
+			case "floor":
+				mat = this.floorMaterial;
+				break;
+			case "glass-fixturing":
+				mat = this.glassFixturingMaterial;
+				break;
+			case "glass":
+				mat = this.glassMaterial;
+				break;
+			case "granite-bar":
+				mat = this.graniteBarMaterial;
+				break;
+			case "ibeam":
+				mat = this.paintedMetalMaterial;
+				break;
+			case "light-diffuser":
+				mat = this.lightDiffuserMaterial;
+				break;
+			case "light-housing":
+				mat = this.lightHousingMaterial;
+				break;
+			case "lighting-grid":
+				mat = this.wallMaterial;
+				break;
+			case "walls":
+				mat = this.wallMaterial;
+				break;
+			case "window-shelf":
+				mat = this.windowShelfMaterial;
+				break;
+			case "wooden-bar":
+				mat = this.floorMaterial;
+				break;
+
+
+
+		}
+
+
+		return mat;
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -565,7 +764,7 @@ class Scene {
 		var loader = new THREE.FontLoader();
 		// https://gero3.github.io/facetype.js/
 		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
-		// loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
+			// loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
 			this.font = response;
 			this.createSignage();
 			this._updateProjects();
@@ -1239,20 +1438,6 @@ class Scene {
 	}
 
 	updateVideoTextures() {
-		// update ourselves first:
-		let localVideo = document.getElementById("local_video");
-		let localVideoCanvas = document.getElementById("local_canvas");
-
-		// TODO: mirror local video --> canvas
-		// https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
-		// let ctx = localVideoCanvas.getContext('2d')
-		// ctx.translate(localVideoCanvas.width, 0);
-		// ctx.scale(-1, 1); // flip local image
-		if (localVideo != null && localVideoCanvas != null) {
-			this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
-		}
-
-
 		for (let _id in this.clients) {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
@@ -1323,7 +1508,6 @@ class Scene {
 					this.clients[_id].audioElement.volume = 0;
 				} else {
 					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
-
 					let volume = Math.min(1, numerator / distSquared);
 					this.clients[_id].audioElement.volume = volume;
 				}
@@ -1385,8 +1569,6 @@ class Scene {
 	// Event Handlers 🍽
 
 	onWindowResize(e) {
-		// this.width = window.innerWidth;
-		// this.height = window.innerHeight;
 		this.width = (window.innerWidth * 0.9);
 		this.height = (window.innerHeight * 0.7);
 		this.camera.aspect = this.width / this.height;
