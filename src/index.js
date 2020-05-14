@@ -271,11 +271,14 @@ function setupControls() {
 		if (e.keyCode == 77) { // "M"
 			toggleWebcamAudioPauseState();
 		}
-		if (e.keyCode == 13) { // "Enter"
-			yorbScene.detectHyperlinks();
-		}
+		// if (e.keyCode == 13) { // "Enter"
+		// 	yorbScene.activateHighlightedProject();
+		// }
 		if (e.keyCode == 49) { // "1"
 			yorbScene.swapMaterials();
+		}
+		if (e.keyCode == 80) { // 'p'
+			console.log(yorbScene.getPlayerPosition()[0]);
 		}
 	}, false);
 }

@@ -38,6 +38,11 @@ class Scene {
 		this.scene = new THREE.Scene();
 		this.raycaster = new THREE.Raycaster();
 		this.textParser = new DOMParser;
+		this.mouse = {
+			x: 0,
+			y: 0
+		};
+		this.hightlightedProjectId = -1; // to start
 
 
 		// STATS for debugging:
@@ -83,6 +88,7 @@ class Scene {
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
+		domElement.addEventListener('click', e => this.onMouseClick(e), false);
 
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
@@ -365,8 +371,8 @@ class Scene {
 	}
 
 	swapMaterials() {
-		this.matMode ++;
-		if (this.matMode >= 3){
+		this.matMode++;
+		if (this.matMode >= 3) {
 			this.matMode = 0;
 		}
 		switch (this.matMode) {
@@ -772,19 +778,47 @@ class Scene {
 	}
 
 	createSignage() {
-		let message = "Welcome to the ITP / IMA Spring Show";
-		let message2 = "Stand on a project portal and press \'Enter\' to activate!";
+		let textDepth = 0.1;
+		let curveSegments = 3;
+		let message, txt;
 
+		message = "Welcome to the";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-		let text1 = this.create3DText(message, 0.4, 0.1, 3, 0.01, 0.01, false, false);
-		text1.position.set(-3, 2.25, 5);
-		text1.rotateY(Math.PI / 2);
-		this.scene.add(text1);
+		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2, 2.75, 0.5);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
 
-		let text2 = this.create3DText(message2, 0.25, 0.1, 3, 0.01, 0.01, false, false);
-		text2.position.set(-3, 1.5, 5);
-		text2.rotateY(Math.PI / 2);
-		this.scene.add(text2);
+
+		message = "ITP / IMA Spring Show ";
+		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2, 1.5, 0.0);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
+
+
+		message = "The E.R.";
+		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-11.25, 1.75, -18.5);
+		txt.rotateY(0);
+		this.scene.add(txt);
+
+		message = "Resident's Residence";
+		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-12.5, 1.75, -0.75);
+		txt.rotateY(-Math.PI / 2);
+		this.scene.add(txt);
+
+
+
+
+		message = "Use your mouse to\nlook at a project & \nclick to activate!";
+		txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-8.5, 2, -14);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
+
 	}
 
 	/*
@@ -1058,26 +1092,86 @@ class Scene {
 	}
 
 	/*
-	* detectHyperlinks() 
+	* highlightHyperlinks() 
 	* 
 	* Description:
 	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array, 
 	* 	- calls this.generateProjectModal for any projects under a threshold distance
 	* 
 	*/
-	detectHyperlinks() {
-		let thresholdDistanceSquared = 1.25;
+	highlightHyperlinks() {
+
+		let thresholdDist = 3;
 		let now = Date.now();
-		let pos = new THREE.Vector3(this.camera.position.x, 0, this.camera.position.z);
-		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-			let link = this.hyperlinkedObjects[i];
-			let distSquared = pos.distanceToSquared(link.position);
-			if (distSquared < thresholdDistanceSquared) {
-				if (now - link.userData.lastVisitedTime > 3000) { // cooldown period for the link
-					this.controls.unlock();
-					link.userData.lastVisitedTime = now;
-					this.generateProjectModal(link.userData.project);
+
+		// store reference to last highlighted project id
+		let lastHighlightedProjectId = this.hightlightedProjectId;
+
+		// cast ray out from camera
+		this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+		var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
+
+		// if we have intersections, highlight them
+		if (intersects.length > 0) {
+			if (intersects[0].distance < thresholdDist) {
+				let link = intersects[0].object;
+				link.material = this.testMaterial;
+				link.userData.highlighted = true;
+				link.userData.lastVisitedTime = now;
+				this.hightlightedProjectId = link.userData.project.project_id;
+			}
+		}
+
+		// if we've changed which project is highlighted
+		if (lastHighlightedProjectId != this.hightlightedProjectId) {
+			let link = this.scene.getObjectByName(lastHighlightedProjectId);
+			if (link != null) {
+				link.material = this.linkMaterial;
+			}
+		} else {
+			// no change, so lets check for 
+			let link = this.scene.getObjectByName(this.hightlightedProjectId);
+			if (link != null) {
+				if (now - link.userData.lastVisitedTime > 500) {
+					
+					this.hightlightedProjectId = -1;
+
+					// reset according to whether we have visited it or not yet
+					let mat;
+					// check whether we've visited the link before and set material accordingly
+					if (localStorage.getItem(link.userData.project.project_id) == "visited") {
+						mat = this.linkVisitedMaterial;
+					} else {
+						mat = this.linkMaterial;
+					}
+
+					link.material = mat;
 				}
+			}
+		}
+
+		// let thresholdDistanceSquared = 1.25;
+
+		// let pos = new THREE.Vector3(this.camera.position.x, 0, this.camera.position.z);
+		// for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+		// 	let link = this.hyperlinkedObjects[i];
+		// 	let distSquared = pos.distanceToSquared(link.position);
+		// 	if (distSquared < thresholdDistanceSquared) {
+		// 		if (now - link.userData.lastVisitedTime > 3000) { // cooldown period for the link
+		// 			this.controls.unlock();
+		// 			link.userData.lastVisitedTime = now;
+		// 			this.generateProjectModal(link.userData.project);
+		// 		}
+		// 	}
+		// }
+	}
+
+	activateHighlightedProject() {
+		if (this.hightlightedProjectId != -1) {
+			let link = this.scene.getObjectByName(this.hightlightedProjectId);
+			if (link != null) {
+				this.controls.unlock();
+				this.generateProjectModal(link.userData.project);
 			}
 		}
 	}
@@ -1135,7 +1229,7 @@ class Scene {
 
 		let materials = [
 			new THREE.MeshPhongMaterial({ color: 0x57068c, flatShading: true }), // front
-			new THREE.MeshPhongMaterial({ color: 0x000000 }) // side
+			new THREE.MeshPhongMaterial({ color: 0xffffff }) // side
 		];
 
 		// "fix" side normals by removing z-component of normals for side faces
@@ -1184,15 +1278,22 @@ class Scene {
 
 		textGeo = new THREE.BufferGeometry().fromGeometry(textGeo);
 
+		// geometry.computeBoundingBox();
+
+		let xMid = - 0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+		// let yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+
+		textGeo.translate(xMid, 0, 0);
+
 		let textMesh = new THREE.Mesh(textGeo, materials);
-		let hover = 5;
+		// let hover = 5;
 
-		textMesh.position.x = centerOffset;
-		textMesh.position.y = hover;
-		textMesh.position.z = 0;
+		// textMesh.position.x = centerOffset;
+		// textMesh.position.y = hover;
+		// textMesh.position.z = 0;
 
-		textMesh.rotation.x = 0;
-		textMesh.rotation.y = Math.PI * 2;
+		// textMesh.rotation.x = 0;
+		// textMesh.rotation.y = Math.PI * 2;
 
 		if (mirror) {
 
@@ -1411,10 +1512,10 @@ class Scene {
 			if (this.frameCount % 20 == 0) {
 				this.updateClientVolumes();
 				this.movementCallback();
+				this.highlightHyperlinks();
 			}
 			if (this.frameCount % 50 == 0) {
 				this.selectivelyPauseAndResumeConsumers();
-				// this.detectHyperlinks();
 			}
 			this.detectCollisions();
 		}
@@ -1574,6 +1675,13 @@ class Scene {
 		this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(this.width, this.height);
+	}
+
+	onMouseClick(e) { // not used currently
+		// this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+		// this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+		// console.log("Click");
+		this.activateHighlightedProject();
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
