@@ -15,7 +15,36 @@
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 	<link rel="shortcut icon" type="image/gif" href="images/favicon.png" />
 
+	<script>
+		const audioSwitch = () => {
+			let player = document.getElementById("playAudio")
+			if(player.paused){
+				audioSwitchOn(player)
+			} else{
+				audioSwitchOff(player)	
+			};
 
+		}
+		const audioSwitchOn = (audioElement) => {
+			let musicButton=document.getElementsByClassName("btn-audio")
+			musicButton[0].className =musicButton[0].className.replace(/is-inactive/g, "")
+
+			musicButton[0].className = musicButton[0].className + " is-active"
+
+			audioElement.play()
+		}
+
+		const audioSwitchOff = audioElement => {
+			let musicButton=document.getElementsByClassName("btn-audio")
+			musicButton[0].className =musicButton[0].className.replace(/is-active/g, "")
+
+			musicButton[0].className = musicButton[0].className + " is-inactive"
+
+			audioElement.pause()
+		}
+
+
+	</script>
 
 </head>
 
@@ -71,7 +100,16 @@
 						C............webcam<br />
 						M............mic<br />
 						1............paint
+					</div><br>
+					<div class="box-title">MUSIC:</div>
+					<div class="box-content btn-audio is-inactive" onclick="audioSwitch()">
+						
 					</div>
+					<audio loop id="playAudio">
+						<source src="assets/slap-happy.mp3" type="audio/mpeg">
+					</audio>
+					
+
 				</div>
 
 				<div id="self-view-box">
