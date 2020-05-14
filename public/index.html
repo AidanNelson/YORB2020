@@ -101,15 +101,14 @@
 						M............mic<br />
 						1............paint
 					</div><br>
-					<div class="box-title">MUSIC:</div>
-					<div class="box-content btn-audio is-inactive" onclick="audioSwitch()">
+					<div class="box-title">MUSIC:</div><br>
+					<div class="audio-container">
+						<div class="btn-audio is-inactive" onclick="audioSwitch()"></div>
+						<audio loop id="playAudio">
+							<source src="assets/slap-happy.mp3" type="audio/mpeg">
+						</audio>
 						
 					</div>
-					<audio loop id="playAudio">
-						<source src="assets/slap-happy.mp3" type="audio/mpeg">
-					</audio>
-					
-
 				</div>
 
 				<div id="self-view-box">
