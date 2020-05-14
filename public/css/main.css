@@ -305,3 +305,26 @@ body {
     text-decoration: none;
     cursor: pointer;
 }
+
+
+/* Audio Button */
+.btn-audio {
+    width: 40px;
+    height: 40px;
+    display: block;
+    cursor: pointer;
+    position: absolute;
+    /* top: 10px;
+    right: 10px;
+    z-index: 999; */
+    background-image: url(../images/musicswitch.png);
+    background-size: 40px
+}
+
+.btn-audio.is-active {
+    background-position: 0 0
+}
+
+.btn-audio.is-inactive {
+    background-position: 0 -40px
+}
