@@ -40,6 +40,7 @@ body {
     margin-right: auto;
 }
 
+
 #scene-container {
     /* positioning */
     position: absolute;
@@ -82,10 +83,10 @@ body {
 
 #overlay > div > button > img {
     display: block;
-    height: 80px;
-    -webkit-animation: spin 12s linear infinite;
+    width: 400px;
+    /* -webkit-animation: spin 12s linear infinite;
     -moz-animation: spin 12s linear infinite;
-    animation: spin 12s linear infinite;
+    animation: spin 12s linear infinite; */
 }
 
 #overlay > div > button > img:hover {
