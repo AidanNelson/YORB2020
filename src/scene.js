@@ -818,84 +818,58 @@ class Scene {
 			}
 			this.hyperlinkedObjects = [];
 
-			// let thresholdDistanceSquared = 4;
 
-			// // dirty random spacing logic:
-			// for (let projectIndex = 0; projectIndex < 30; projectIndex++) {
+			// do a check for duplicates
+			let dupeCheck = {};
+			let numUniqueProjects = 0;
 
-			// 	let positionFound = false;
-			// 	let pos;
-			// 	let randX, randZ;
-			// 	while (!positionFound) {
-			// 		// create random position in range
-			// 		randX = this.randomRange(-23,-18);
-			// 		randZ = this.randomRange(-80,-15);
-			// 		pos = new THREE.Vector3(randX, 0, randZ);
+			let uniqueProjects = [];
 
-			// 		// check against all others
-			// 		let positionFarEnoughFromOtherLinks = true
+			for (let projectIndex = 0; projectIndex < projects.length; projectIndex ++) {
+				let proj = projects[projectIndex];
+				let project_id = proj.project_id;
 
-			// 		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-			// 			let link = this.hyperlinkedObjects[i];
-			// 			console.log(link);
-			// 			let distSquared = pos.distanceToSquared(link.position);
-			// 			if (distSquared < thresholdDistanceSquared) {
-			// 				positionFarEnoughFromOtherLinks = false;
-			// 				break;
-			// 			}
-			// 		}
-			// 		if (positionFarEnoughFromOtherLinks) { positionFound = true;}
-			// 		console.log("Found position for project #", projectIndex,"!");
-			// 	}
+				if (dupeCheck[project_id]) {
+					console.log('Duplicate with ID: ', proj.project_id);
+				} else {
+					dupeCheck[project_id] = true;
+					numUniqueProjects++;
+					uniqueProjects.push(proj);
+				}
+			}
+			console.log("Number of unique projects: ", numUniqueProjects);
 
-			// 	let hyperlink = this.createHyperlinkedMesh(randX, 0, randZ, projects[projectIndex]);
-			// 	this.hyperlinkedObjects.push(hyperlink);
-			// 	this.scene.add(hyperlink);
+
+
+			// console.log(dupeCheck);
+
+			// let locZ = startingPosZ + ((projectIndex % numProjectsPerRow) * projectSpacing);
+
+			// // when we turn around the row, reset gap counter
+			// if (projectIndex % numProjectsPerRow == 0) {
+			// 	// locX = -22;
+			// 	locX += 2;
+			// 	gapIndex = 0;
+			// 	gapCounter = 0;
 			// }
 
-			// logic to arrange the projects...
 
-			let projectSpacing = 1.5;
-			let gapSpacing = 3;
+			// //  every 5 projects, add a gap
+			// if (gapCounter % 5 == 0) {
+			// 	gapIndex += 1
+			// };
 
-			let startingPosZ = -80;
-			let endingPosZ = 15;
+			// locZ += (gapIndex * gapSpacing);
 
-			let locX = -24.5; // back row
-			let gapIndex = 0;
-			let numProjectsPerRow = 45;
-			let gapCounter = 0;
+			// gapCounter++;
 
-			for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
-
-				let locZ = startingPosZ + ((projectIndex % numProjectsPerRow) * projectSpacing);
-
-				// when we turn around the row, reset gap counter
-				if (projectIndex % numProjectsPerRow == 0) {
-					// locX = -22;
-					locX += 2;
-					gapIndex = 0;
-					gapCounter = 0;
-				}
-
-
-				//  every 5 projects, add a gap
-				if (gapCounter % 5 == 0) {
-					gapIndex += 1
-				};
-
-				locZ += (gapIndex * gapSpacing);
-
-				gapCounter++;
-
-				let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, projects[projectIndex]);
-				// hyperlink.rotateZ(Math.PI/2);
-				// if (projectIndex > numProjectsPerRow) {
-				// 	hyperlink.rotateY(Math.PI);
-				// }
-				this.hyperlinkedObjects.push(hyperlink);
-				this.scene.add(hyperlink);
-			}
+			// let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, projects[projectIndex]);
+			// // hyperlink.rotateZ(Math.PI/2);
+			// // if (projectIndex > numProjectsPerRow) {
+			// // 	hyperlink.rotateY(Math.PI);
+			// // }
+			// this.hyperlinkedObjects.push(hyperlink);
+			// this.scene.add(hyperlink);
 		}
 	}
 
@@ -1313,6 +1287,7 @@ class Scene {
 			this.clearControls();
 			this.paused = false;
 			overlay.style.visibility = 'hidden';
+			document.getElementById("instructions-overlay").style.visibility = "visible";
 		});
 
 		this.controls.addEventListener('unlock', () => {
@@ -1320,6 +1295,7 @@ class Scene {
 			overlay.style.visibility = 'visible';
 			this.clearControls();
 			this.paused = true;
+			document.getElementById("instructions-overlay").style.visibility = "hidden";
 		});
 
 		document.addEventListener('keydown', (event) => {

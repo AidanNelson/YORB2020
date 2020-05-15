@@ -142,7 +142,7 @@ let testProjects = [{
   "zoom_link": "https://nyu.zoom.us/j/2673933378"
 }];
 let projects = [];
-projects = testProjects;
+// projects = testProjects;
 
 //
 // main() -- our execution entry point
@@ -216,7 +216,7 @@ async function main() {
   // periodically update video stats we're sending to peers
   setInterval(updatePeerStats, 3000);
 
-  // updateProjects();
+  updateProjects();
   // setInterval(updateProjects, 300000); // update projects every five minutes
 }
 

@@ -40,7 +40,6 @@ body {
     margin-right: auto;
 }
 
-
 #scene-container {
     /* positioning */
     position: absolute;
@@ -59,6 +58,29 @@ body {
     top: 0;
     left: 0;
     z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+#instructions-overlay {
+    /* positioning */
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 9;
+    visibility: hidden;
+}
+#instructions-to-exit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 200px;
+    height: 50px;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
 }
@@ -179,7 +201,7 @@ body {
     font-size: 0.85em;
     box-sizing: border-box; /* Include padding and border in element's width and height */
     text-align: center;
-    overflow:hidden;
+    overflow: hidden;
 }
 
 .box-title {
@@ -201,10 +223,9 @@ body {
     color: yellow;
 }
 .box-content > a:hover {
-    background-color: rgba(0,0,0,1);
+    background-color: rgba(0, 0, 0, 1);
     color: yellow;
 }
-
 
 #self-view-box {
     width: 15%;
@@ -223,7 +244,7 @@ body {
 
 #self-view-canvas-container {
     width: 260px;
-    height:200px;
+    height: 200px;
     position: absolute;
     left: 50%;
     top: 50%;
@@ -307,12 +328,11 @@ body {
     cursor: pointer;
 }
 
-
 /* Audio Button */
 .audio-container {
     display: flex;
     justify-content: center;
-    align-items: center; 
+    align-items: center;
 }
 .btn-audio {
     position: relative;
@@ -320,13 +340,13 @@ body {
     height: 40px;
     cursor: pointer;
     background-image: url(../images/musicswitch.png);
-    background-size: 40px
+    background-size: 40px;
 }
 
 .btn-audio.is-active {
-    background-position: 0 0
+    background-position: 0 0;
 }
 
 .btn-audio.is-inactive {
-    background-position: 0 -40px
+    background-position: 0 -40px;
 }
