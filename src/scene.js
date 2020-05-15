@@ -160,23 +160,13 @@ class Scene {
 		this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
 		this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
 
-
-
-		let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
-		paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
-		paintedRoughnessTexture.wrapT = THREE.RepeatWrapping;
-		paintedRoughnessTexture.repeat.set(5, 5);
-
 		// wall material:
-		this.wallMaterial = new THREE.MeshPhongMaterial({
+		this.wallMaterial = new THREE.MeshLambertMaterial({
 			color: 0xffffe6,
-			specular: 0xfffff5,
-			reflectivity: 0.01,
-			shininess: 0.1,
 		});
 
 		// ceiling material
-		this.ceilingMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+		this.ceilingMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
 		// floor material
 		// https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
@@ -185,59 +175,36 @@ class Scene {
 		floorTexture.wrapT = THREE.RepeatWrapping;
 		floorTexture.repeat.set(1, 1);
 
-		this.floorMaterial = new THREE.MeshPhongMaterial({
+		this.floorMaterial = new THREE.MeshLambertMaterial({
 			color: 0xffffff,
-			map: floorTexture,
-			bumpMap: floorTexture,
-			bumpScale: 0.005,
-			specular: 0xffffff,
-			reflectivity: 0.5,
-			shininess: 4,
-			envMap: null
+			map: floorTexture
 		});
 
-		this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
+		this.paintedMetalMaterial = new THREE.MeshLambertMaterial({
 			color: 0x1a1a1a,
-			bumpScale: 0.2,
 			flatShading: true,
-			specular: 0xffffff,
-			reflectivity: 0.01,
-			shininess: 1,
-			envMap: null
 		});
 
-		this.windowShelfMaterial = new THREE.MeshPhongMaterial({
+		this.windowShelfMaterial = new THREE.MeshLambertMaterial({
 			color: 0x565656
 		});
 
 		// https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
-		this.glassMaterial = new THREE.MeshPhysicalMaterial({
+		this.glassMaterial = new THREE.MeshLambertMaterial({
 			color: 0xD9ECFF,
-			metalness: 0.05,
-			roughness: 0,
-			alphaTest: 0.5,
-			depthWrite: false,
-			envMap: this.envMap,
-			envMapIntensity: 1,
-			transparency: 0.7, // use material.transparency for glass materials
-			opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
-			transparent: true
+			transparent: true,
+			opacity: 0.25,
 		});
 
-		this.lightHousingMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
 
-		this.lightDiffuserMaterial = new THREE.MeshPhongMaterial({
-			color: 0xcccccc,
-			emissive: 0xffffff,
-			emissiveIntensity: 10,
-			specular: 0xffffff,
-			reflectivity: 0.01,
-			shininess: 1,
-			envMap: null
+		this.lightHousingMaterial = new THREE.MeshLambertMaterial({ color: 0x111111 });
+
+		this.lightDiffuserMaterial = new THREE.MeshLambertMaterial({
+			color: 0xcccccc
 		});
 
-		this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-		this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+		this.glassFixturingMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+		this.graniteBarMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
 		// this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
 
 		// this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
@@ -362,9 +329,9 @@ class Scene {
 		this.loadModel('models/itp/glass.glb', this.glassMaterial, scaleFactor, false, false, true);
 		this.loadModel('models/itp/granite-bar.glb', this.graniteBarMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/ibeam.glb', this.paintedMetalMaterial, scaleFactor, true, false, true);
-		this.loadModel('models/itp/light-diffuser.glb', this.lightDiffuserMaterial, scaleFactor, false, false);
-		this.loadModel('models/itp/light-housing.glb', this.lightHousingMaterial, scaleFactor, false, false);
-		this.loadModel('models/itp/lighting-grid.glb', this.wallMaterial, scaleFactor, false, false);
+		// this.loadModel('models/itp/light-diffuser.glb', this.lightDiffuserMaterial, scaleFactor, false, false);
+		// this.loadModel('models/itp/light-housing.glb', this.lightHousingMaterial, scaleFactor, false, false);
+		// this.loadModel('models/itp/lighting-grid.glb', this.wallMaterial, scaleFactor, false, false);
 		this.loadModel('models/itp/walls.glb', this.wallMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/window-shelf.glb', this.windowShelfMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true);
@@ -1133,7 +1100,7 @@ class Scene {
 			let link = this.scene.getObjectByName(this.hightlightedProjectId);
 			if (link != null) {
 				if (now - link.userData.lastVisitedTime > 500) {
-					
+
 					this.hightlightedProjectId = -1;
 
 					// reset according to whether we have visited it or not yet
