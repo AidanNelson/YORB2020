@@ -52,8 +52,8 @@ class Scene {
 
 
 		// STATS for debugging:
-		this.stats = new Stats();
-		document.body.appendChild(this.stats.dom);
+		// this.stats = new Stats();
+		// document.body.appendChild(this.stats.dom);
 
 		//THREE Camera
 		this.cameraHeight = 1.75;
@@ -745,7 +745,8 @@ class Scene {
 		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
 			// loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
 			this.font = response;
-			this.createSignage();
+			// this.createSignage();
+			this.createCongratulationsSignage();
 			this._updateProjects();
 		});
 	}
@@ -794,6 +795,72 @@ class Scene {
 
 	}
 
+	createCongratulationsSignage() {
+		let names = ["Kat Vlasova", "Katie Krobock", "Ruojin Shi", "Andri Kumar", "Jacquelyn Liu", "Emily Lin", "Lydia Jessup", "Ashley Jane Lewis", "Andrew lee", "Jenny (Woan-chin) Lin", "Tanic Nakpresha", "Suzanne Li", "Hye (Maria) Ryenog", "Maya Pruitt", "Jaekook Han", "Ada Jiang", "Becca Moore", "Wenjing Liu", "Emma Norton", "Aditya (Adi) Dahiya", "Abigail (Abi) Muñoz", "Christopher (Topher) Blair", "Helen Tang", "August Luhrs", "Ching-Hsi (Sid) Chou", "Ming Pu (Vince) Shao", "Shu-Ju Lin", "Veronica Alfaro", "Lillian Ritchie", "Xinyue Li", "Adrian Bautista", "Khensu-Ra Love El", "Casey Conchinha", "Olivia Kung", "Idith Barak", "James Hosken", "Billy Bennet", "Louise Lessel", "Guillermo Montecinos", "Rui An", "Hannah Tardie", "Jingyi Wen", "Luming Hao", "Mingna Li", "Morgan B Mueller", "Alizarin Waissberg", "Gilad Dor", "Bora Aydintug", "Karina Hyland", "Matthew Ross", "Dana Elkis", "Chunhan Chen", "Tawania Reggler", "Chenyu Sun", "Defne Onen", "Elvin Ou", "Sachiko Nakajima", "Fenfen Chen", "Jordan Rickman", "Qice Sun", "Xiaotong Ma", "Rachel Lim", "Shiyu Chen", "Tsimafei Lobiak", "Zhe Wang", "Anna Oh", "Madison Rosner", "Aaron Moreno", "Chenshan Gao", "Cameron Partee", "Carol Chen", "Nuntinee Tansrisakul", "Raaziq Brown", "Tianyi Xie", "Stefan Skripak", "Yuanyuang Wang", "Nick Gregg", "Shivani Prasad", "Rui (Jasper) Wang", "Hayk Mikayelyan", "Tushar Goyal", "Rashida Kamal", "Mark Lam", "Cara Neel", "Jacky Chen", "Clareese Hill", "Manu Jain", "Su He", "Atharva Patil", "Son Luu", "Nianqi Zhang", "Anna Gudnason", "Yunze Shi", "Winnie Yoe", "Chenhe Zhang", "Joseph Baker", "Gabriella Garcia", "Ellie Lin", "Yuguang Zhang", "Eva Philips", "David Azar", "Marcela Mancino", "Antonio Guimaraes", "SJ Zhang", "Joy Antwi", "Arnab Chakravarty", "Jiwon Shin", "Sukanya Aneja", "Brent Bailey"];
+
+		let textDepth = 0.1;
+		let curveSegments = 3;
+		let hallwayX = 0.5;
+		let hallwayStartZ = -10;
+		let hallwayCutoff = 65;
+		for (let i = 0; i < hallwayCutoff; i++) {
+			let message = names[i];
+			let horizontalOffset = this.randomRange(-0.25, 0.25)
+			let txt = this.create3DText(message, 0.15, textDepth, curveSegments, 0.01, 0.01, false, false);
+			txt.position.set(hallwayX + horizontalOffset, this.randomRange(1, 2.5), hallwayStartZ - (i * 1));
+			txt.rotateY(0);
+			this.scene.add(txt);
+		}
+		hallwayX = -19;
+		hallwayStartZ = -70;
+		for (let i = hallwayCutoff; i < names.length; i++) {
+			let cc = i - hallwayCutoff;
+			let message = names[i];
+			let horizontalOffset = this.randomRange(-0.25, 0.25)
+			let txt = this.create3DText(message, 0.15, textDepth, curveSegments, 0.01, 0.01, false, false);
+			txt.position.set(hallwayX + horizontalOffset, this.randomRange(1, 2.5), -70 + (cc * 1));
+			txt.rotateY(Math.PI);
+			this.scene.add(txt);
+		}
+
+		textDepth = 0.25;
+
+		let message = "CONGRATULATIONS";
+		let txt = this.create3DText(message, 1.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-22, 1.8, -14);
+		txt.rotateY(Math.PI/2);
+		this.scene.add(txt);
+
+		message = "ITP & IMA!";
+		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-20, 0.3, -15);
+		txt.rotateY(Math.PI/2);
+		this.scene.add(txt);
+
+		message = "Capstone 2020!";
+		txt = this.create3DText(message, 0.5, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-15, 1.5, -7.5);
+		txt.rotateY(Math.PI/2 + Math.PI/4);
+		this.scene.add(txt);
+
+		message = "Thesis 2020!";
+		txt = this.create3DText(message, 0.5, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-13, 1.5, -18);
+		txt.rotateY(Math.PI/2 - Math.PI/4);
+		this.scene.add(txt);
+
+		message = "ITP / IMA";
+		txt = this.create3DText(message, 1.5, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-1.75, 1, -1);
+		txt.rotateY(Math.PI/2);
+		this.scene.add(txt);
+		// let message = "CONGRATULATIONS! \n THESIS 2020!";
+		// let txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
+		// txt.position.set(-22, 2, -14);
+		// txt.rotateY(Math.PI/2);
+		// this.scene.add(txt);
+	}
+
 	/*
 	* updateProjects(projects) 
 	*
@@ -825,7 +892,7 @@ class Scene {
 
 			let uniqueProjects = [];
 
-			for (let projectIndex = 0; projectIndex < projects.length; projectIndex ++) {
+			for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
 				let proj = projects[projectIndex];
 				let project_id = proj.project_id;
 
@@ -1471,7 +1538,7 @@ class Scene {
 		}
 
 
-		this.stats.update();
+		// this.stats.update();
 		this.updatePositions(); // other users
 		this.render();
 	}
