@@ -372,7 +372,7 @@ async function runSocketServer() {
         // let { peerId } = req.body;
         let peerId = socket.id;
         let now = Date.now();
-        log('join-as-new-peer', peerId);
+        console.log('join-as-new-peer', peerId);
 
         // assign random room:
         let peerLoc = getRandomInt(0, numCPUs - 1);
@@ -406,7 +406,7 @@ async function runSocketServer() {
       try {
         // let { peerId } = req.body;
         let peerId = socket.id;
-        log('leave', peerId);
+        console.log('leave', peerId);
 
         await closePeer(peerId);
         callback({ left: true });
@@ -428,7 +428,7 @@ async function runSocketServer() {
         let peerLoc = peerLocations[peerId.toString()];
         // let { peerId, direction } = req.body;
         let { direction } = data;
-        log('create-transport', peerId, direction);
+        console.log('create-transport', peerId, direction);
 
         let transport = await createWebRtcTransport({ peerId, direction });
         roomStates[peerLoc].transports[transport.id] = transport;
@@ -464,7 +464,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('connect-transport', peerId, transport.appData);
+        console.log('connect-transport', peerId, transport.appData);
 
         await transport.connect({ dtlsParameters });
         callback({ connected: true });
@@ -495,7 +495,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('close-transport', peerId, transport.appData);
+        console.log('close-transport', peerId, transport.appData);
 
         await closeTransport(transport, peerId);
         callback({ closed: true });
@@ -524,7 +524,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('close-producer', peerId, producer.appData);
+        console.log('close-producer', peerId, producer.appData);
 
         // await closeProducer(producer, peerId);
         await closeProducerAndAllPipeProducers(producer, peerId);
@@ -576,13 +576,13 @@ async function runSocketServer() {
             let { pipeProducer } = await routers[peerLoc].pipeToRouter({ producerId: producer.id, router: routers[i] })
             // await routers[peerLoc].pipeToRouter({ producerId: peerId, router: routers[i] })
             roomStates[i].producers.push(pipeProducer);
-            console.log("Adding pipeProducer to room #", i);
+            // console.log("Adding pipeProducer to room #", i);
           }
         }
 
         // if our associated transport closes, close ourself, too
         producer.on('transportclose', () => {
-          log('producer\'s transport closed', producer.id);
+          console.log('producer\'s transport closed', producer.id);
           closeProducerAndAllPipeProducers(producer, peerId);
           // closeProducer(producer, peerId);
           
@@ -665,11 +665,11 @@ async function runSocketServer() {
         // to make sure we close and clean up consumers in all
         // circumstances
         consumer.on('transportclose', () => {
-          log(`consumer's transport closed`, consumer.id);
+          console.log(`consumer's transport closed`, consumer.id);
           closeConsumer(consumer, peerId);
         });
         consumer.on('producerclose', () => {
-          log(`consumer's producer closed`, consumer.id);
+          console.log(`consumer's producer closed`, consumer.id);
           closeConsumer(consumer, peerId);
         });
 
@@ -684,7 +684,7 @@ async function runSocketServer() {
 
         // update above data structure when layer changes.
         consumer.on('layerschange', (layers) => {
-          log(`consumer layerschange ${mediaPeerId}->${peerId}`, mediaTag, layers);
+          console.log(`consumer layerschange ${mediaPeerId}->${peerId}`, mediaTag, layers);
           if (roomStates[peerLoc].peers[peerId] &&
             roomStates[peerLoc].peers[peerId].consumerLayers[consumer.id]) {
             roomStates[peerLoc].peers[peerId].consumerLayers[consumer.id]
@@ -724,7 +724,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('pause-consumer', consumer.appData);
+        console.log('pause-consumer', consumer.appData);
 
         await consumer.pause();
 
@@ -753,7 +753,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('resume-consumer', consumer.appData);
+        console.log('resume-consumer', consumer.appData);
 
         await consumer.resume();
 
@@ -811,7 +811,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('consumer-set-layers', spatialLayer, consumer.appData);
+        console.log('consumer-set-layers', spatialLayer, consumer.appData);
 
         await consumer.setPreferredLayers({ spatialLayer });
 
@@ -840,7 +840,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('pause-producer', producer.appData);
+        console.log('pause-producer', producer.appData);
 
         await producer.pause();
 
@@ -871,7 +871,7 @@ async function runSocketServer() {
           return;
         }
 
-        log('resume-producer', producer.appData);
+        console.log('resume-producer', producer.appData);
 
         await producer.resume();
 
@@ -965,7 +965,7 @@ async function startMediasoup() {
 }
 
 function closePeer(peerId) {
-  log('closing peer', peerId);
+  console.log('closing peer', peerId);
   let peerLoc = peerLocations[peerId.toString()];
   for (let [id, transport] of Object.entries(roomStates[peerLoc].transports)) {
     if (transport.appData.peerId === peerId) {
@@ -978,7 +978,7 @@ function closePeer(peerId) {
 async function closeTransport(transport, peerId) {
   try {
     let peerLoc = peerLocations[peerId.toString()];
-    log('closing transport', transport.id, transport.appData);
+    console.log('closing transport', transport.id, transport.appData);
 
     // our producer and consumer event handlers will take care of
     // calling closeProducer() and closeConsumer() on all the producers
@@ -1014,7 +1014,7 @@ async function closeTransport(transport, peerId) {
 // }
 
 async function closeProducerAndAllPipeProducers(producer, peerId) {
-  log('closing producer', producer.id, producer.appData);
+  console.log('closing producer', producer.id, producer.appData);
   try {
     let peerLoc = peerLocations[peerId.toString()];
 
@@ -1027,7 +1027,7 @@ async function closeProducerAndAllPipeProducers(producer, peerId) {
         // remove this producer from our roomState.producers list
         roomStates[i].producers = roomStates[i].producers
           .filter((p) => p.id !== producer.id);
-        console.log("Removing pipe producer from room #",i);
+        // console.log("Removing pipe producer from room #",i);
       }
     }
 
@@ -1052,7 +1052,7 @@ async function closeProducerAndAllPipeProducers(producer, peerId) {
 
 
 async function closeConsumer(consumer, peerId) {
-  log('closing consumer', consumer.id, consumer.appData);
+  console.log('closing consumer', consumer.id, consumer.appData);
   let peerLoc = peerLocations[peerId.toString()];
   await consumer.close();
 
