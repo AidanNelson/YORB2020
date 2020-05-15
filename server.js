@@ -268,7 +268,8 @@ async function runSocketServer() {
 
     //Add a new client indexed by his id
     clients[socket.id] = {
-      position: [0, 0.5, 0],
+      position: [1000,0.5,1000], // deal with phantom clients by putting them way away in the distance until they update their position
+      // position: [0, 0.5, 0],
       // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
       rotation: [0, 0, 0]
     }
