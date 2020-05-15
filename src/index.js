@@ -57,7 +57,7 @@ export let mySocketID,
 	camAudioProducer,
 	screenVideoProducer,
 	screenAudioProducer,
-	currentActiveSpeaker = {},
+	// currentActiveSpeaker = {},
 	consumers = [],
 	pollingInterval,
 	webcamVideoPaused = false,
@@ -996,14 +996,15 @@ async function createTransport(direction) {
 //
 
 async function pollAndUpdate() {
-	let { peers, activeSpeaker, error } = await socket.request('sync');
+	let { peers, error } = await socket.request('sync');
 
 	if (error) {
 		return ({ error });
 	}
 
+	// console.log(producers);
 	// always update bandwidth stats and active speaker display
-	currentActiveSpeaker = activeSpeaker;
+	// currentActiveSpeaker = activeSpeaker;
 
 	// decide if we need to update tracks list and video/audio
 	// elements. build list of peers, sorted by join time, removing last
@@ -1064,11 +1065,11 @@ async function pollAndUpdate() {
 	return ({}); // return an empty object if there isn't an error
 }
 
-function sortPeers(peers) {
-	return Object.entries(peers)
-		.map(([id, info]) => ({ id, joinTs: info.joinTs, media: { ...info.media } }))
-		.sort((a, b) => (a.joinTs > b.joinTs) ? 1 : ((b.joinTs > a.joinTs) ? -1 : 0));
-}
+// function sortPeers(peers) {
+// 	return Object.entries(peers)
+// 		.map(([id, info]) => ({ id, joinTs: info.joinTs, media: { ...info.media } }))
+// 		.sort((a, b) => (a.joinTs > b.joinTs) ? 1 : ((b.joinTs > a.joinTs) ? -1 : 0));
+// }
 
 function findConsumerForTrack(peerId, mediaTag) {
 	return consumers.find((c) => (c.appData.peerId === peerId &&
