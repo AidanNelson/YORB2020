@@ -786,11 +786,11 @@ class Scene {
 
 
 
-		message = "Use your mouse to\nlook at a project & \nclick to activate!";
-		txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-8.5, 2, -14);
-		txt.rotateY(Math.PI / 2);
-		this.scene.add(txt);
+		// message = "Use your mouse to\nlook at a project & \nclick to activate!";
+		// txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
+		// txt.position.set(-8.5, 2, -14);
+		// txt.rotateY(Math.PI / 2);
+		// this.scene.add(txt);
 
 	}
 
@@ -830,13 +830,14 @@ class Scene {
 				let project_id = proj.project_id;
 
 				if (dupeCheck[project_id]) {
-					console.log('Duplicate with ID: ', proj.project_id);
+					// console.log('Duplicate with ID: ', proj.project_id);
 				} else {
 					dupeCheck[project_id] = true;
 					numUniqueProjects++;
 					uniqueProjects.push(proj);
 				}
 			}
+			console.log("Number of total projects: ", this.projects.length);
 			console.log("Number of unique projects: ", numUniqueProjects);
 
 

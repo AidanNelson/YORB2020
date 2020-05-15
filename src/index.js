@@ -180,7 +180,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			console.log(_projects);
+			// console.log(_projects);
 			updateProjects(_projects);
 		});
 
