@@ -45,6 +45,12 @@ class Scene {
 		this.hightlightedProjectId = -1; // to start
 
 
+		// audio variables:
+		this.distanceThresholdSquared = 500;
+		this.rolloffNumerator = 5;
+
+
+
 		// STATS for debugging:
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
@@ -1565,18 +1571,15 @@ class Scene {
 
 
 	updateClientVolumes() {
-		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
-		let numerator = 50; // TODO rename this
-
 		for (let _id in this.clients) {
 			if (this.clients[_id].audioElement) {
 				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
-				if (distSquared > distanceThresholdSquared) {
+				if (distSquared > this.distanceThresholdSquared) {
 					// TODO pause consumer here, rather than setting volume to zero
 					this.clients[_id].audioElement.volume = 0;
 				} else {
 					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
-					let volume = Math.min(1, numerator / distSquared);
+					let volume = Math.min(1, this.rolloffNumerator / distSquared);
 					this.clients[_id].audioElement.volume = volume;
 				}
 			}
@@ -1584,12 +1587,10 @@ class Scene {
 	}
 
 	selectivelyPauseAndResumeConsumers() {
-		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
-
 		for (let _id in this.clients) {
 			if (this.clients[_id].audioElement) {
 				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
-				if (distSquared > distanceThresholdSquared) {
+				if (distSquared > this.distanceThresholdSquared) {
 					pauseAllConsumersForPeer(_id);
 				} else {
 					resumeAllConsumersForPeer(_id);
