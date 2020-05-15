@@ -290,9 +290,11 @@ function setupControls() {
 function toggleWebcamImage() {
 	let webcamImage = document.getElementById("webcam-status-image");
 	if (getCamPausedState()) {
-		webcamImage.style.visibility = "hidden";
+		// webcamImage.style.visibility = "hidden";
+		webcamImage.src = "images/no-webcam.png";
 	} else {
-		webcamImage.style.visibility = "visible";
+		// webcamImage.style.visibility = "visible";
+		webcamImage.src = "images/webcam.png";
 	}
 
 }
@@ -300,9 +302,11 @@ function toggleWebcamImage() {
 function toggleMicrophoneImage() {
 	let micImg = document.getElementById("microphone-status-image");
 	if (getMicPausedState()) {
-		micImg.style.visibility = "hidden";
+		// micImg.style.visibility = "hidden";
+		micImg.src="images/no-mic.png";
 	} else {
-		micImg.style.visibility = "visible";
+		// micImg.style.visibility = "visible";
+		micImg.src="images/mic.png";
 	}
 }
 
