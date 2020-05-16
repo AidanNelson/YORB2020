@@ -313,6 +313,21 @@ body {
     /* Could be more or less, depending on screen size */
 }
 
+.project-modal-img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+}
+
+.project-modal-title {
+    text-align: center;
+}
+.project-modal-names {
+    text-align: center;
+    font-size: 14px;
+}
+
 /* The Close Button */
 .close {
     color: #aaa;

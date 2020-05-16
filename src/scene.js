@@ -43,6 +43,8 @@ class Scene {
 			y: 0
 		};
 		this.hightlightedProjectId = -1; // to start
+		this.textureLoader = new THREE.TextureLoader();
+
 
 
 		// audio variables:
@@ -740,6 +742,7 @@ class Scene {
 	// Interactable Hyperlinks for Spring Show 💎
 
 	setupSpringShow() {
+		this.linkMaterials = {};
 		var loader = new THREE.FontLoader();
 		// https://gero3.github.io/facetype.js/
 		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
@@ -825,7 +828,7 @@ class Scene {
 
 			let uniqueProjects = [];
 
-			for (let projectIndex = 0; projectIndex < projects.length; projectIndex ++) {
+			for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
 				let proj = projects[projectIndex];
 				let project_id = proj.project_id;
 
@@ -841,12 +844,20 @@ class Scene {
 			console.log("Number of unique projects: ", numUniqueProjects);
 
 
+			for (let i = 0; i < uniqueProjects.length; i++) {
+				let proj = uniqueProjects[i];
+				let locX = -23.55;
+				let locZ = -78 + (i * 1);
+				let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+				this.hyperlinkedObjects.push(hyperlink);
+				this.scene.add(hyperlink);
+			}
 
 			// console.log(dupeCheck);
 
 			// let locZ = startingPosZ + ((projectIndex % numProjectsPerRow) * projectSpacing);
 
-			// // when we turn around the row, reset gap counter
+			// when we turn around the row, reset gap counter
 			// if (projectIndex % numProjectsPerRow == 0) {
 			// 	// locX = -22;
 			// 	locX += 2;
@@ -855,7 +866,7 @@ class Scene {
 			// }
 
 
-			// //  every 5 projects, add a gap
+			//  every 5 projects, add a gap
 			// if (gapCounter % 5 == 0) {
 			// 	gapIndex += 1
 			// };
@@ -912,27 +923,36 @@ class Scene {
 	*/
 	createHyperlinkedMesh(x, y, z, _project) {
 
-		// let linkHoverHeight = 1.5;
-		let linkHoverHeight = 0.0;
-		let linkRadius = 0.5;
-		// let linkHeight = 1;
-		// let linkWidth = 0.75;
-		let linkDepth = 0.25;
-		let fontColor = 0x232323;
+		let linkDepth = 0.1;
+		let fontColor = 0x343434;
 		let fontSize = 0.05;
 
-		var geometry = new THREE.CylinderGeometry(linkRadius, linkRadius, linkDepth, 16);
-		// var geometry = new THREE.BoxGeometry(linkDepth, linkHeight, linkWidth);
-		let mat;
+		var geometry = new THREE.BoxGeometry(linkDepth, 0.75, 0.75);
+		var textBoxGeometry = new THREE.BoxGeometry(linkDepth, 0.5, 0.75);
+		let textBoxMat;
 
 		// check whether we've visited the link before and set material accordingly
 		if (localStorage.getItem(_project.project_id) == "visited") {
-			mat = this.linkVisitedMaterial;
+			textBoxMat = this.linkVisitedMaterial;
 		} else {
-			mat = this.linkMaterial;
+			textBoxMat = this.linkMaterial;
 		}
 
-		var sign = new THREE.Mesh(geometry, mat);
+		let filename = "images/project_thumbnails/" + _project.project_id + ".png";
+
+		let tex = this.textureLoader.load(filename);
+		tex.wrapS = THREE.RepeatWrapping;
+		tex.wrapT = THREE.RepeatWrapping;
+		tex.repeat.set(1, 1);
+		let imageMat = new THREE.MeshLambertMaterial({
+			color: 0xffffff,
+			map: tex
+		});
+
+		this.linkMaterials[_project.project_id.toString()] = imageMat;
+
+		var textSign = new THREE.Mesh(textBoxGeometry, textBoxMat);
+		var imageSign = new THREE.Mesh(geometry, imageMat);
 
 		// parse text of name and add line breaks if necessary
 		var name = this.parseText(_project.project_name)
@@ -943,25 +963,23 @@ class Scene {
 		// create name text mesh
 		var textMesh = this.createSimpleText(name, fontColor, fontSize);
 
-		// textMesh.position.y += 0.2; // offset up
-		// textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
-		textMesh.position.y += (linkDepth / 2) + 0.01; // offset forward
-		textMesh.rotateZ(Math.PI / 2);
+		textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
 		textMesh.rotateY(Math.PI / 2);
 
-		sign.position.set(x, linkHoverHeight, z);
+		imageSign.position.set(x, y, z);
+		textSign.position.set(0, -0.75 / 2 - 0.5 / 2, 0);
+		textSign.add(textMesh);
+		imageSign.add(textSign);
 
-		sign.add(textMesh);
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
 		let now = Date.now();
-		sign.userData = {
+		imageSign.userData = {
 			project: _project,
 			lastVisitedTime: now
 		}
 
-		sign.name = _project.project_id;
-
-		return sign;
+		imageSign.name = _project.project_id;
+		return imageSign;
 	}
 
 	/*
@@ -985,8 +1003,6 @@ class Scene {
 
 		if (!document.getElementsByClassName("project-modal")[0]) {
 			localStorage.setItem(project.project_id, "visited");
-			this.scene.getObjectByName(project.project_id).material = this.linkVisitedMaterial;
-
 
 			let id = project.project_id;
 			let name = project.project_name;
@@ -1012,27 +1028,61 @@ class Scene {
 			});
 			closeButton.innerHTML = "X";
 
+			let projectImageEl = document.createElement('img');
+			let filename = "https://itp.nyu.edu" + project.image;
+			projectImageEl.src = filename;
+			projectImageEl.className = "project-modal-img";
+
+
 			let titleEl = document.createElement('h1');
 			titleEl.innerHTML = this.parseText(name);
+			titleEl.className = "project-modal-title"
+
+			// names
+			let names = "";
+			for (let i = 0; i < project.users.length; i++) {
+				names += project.users[i].user_name;
+				if (i < project.users.length - 1) {
+					names += " & ";
+				}
+			}
+			let namesEl = document.createElement('p');
+			namesEl.innerHTML = names;
+			namesEl.className = "project-modal-names";
 
 			let elevatorPitchEl = document.createElement('p');
-			elevatorPitchEl.innerHTML = this.parseText(pitch);
+			elevatorPitchEl.innerHTML = "Elevator Pitch: " + this.parseText(pitch);
 
 			let descriptionEl = document.createElement('p');
-			descriptionEl.innerHTML = this.parseText(description);
+			descriptionEl.innerHTML = "Description: " + this.parseText(description);
 
-			let linkEl = document.createElement('a');
-			// linkEl.href = link;
-			linkEl.href = "https://itp.nyu.edu/shows/spring2020/";
-			linkEl.innerHTML = "Zoom Link";
-			linkEl.target = "_blank";
-			linkEl.rel = "noopener noreferrer";
+
+			let projectLinkEl = document.createElement('a');
+			// projectLinkEl.href = link;
+			projectLinkEl.href = project.url;
+			projectLinkEl.innerHTML = "Project Website";
+			projectLinkEl.target = "_blank";
+			projectLinkEl.rel = "noopener noreferrer";
+
+
+			let zoomLinkEl = document.createElement('a');
+			// zoomLinkEl.href = link;
+			zoomLinkEl.href = "https://itp.nyu.edu/shows/spring2020/";
+			zoomLinkEl.innerHTML = "Zoom Link";
+			zoomLinkEl.target = "_blank";
+			zoomLinkEl.rel = "noopener noreferrer";
+
+
+
 
 			contentEl.appendChild(closeButton);
+			contentEl.appendChild(projectImageEl);
 			contentEl.appendChild(titleEl);
+			contentEl.appendChild(namesEl);
 			contentEl.appendChild(elevatorPitchEl);
 			contentEl.appendChild(descriptionEl);
-			contentEl.appendChild(linkEl);
+			contentEl.appendChild(projectLinkEl);
+			contentEl.appendChild(zoomLinkEl);
 
 			modalEl.appendChild(contentEl);
 			document.body.appendChild(modalEl);
@@ -1063,10 +1113,10 @@ class Scene {
 		if (intersects.length > 0) {
 			if (intersects[0].distance < thresholdDist) {
 				let link = intersects[0].object;
-				link.material = this.testMaterial;
-				link.userData.highlighted = true;
-				link.userData.lastVisitedTime = now;
 				this.hightlightedProjectId = link.userData.project.project_id;
+				// do styling
+				this.highlightLink(link);
+
 			}
 		}
 
@@ -1074,44 +1124,45 @@ class Scene {
 		if (lastHighlightedProjectId != this.hightlightedProjectId) {
 			let link = this.scene.getObjectByName(lastHighlightedProjectId);
 			if (link != null) {
-				link.material = this.linkMaterial;
+				// reset styling
+				this.resetLinkMaterial(link);
 			}
 		} else {
 			// no change, so lets check for 
 			let link = this.scene.getObjectByName(this.hightlightedProjectId);
 			if (link != null) {
 				if (now - link.userData.lastVisitedTime > 500) {
-
+					// reset styling
 					this.hightlightedProjectId = -1;
-
-					// reset according to whether we have visited it or not yet
-					let mat;
-					// check whether we've visited the link before and set material accordingly
-					if (localStorage.getItem(link.userData.project.project_id) == "visited") {
-						mat = this.linkVisitedMaterial;
-					} else {
-						mat = this.linkMaterial;
-					}
-
-					link.material = mat;
+					this.resetLinkMaterial(link);
 				}
 			}
 		}
 
-		// let thresholdDistanceSquared = 1.25;
 
-		// let pos = new THREE.Vector3(this.camera.position.x, 0, this.camera.position.z);
-		// for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-		// 	let link = this.hyperlinkedObjects[i];
-		// 	let distSquared = pos.distanceToSquared(link.position);
-		// 	if (distSquared < thresholdDistanceSquared) {
-		// 		if (now - link.userData.lastVisitedTime > 3000) { // cooldown period for the link
-		// 			this.controls.unlock();
-		// 			link.userData.lastVisitedTime = now;
-		// 			this.generateProjectModal(link.userData.project);
-		// 		}
-		// 	}
-		// }
+	}
+
+	highlightLink(link) {
+		let now = Date.now();
+		link.userData.lastVisitedTime = now;
+		link.userData.highlighted = true;
+
+		link.children[0].material = this.testMaterial;
+		link.scale.set(1.1, 1.1, 1.1);
+	}
+
+	resetLinkMaterial(link) {
+		link.scale.set(1, 1, 1);
+		// reset according to whether we have visited it or not yet
+		let mat;
+		// check whether we've visited the link before and set material accordingly
+		if (localStorage.getItem(link.userData.project.project_id) == "visited") {
+			mat = this.linkVisitedMaterial;
+		} else {
+			mat = this.linkMaterial;
+		}
+		console.log(link);
+		link.children[0].material = mat;
 	}
 
 	activateHighlightedProject() {
