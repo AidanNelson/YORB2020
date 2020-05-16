@@ -843,45 +843,192 @@ class Scene {
 			console.log("Number of total projects: ", this.projects.length);
 			console.log("Number of unique projects: ", numUniqueProjects);
 
+			if (numUniqueProjects > 0) { // if the projects have been updated
+				let startIndex = 0;
+				let endIndex = 96;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -23.55;
+					let locZ = -80 + (i * 1);
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
 
-			for (let i = 0; i < uniqueProjects.length; i++) {
-				let proj = uniqueProjects[i];
-				let locX = -23.55;
-				let locZ = -78 + (i * 1);
-				let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-				this.hyperlinkedObjects.push(hyperlink);
-				this.scene.add(hyperlink);
+				startIndex = endIndex;
+				endIndex = endIndex + 16;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -14;
+					let offset = (i - startIndex * 1);
+					let locZ = -6 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 12;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -14;
+					let offset = (i - startIndex * 1);
+					let locZ = -30 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 5;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -14;
+					let offset = (i - startIndex * 1);
+					let locZ = -42.75 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+
+				startIndex = endIndex;
+				endIndex = endIndex + 10;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -7;
+					let offset = (i - startIndex * 1);
+					let locZ = -57 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 18;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -7;
+					let offset = (i - startIndex * 1);
+					let locZ = -77 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 11;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -23.55;
+					let offset = (i - startIndex * 1);
+					let locZ = -93 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					// hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 11;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -17.25;
+					let offset = (i - startIndex * 1);
+					let locZ = -93 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 11;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -16;
+					let offset = (i - startIndex * 1);
+					let locZ = -93 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					// hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 11;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = -23.55;
+					let offset = (i - startIndex * 1);
+					let locZ = -106 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					// hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = endIndex + 8;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let locX = 1.25;
+					let offset = (i - startIndex * 1);
+					let locZ = -106 + offset;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				// along x axis:
+
+				startIndex = endIndex;
+				endIndex = endIndex + 19;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let offset = (i - startIndex * 1);
+					let locX = -21 + offset;
+					let locZ = -106.5;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(-Math.PI/2);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				startIndex = endIndex;
+				endIndex = uniqueProjects.length;
+				for (let i = startIndex; i < endIndex; i++) {
+					let proj = uniqueProjects[i];
+					let offset = (i - startIndex * 1);
+					let locX = -21 + offset;
+					let locZ = -95.125;
+					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+					hyperlink.rotateY(Math.PI/2);
+					this.hyperlinkedObjects.push(hyperlink);
+					this.scene.add(hyperlink);
+				}
+
+				console.log("We've placed ", endIndex, " projects so far.")
 			}
 
-			// console.log(dupeCheck);
-
-			// let locZ = startingPosZ + ((projectIndex % numProjectsPerRow) * projectSpacing);
-
-			// when we turn around the row, reset gap counter
-			// if (projectIndex % numProjectsPerRow == 0) {
-			// 	// locX = -22;
-			// 	locX += 2;
-			// 	gapIndex = 0;
-			// 	gapCounter = 0;
+			// startIndex = endIndex;
+			// endIndex = 200;
+			// for (let i = startIndex; i < endIndex; i++) {
+			// 	let proj = uniqueProjects[i];
+			// 	let locX = -23.55;
+			// 	let offset = (i - startIndex * 1);
+			// 	let locZ = -80 + offset;
+			// 	let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+			// 	this.hyperlinkedObjects.push(hyperlink);
+			// 	this.scene.add(hyperlink);
 			// }
 
-
-			//  every 5 projects, add a gap
-			// if (gapCounter % 5 == 0) {
-			// 	gapIndex += 1
-			// };
-
-			// locZ += (gapIndex * gapSpacing);
-
-			// gapCounter++;
-
-			// let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, projects[projectIndex]);
-			// // hyperlink.rotateZ(Math.PI/2);
-			// // if (projectIndex > numProjectsPerRow) {
-			// // 	hyperlink.rotateY(Math.PI);
-			// // }
-			// this.hyperlinkedObjects.push(hyperlink);
-			// this.scene.add(hyperlink);
 		}
 	}
 
@@ -1050,12 +1197,21 @@ class Scene {
 			namesEl.innerHTML = names;
 			namesEl.className = "project-modal-names";
 
+			let elevatorPitchHeaderEl = document.createElement('p');
+			elevatorPitchHeaderEl.innerHTML = "Elevator Pitch";
 			let elevatorPitchEl = document.createElement('p');
-			elevatorPitchEl.innerHTML = "Elevator Pitch: " + this.parseText(pitch);
+			elevatorPitchEl.innerHTML = this.parseText(pitch);
+			elevatorPitchEl.className = "project-modal-text";
 
+			let descriptionHeaderEl = document.createElement('p');
+			descriptionHeaderEl.innerHTML = "Description";
 			let descriptionEl = document.createElement('p');
-			descriptionEl.innerHTML = "Description: " + this.parseText(description);
+			descriptionEl.innerHTML = this.parseText(description);
+			descriptionEl.className = "project-modal-text"
 
+
+			let linksDiv = document.createElement('div');
+			linksDiv.className = "project-modal-link-container";
 
 			let projectLinkEl = document.createElement('a');
 			// projectLinkEl.href = link;
@@ -1067,22 +1223,26 @@ class Scene {
 
 			let zoomLinkEl = document.createElement('a');
 			// zoomLinkEl.href = link;
-			zoomLinkEl.href = "https://itp.nyu.edu/shows/spring2020/";
+			zoomLinkEl.href = link;
 			zoomLinkEl.innerHTML = "Zoom Link";
 			zoomLinkEl.target = "_blank";
 			zoomLinkEl.rel = "noopener noreferrer";
 
-
+			linksDiv.appendChild(projectLinkEl);
+			linksDiv.innerHTML += "&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;";
+			linksDiv.appendChild(zoomLinkEl);
 
 
 			contentEl.appendChild(closeButton);
 			contentEl.appendChild(projectImageEl);
 			contentEl.appendChild(titleEl);
 			contentEl.appendChild(namesEl);
+			contentEl.appendChild(elevatorPitchHeaderEl);
 			contentEl.appendChild(elevatorPitchEl);
+			contentEl.appendChild(descriptionHeaderEl);
 			contentEl.appendChild(descriptionEl);
-			contentEl.appendChild(projectLinkEl);
-			contentEl.appendChild(zoomLinkEl);
+			contentEl.appendChild(linksDiv);
+
 
 			modalEl.appendChild(contentEl);
 			document.body.appendChild(modalEl);
@@ -1099,7 +1259,7 @@ class Scene {
 	*/
 	highlightHyperlinks() {
 
-		let thresholdDist = 3;
+		let thresholdDist = 5;
 		let now = Date.now();
 
 		// store reference to last highlighted project id
