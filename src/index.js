@@ -318,10 +318,10 @@ function toggleMicrophoneImage() {
 	let micImg = document.getElementById("microphone-status-image");
 	if (getMicPausedState()) {
 		// micImg.style.visibility = "hidden";
-		micImg.src="images/no-mic.png";
+		micImg.src = "images/no-mic.png";
 	} else {
 		// micImg.style.visibility = "visible";
-		micImg.src="images/mic.png";
+		micImg.src = "images/mic.png";
 	}
 }
 
@@ -500,13 +500,14 @@ export async function joinRoom() {
 	}
 
 	// super-simple signaling: let's poll at 1-second intervals
-	pollingInterval = setInterval(async () => {
-		let { error } = await pollAndUpdate();
-		if (error) {
-			clearInterval(pollingInterval);
-			err(error);
-		}
-	}, 1000);
+	// pollingInterval = setInterval(async () => {
+	// 	let { error } = await pollAndUpdate();
+	// 	if (error) {
+	// 		clearInterval(pollingInterval);
+	// 		err(error);
+	// 	}
+	// }, 1000);
+	await pollAndUpdate();
 }
 
 export async function sendCameraStreams() {
@@ -796,7 +797,7 @@ export async function subscribeToTrack(peerId, mediaTag) {
 		await sleep(100);
 	}
 	// okay, we're ready. let's ask the peer to send us media
-	await resumeConsumer(consumer);
+	//await resumeConsumer(consumer);
 
 	// keep track of all our consumers
 	consumers.push(consumer);
@@ -1021,7 +1022,12 @@ async function pollAndUpdate() {
 	let { peers, error } = await socket.request('sync');
 
 	if (error) {
-		return ({ error });
+		err('PollAndUpdateError: ', error);
+		// return ({ error });
+	}
+
+	if (!mySocketID in peers) {
+		warn("Server doesn't think you're connected!");
 	}
 
 	// console.log(producers);
@@ -1040,8 +1046,18 @@ async function pollAndUpdate() {
 		if (id !== mySocketID) {
 			for (let [mediaTag, info] of Object.entries(peers[id].media)) {
 				if (!findConsumerForTrack(id, mediaTag)) {
-					log(`auto subscribing to track that ${id} has added`);
-					await subscribeToTrack(id, mediaTag);
+					// if we've seen this peer before, check if we already started a subscription request
+					if (lastPollSyncData[id]) {
+						if (!lastPollSyncData[id].subscriptionStarted) {
+							lastPollSyncData[id].subscriptionStarted = true;
+							lastPollSyncData[id].paused = true;
+						}
+					} else {
+						log(`auto subscribing to track that ${id} has added`);
+						await subscribeToTrack(id, mediaTag);
+						peers[id].subscriptionStarted = true;
+						peers[id].paused = true;
+					}
 				}
 			}
 		}
@@ -1081,10 +1097,19 @@ async function pollAndUpdate() {
 				newLastPollSyncData[id].paused = true;
 			}
 		}
+		if (lastPollSyncData[id].subscriptionStarted) {
+			if (newLastPollSyncData[id]) {
+				newLastPollSyncData[id].subscriptionStarted = true;
+			}
+		}
 	}
 	lastPollSyncData = newLastPollSyncData;
-	// lastPollSyncData = peers;
-	return ({}); // return an empty object if there isn't an error
+
+
+	setTimeout(pollAndUpdate, 1000);
+
+	// return ({}); // return an empty object if there isn't an error
+
 }
 
 // function sortPeers(peers) {
