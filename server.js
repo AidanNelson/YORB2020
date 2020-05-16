@@ -55,7 +55,7 @@ const err = debugModule('demo-app:ERROR');
 // let worker, router, audioLevelObserver;
 let workers = [];
 let routers = [];
-let audioLevelObservers = [];
+// let audioLevelObservers = [];
 let roomStates = [];
 
 //
@@ -164,19 +164,19 @@ const numCPUs = os.cpus().length
 
 async function main() {
   // start mediasoup
-  console.log('starting mediasoup');
+  log('starting mediasoup');
   for (let i = 0; i < numCPUs; i++) {
-    console.log("Starting Mediasoup worker in CPU #", i);
-    let worker, router, audioLevelObserver, roomState;
-    ({ worker, router, audioLevelObserver, roomState } = await startMediasoup());
+    log("Starting Mediasoup worker in CPU #", i);
+    let worker, router, roomState;
+    ({ worker, router, roomState } = await startMediasoup());
     workers[i] = worker;
     routers[i] = router;
-    audioLevelObservers[i] = audioLevelObserver;
+    // audioLevelObservers[i] = audioLevelObserver;
     roomStates[i] = roomState;
   }
 
   // start https server, falling back to http if https fails
-  console.log('starting express');
+  log('starting express');
   try {
 
 
@@ -191,7 +191,7 @@ async function main() {
 
     await new Promise((resolve) => {
       httpsServer.listen(config.httpPort, config.httpIp, () => {
-        console.log(`server is running and listening on ` +
+        log(`server is running and listening on ` +
           `https://${config.httpIp}:${config.httpPort}`);
         resolve();
       });
@@ -204,7 +204,7 @@ async function main() {
       err('could not start https server', e);
     }
     expressApp.listen(config.httpPort, config.httpIp, () => {
-      console.log(`http server listening on port ${config.httpPort}`);
+      log(`http server listening on port ${config.httpPort}`);
     });
   }
 
@@ -225,7 +225,7 @@ async function main() {
   }, 1000);
 
   // periodically update video stats we're sending to peers
-  setInterval(updatePeerStats, 3000);
+  // setInterval(updatePeerStats, 3000);
 
   updateProjects();
   // setInterval(updateProjects, 300000); // update projects every five minutes
@@ -249,12 +249,12 @@ async function updateProjects() {
       // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
       var json = JSON.parse(body);
       projects = json;
-      console.log("Updated projects from database.");
-      // console.log(projects);
+      log("Updated projects from database.");
+      // log(projects);
       io.sockets.emit('projects', projects);
     });
   }).on('error', function (e) {
-    console.log("Got an error: ", e);
+    log("Got an error: ", e);
   });
 }
 
@@ -275,7 +275,7 @@ async function runSocketServer() {
 
   io.on('connection', (socket) => {
 
-    console.log('User ' + socket.id + ' connected, there are ' + io.engine.clientsCount + ' clients connected');
+    log('User ' + socket.id + ' connected, there are ' + io.engine.clientsCount + ' clients connected');
 
     //Add a new client indexed by his id
     clients[socket.id] = {
@@ -310,7 +310,7 @@ async function runSocketServer() {
       //Delete this client from the object
       delete clients[socket.id];
       io.sockets.emit('userDisconnected', socket.id, Object.keys(clients));
-      console.log('User ' + socket.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
+      log('User ' + socket.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected');
     });
 
     //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
@@ -387,7 +387,7 @@ async function runSocketServer() {
 
         // assign random room:
         let peerLoc = getRandomInt(0, numCPUs - 1);
-        console.log('assigning new peer to location in room ', peerLoc);
+        log('assigning new peer to location in room ', peerLoc);
         peerLocations[peerId.toString()] = peerLoc;
 
 
@@ -575,9 +575,9 @@ async function runSocketServer() {
           appData: { ...appData, peerId, transportId }
         });
 
-        // console.log("ID: ", peerId);
-        // console.log("ProducerID: ",producer.id);
-        // console.log(roomStates[peerLoc]);
+        // log("ID: ", peerId);
+        // log("ProducerID: ",producer.id);
+        // log(roomStates[peerLoc]);
 
         // pipe to all other routers
         for (let i = 0; i < numCPUs; i++) {
@@ -587,7 +587,6 @@ async function runSocketServer() {
             let { pipeProducer } = await routers[peerLoc].pipeToRouter({ producerId: producer.id, router: routers[i] })
             // await routers[peerLoc].pipeToRouter({ producerId: peerId, router: routers[i] })
             roomStates[i].producers.push(pipeProducer);
-            console.log("Adding pipeProducer to room #", i);
           }
         }
 
@@ -602,9 +601,9 @@ async function runSocketServer() {
         // monitor audio level of this producer. we call addProducer() here,
         // but we don't ever need to call removeProducer() because the core
         // AudioLevelObserver code automatically removes closed producers
-        if (producer.kind === 'audio') {
-          audioLevelObservers[peerLoc].addProducer({ producerId: producer.id });
-        }
+        // if (producer.kind === 'audio') {
+        //   audioLevelObservers[peerLoc].addProducer({ producerId: producer.id });
+        // }
 
         roomStates[peerLoc].producers.push(producer);
         roomStates[peerLoc].peers[peerId].media[appData.mediaTag] = {
@@ -955,24 +954,24 @@ async function startMediasoup() {
 
   // audioLevelObserver for signaling active speaker
   //
-  const audioLevelObserver = await router.createAudioLevelObserver({
-    interval: 800
-  });
-  audioLevelObserver.on('volumes', (volumes) => {
-    const { producer, volume } = volumes[0];
-    log('audio-level volumes event', producer.appData.peerId, volume);
-    roomState.activeSpeaker.producerId = producer.id;
-    roomState.activeSpeaker.volume = volume;
-    roomState.activeSpeaker.peerId = producer.appData.peerId;
-  });
-  audioLevelObserver.on('silence', () => {
-    log('audio-level silence event');
-    roomState.activeSpeaker.producerId = null;
-    roomState.activeSpeaker.volume = null;
-    roomState.activeSpeaker.peerId = null;
-  });
+  // const audioLevelObserver = await router.createAudioLevelObserver({
+  //   interval: 800
+  // });
+  // audioLevelObserver.on('volumes', (volumes) => {
+  //   const { producer, volume } = volumes[0];
+  //   log('audio-level volumes event', producer.appData.peerId, volume);
+  //   roomState.activeSpeaker.producerId = producer.id;
+  //   roomState.activeSpeaker.volume = volume;
+  //   roomState.activeSpeaker.peerId = producer.appData.peerId;
+  // });
+  // audioLevelObserver.on('silence', () => {
+  //   log('audio-level silence event');
+  //   roomState.activeSpeaker.producerId = null;
+  //   roomState.activeSpeaker.volume = null;
+  //   roomState.activeSpeaker.peerId = null;
+  // });
 
-  return { worker, router, audioLevelObserver, roomState };
+  return { worker, router, roomState };
 }
 
 function closePeer(peerId) {
@@ -1038,7 +1037,6 @@ async function closeProducerAndAllPipeProducers(producer, peerId) {
         // remove this producer from our roomState.producers list
         roomStates[i].producers = roomStates[i].producers
           .filter((p) => p.id !== producer.id);
-        console.log("Removing pipe producer from room #",i);
       }
     }
 
@@ -1103,45 +1101,45 @@ async function createWebRtcTransport({ peerId, direction }) {
 // stats
 //
 
-async function updatePeerStats() {
-  for (let i = 0; i < roomStates.length; i++) {
-    let roomState = roomStates[i];
-    for (let producer of roomState.producers) {
-      if (producer.kind !== 'video') {
-        continue;
-      }
-      try {
-        let stats = await producer.getStats(),
-          peerId = producer.appData.peerId;
-        roomState.peers[peerId].stats[producer.id] = stats.map((s) => ({
-          bitrate: s.bitrate,
-          fractionLost: s.fractionLost,
-          jitter: s.jitter,
-          score: s.score,
-          rid: s.rid
-        }));
-      } catch (e) {
-        warn('error while updating producer stats', e);
-      }
-    }
+// async function updatePeerStats() {
+//   for (let i = 0; i < roomStates.length; i++) {
+//     let roomState = roomStates[i];
+//     for (let producer of roomState.producers) {
+//       if (producer.kind !== 'video') {
+//         continue;
+//       }
+//       try {
+//         let stats = await producer.getStats(),
+//           peerId = producer.appData.peerId;
+//         roomState.peers[peerId].stats[producer.id] = stats.map((s) => ({
+//           bitrate: s.bitrate,
+//           fractionLost: s.fractionLost,
+//           jitter: s.jitter,
+//           score: s.score,
+//           rid: s.rid
+//         }));
+//       } catch (e) {
+//         warn('error while updating producer stats', e);
+//       }
+//     }
 
 
-    for (let consumer of roomState.consumers) {
-      try {
-        let stats = (await consumer.getStats())
-          .find((s) => s.type === 'outbound-rtp'),
-          peerId = consumer.appData.peerId;
-        if (!stats || !roomState.peers[peerId]) {
-          continue;
-        }
-        roomState.peers[peerId].stats[consumer.id] = {
-          bitrate: stats.bitrate,
-          fractionLost: stats.fractionLost,
-          score: stats.score
-        }
-      } catch (e) {
-        warn('error while updating consumer stats', e);
-      }
-    }
-  }
-}
+//     for (let consumer of roomState.consumers) {
+//       try {
+//         let stats = (await consumer.getStats())
+//           .find((s) => s.type === 'outbound-rtp'),
+//           peerId = consumer.appData.peerId;
+//         if (!stats || !roomState.peers[peerId]) {
+//           continue;
+//         }
+//         roomState.peers[peerId].stats[consumer.id] = {
+//           bitrate: stats.bitrate,
+//           fractionLost: stats.fractionLost,
+//           score: stats.score
+//         }
+//       } catch (e) {
+//         warn('error while updating consumer stats', e);
+//       }
+//     }
+//   }
+// }
