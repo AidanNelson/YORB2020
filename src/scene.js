@@ -5,68 +5,70 @@
 *
 */
 
+
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 const THREE = require('./libs/three.min.js');
+const Stats = require('./libs/stats.min.js');
 
 // slightly awkward syntax, but these statements add these functions to THREE
 require('./libs/GLTFLoader.js')(THREE);
-// require('./libs/playerControls.js')(THREE);
-// require('./libs/fpscontrols.js')(THREE);
 require('./libs/pointerLockControls.js')(THREE);
-
-const Stats = require('./libs/stats.min.js');
 
 class Scene {
 	constructor(
-		domElement = document.getElementById('gl_context'),
 		_movementCallback,
-		clientsArr,
+		_clients,
 		mySocketID) {
 
-		this.clock = new THREE.Clock();
+		// add this to window to allow javascript console debugging
+		window.scene = this;
 
-
-		// keep track of 
+		// this pauses or restarts rendering and updating
+		this.paused = true;
+		let domElement = document.getElementById('scene-container');
 		this.frameCount = 0;
-		this.clients = clientsArr;
+		this.clients = _clients;
 		this.mySocketID = mySocketID;
-
+		this.hyperlinkedObjects = []; // array to store interactable hyperlinked meshes
 		this.DEBUG_MODE = false;
 		this.movementCallback = _movementCallback;
-
-		//THREE scene
-		this.scene = new THREE.Scene();
-		this.keyState = {};
-
-		//Utility
 		this.width = (window.innerWidth * 0.9);
-		this.height = (window.innerHeight * 0.8);
+		this.height = (window.innerHeight * 0.7);
+		this.scene = new THREE.Scene();
+		this.raycaster = new THREE.Raycaster();
+		this.textParser = new DOMParser;
+		this.mouse = {
+			x: 0,
+			y: 0
+		};
+		this.hightlightedProjectId = -1; // to start
 
 
+		// audio variables:
+		this.distanceThresholdSquared = 500;
+		this.rolloffNumerator = 5;
+
+
+
+		// STATS for debugging:
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
 
-
-		//Add Player
-		// this.addSelf();
-
-		this.loadFont();
-
-		// Raycaster
-		this.raycaster = new THREE.Raycaster();
-
-		// add lights
-		this.addLights();
-
 		//THREE Camera
-		this.cameraHeight = 1.5;
+		this.cameraHeight = 1.75;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
-		this.camera.position.set(0, this.cameraHeight, 0);
+
+		// starting position
+		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
+		let randX = this.randomRange(3, 28);
+		let randZ = this.randomRange(-2.5, 1.5);
+		this.camera.position.set(randX, this.cameraHeight, randZ);
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
 		this.scene.add(this.camera);
+		this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
 		window.camera = this.camera;
 
 		//THREE WebGL renderer
@@ -78,37 +80,29 @@ class Scene {
 		this.renderer.setClearColor(new THREE.Color('lightblue'));
 		this.renderer.setSize(this.width, this.height);
 
-		this.setupCollisionDetection();
 		this.setupControls();
-
-		// array to store interactable hyperlinked meshes
-		this.hyperlinkedObjects = [];
-
-		// environment map from three.js examples
-		this.loadBackground();
-
-		// load floor model
+		this.addLights();
+		this.setupCollisionDetection();
 		this.createMaterials();
+		this.loadBackground();
 		this.loadFloorModel();
+
+		this.setupSpringShow();
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
-		domElement.addEventListener('mouseenter', e => this.onEnterCanvas(e), false);
-		domElement.addEventListener('mouseleave', e => this.onLeaveCanvas(e), false);
-		window.addEventListener('keydown', e => this.onKeyDown(e), false);
-		window.addEventListener('keyup', e => this.onKeyUp(e), false);
+		domElement.addEventListener('click', e => this.onMouseClick(e), false);
 
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
 		this.scene.add(this.helperGrid);
 
-		this.scene.add(new THREE.AxesHelper(10));
-
 		this.update();
+		this.render();
 	}
 
 
@@ -141,9 +135,6 @@ class Scene {
 		dirLight.shadow.camera.far = 3500;
 		dirLight.shadow.bias = - 0.0001;
 
-		// let dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10);
-		// this.scene.add(dirLightHeper);
-
 		// secondary directional light without shadows:
 		let dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
 		dirLight2.color.setHSL(0.1, 1, 0.95);
@@ -172,24 +163,16 @@ class Scene {
 	createMaterials() {
 		this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
 
-		let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
-		paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
-		paintedRoughnessTexture.wrapT = THREE.RepeatWrapping;
-		paintedRoughnessTexture.repeat.set(5, 5);
+		this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
+		this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
 
 		// wall material:
-		this.wallMaterial = new THREE.MeshPhongMaterial({
+		this.wallMaterial = new THREE.MeshLambertMaterial({
 			color: 0xffffe6,
-			bumpMap: paintedRoughnessTexture,
-			bumpScale: 0.25,
-			specular: 0xfffff5,
-			reflectivity: 0.01,
-			shininess: 0.1,
-			envMap: null
 		});
 
 		// ceiling material
-		this.ceilingMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+		this.ceilingMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
 		// floor material
 		// https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
@@ -198,59 +181,122 @@ class Scene {
 		floorTexture.wrapT = THREE.RepeatWrapping;
 		floorTexture.repeat.set(1, 1);
 
-		this.floorMaterial = new THREE.MeshPhongMaterial({
+		this.floorMaterial = new THREE.MeshLambertMaterial({
 			color: 0xffffff,
-			map: floorTexture,
-			bumpMap: floorTexture,
-			bumpScale: 0.005,
-			specular: 0xffffff,
-			reflectivity: 0.5,
-			shininess: 4,
-			envMap: null
+			map: floorTexture
 		});
 
-		this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
+		this.paintedMetalMaterial = new THREE.MeshLambertMaterial({
 			color: 0x1a1a1a,
-			bumpMap: paintedRoughnessTexture,
-			bumpScale: 0.2,
-			specular: 0xffffff,
-			reflectivity: 0.01,
-			shininess: 1,
-			envMap: null
+			flatShading: true,
 		});
 
-		this.windowShelfMaterial = new THREE.MeshPhongMaterial({
-			color: 0xdddddd
+		this.windowShelfMaterial = new THREE.MeshLambertMaterial({
+			color: 0x565656
 		});
 
 		// https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
-		this.glassMaterial = new THREE.MeshPhysicalMaterial({
+		this.glassMaterial = new THREE.MeshLambertMaterial({
 			color: 0xD9ECFF,
-			metalness: 0.05,
-			roughness: 0,
-			alphaTest: 0.5,
-			depthWrite: false,
-			envMap: this.envMap,
-			envMapIntensity: 1,
-			transparency: 1, // use material.transparency for glass materials
-			opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
-			transparent: true
+			transparent: true,
+			opacity: 0.25,
 		});
 
-		this.lightHousingMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
 
-		this.lightDiffuserMaterial = new THREE.MeshPhongMaterial({
-			color: 0xcccccc,
-			emissive: 0xffffff,
-			emissiveIntensity: 10,
-			specular: 0xffffff,
-			reflectivity: 0.01,
-			shininess: 1,
-			envMap: null
+		this.lightHousingMaterial = new THREE.MeshLambertMaterial({ color: 0x111111 });
+
+		this.lightDiffuserMaterial = new THREE.MeshLambertMaterial({
+			color: 0xcccccc
 		});
 
-		this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-		this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+		this.glassFixturingMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+		this.graniteBarMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+		// this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
+
+		// this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
+		// this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
+
+
+
+		// let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
+		// paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
+		// paintedRoughnessTexture.wrapT = THREE.RepeatWrapping;
+		// paintedRoughnessTexture.repeat.set(5, 5);
+
+		// // wall material:
+		// this.wallMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xffffe6,
+		// 	bumpMap: paintedRoughnessTexture,
+		// 	bumpScale: 0.25,
+		// 	specular: 0xfffff5,
+		// 	reflectivity: 0.01,
+		// 	shininess: 0.1,
+		// 	envMap: null
+		// });
+
+		// // ceiling material
+		// this.ceilingMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+
+		// // floor material
+		// // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
+		// let floorTexture = new THREE.TextureLoader().load("textures/floor.jpg");
+		// floorTexture.wrapS = THREE.RepeatWrapping;
+		// floorTexture.wrapT = THREE.RepeatWrapping;
+		// floorTexture.repeat.set(1, 1);
+
+		// this.floorMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xffffff,
+		// 	map: floorTexture,
+		// 	bumpMap: floorTexture,
+		// 	bumpScale: 0.005,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 0.5,
+		// 	shininess: 4,
+		// 	envMap: null
+		// });
+
+		// this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0x1a1a1a,
+		// 	bumpMap: paintedRoughnessTexture,
+		// 	bumpScale: 0.2,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 0.01,
+		// 	shininess: 1,
+		// 	envMap: null
+		// });
+
+		// this.windowShelfMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xdddddd
+		// });
+
+		// // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
+		// this.glassMaterial = new THREE.MeshPhysicalMaterial({
+		// 	color: 0xD9ECFF,
+		// 	metalness: 0.05,
+		// 	roughness: 0,
+		// 	alphaTest: 0.5,
+		// 	depthWrite: false,
+		// 	envMap: this.envMap,
+		// 	envMapIntensity: 1,
+		// 	transparency: 1, // use material.transparency for glass materials
+		// 	opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
+		// 	transparent: true
+		// });
+
+		// this.lightHousingMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
+
+		// this.lightDiffuserMaterial = new THREE.MeshPhongMaterial({
+		// 	color: 0xcccccc,
+		// 	emissive: 0xffffff,
+		// 	emissiveIntensity: 10,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 0.01,
+		// 	shininess: 1,
+		// 	envMap: null
+		// });
+
+		// this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+		// this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
 	}
 
 	loadModel(_file, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {
@@ -269,6 +315,9 @@ class Scene {
 				}
 			});
 			this.scene.add(scene);
+			let name = _file.slice(11, _file.indexOf("."));
+			scene.name = name;
+			this.floorModelParts.push(scene);
 		}, undefined, function (e) {
 			console.error(e);
 		});
@@ -276,7 +325,9 @@ class Scene {
 
 	loadFloorModel() {
 		this.GLTFLoader = new THREE.GLTFLoader();
-		let scaleFactor = 4;
+		let scaleFactor = 1.25;
+		this.floorModelParts = [];
+		this.matMode = 0;
 
 		this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true, true);
@@ -284,12 +335,130 @@ class Scene {
 		this.loadModel('models/itp/glass.glb', this.glassMaterial, scaleFactor, false, false, true);
 		this.loadModel('models/itp/granite-bar.glb', this.graniteBarMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/ibeam.glb', this.paintedMetalMaterial, scaleFactor, true, false, true);
-		this.loadModel('models/itp/light-diffuser.glb', this.lightDiffuserMaterial, scaleFactor, false, false);
-		this.loadModel('models/itp/light-housing.glb', this.lightHousingMaterial, scaleFactor, false, false);
-		this.loadModel('models/itp/lighting-grid.glb', this.wallMaterial, scaleFactor, false, false);
+		// this.loadModel('models/itp/light-diffuser.glb', this.lightDiffuserMaterial, scaleFactor, false, false);
+		// this.loadModel('models/itp/light-housing.glb', this.lightHousingMaterial, scaleFactor, false, false);
+		// this.loadModel('models/itp/lighting-grid.glb', this.wallMaterial, scaleFactor, false, false);
 		this.loadModel('models/itp/walls.glb', this.wallMaterial, scaleFactor, true, false, true);
 		this.loadModel('models/itp/window-shelf.glb', this.windowShelfMaterial, scaleFactor, true, false);
 		this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true);
+	}
+
+	swapMaterials() {
+		this.matMode++;
+		if (this.matMode >= 3) {
+			this.matMode = 0;
+		}
+		switch (this.matMode) {
+
+			case 0:
+				for (let i = 0; i < this.floorModelParts.length; i++) {
+					let scene = this.floorModelParts[i];
+					let mat = this.getMatFromName(scene.name);
+					scene.traverse((child) => {
+						if (child.isMesh) {
+							child.material = mat;
+						}
+					});
+				}
+				break;
+
+			case 1:
+				for (let i = 0; i < this.floorModelParts.length; i++) {
+					let scene = this.floorModelParts[i];
+					if (scene.name == "floor" || scene.name == "glass") {
+						continue;
+					} else {
+						scene.traverse((child) => {
+							if (child.isMesh) {
+								// https://stackoverflow.com/questions/43088424/setting-random-color-for-each-face-in-threejs-results-in-black-object
+								let col = new THREE.Color(0xffffff);
+								col.setHex(Math.random() * 0xffffff);
+								let mat = new THREE.MeshLambertMaterial({ color: col });
+								child.material = mat;
+
+							}
+						});
+					}
+
+				}
+				break;
+
+			case 2:
+				for (let i = 0; i < this.floorModelParts.length; i++) {
+					let scene = this.floorModelParts[i];
+					if (scene.name == "floor" || scene.name == "glass") {
+						continue;
+					} else {
+						scene.traverse((child) => {
+							if (child.isMesh) {
+								// https://stackoverflow.com/questions/43088424/setting-random-color-for-each-face-in-threejs-results-in-black-object
+								let col = new THREE.Color(0xffffff);
+								col.setHex(Math.random() * 0xffffff);
+								let mat = new THREE.MeshPhongMaterial({
+									color: col,
+									reflectivity: 0.4,
+									shininess: 1,
+									envMap: this.envMap
+								});
+								child.material = mat;
+
+							}
+						});
+					}
+
+				}
+				break;
+
+		}
+	}
+
+
+	getMatFromName(name) {
+		let mat = null;
+		switch (name) {
+			case "ceiling":
+				mat = this.ceilingMaterial;
+				break;
+			case "floor":
+				mat = this.floorMaterial;
+				break;
+			case "glass-fixturing":
+				mat = this.glassFixturingMaterial;
+				break;
+			case "glass":
+				mat = this.glassMaterial;
+				break;
+			case "granite-bar":
+				mat = this.graniteBarMaterial;
+				break;
+			case "ibeam":
+				mat = this.paintedMetalMaterial;
+				break;
+			case "light-diffuser":
+				mat = this.lightDiffuserMaterial;
+				break;
+			case "light-housing":
+				mat = this.lightHousingMaterial;
+				break;
+			case "lighting-grid":
+				mat = this.wallMaterial;
+				break;
+			case "walls":
+				mat = this.wallMaterial;
+				break;
+			case "window-shelf":
+				mat = this.windowShelfMaterial;
+				break;
+			case "wooden-bar":
+				mat = this.floorMaterial;
+				break;
+
+
+
+		}
+
+
+		return mat;
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -329,7 +498,7 @@ class Scene {
 	// add a client meshes, a video element and  canvas for three.js video texture
 	addClient(_id) {
 		let _body = new THREE.Mesh(
-			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.BoxGeometry(0.5, 1, 0.5),
 			new THREE.MeshNormalMaterial()
 		);
 
@@ -570,6 +739,61 @@ class Scene {
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Interactable Hyperlinks for Spring Show 💎
 
+	setupSpringShow() {
+		var loader = new THREE.FontLoader();
+		// https://gero3.github.io/facetype.js/
+		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
+			// loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
+			this.font = response;
+			this.createSignage();
+			this._updateProjects();
+		});
+	}
+
+	createSignage() {
+		let textDepth = 0.1;
+		let curveSegments = 3;
+		let message, txt;
+
+		message = "Welcome to the";
+		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2, 2.75, 0.5);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
+
+
+		message = "ITP / IMA Spring Show ";
+		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2, 1.5, 0.0);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
+
+
+		message = "The E.R.";
+		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-11.25, 1.75, -18.5);
+		txt.rotateY(0);
+		this.scene.add(txt);
+
+		message = "Resident's Residence";
+		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-12.5, 1.75, -0.75);
+		txt.rotateY(-Math.PI / 2);
+		this.scene.add(txt);
+
+
+
+
+		// message = "Use your mouse to\nlook at a project & \nclick to activate!";
+		// txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
+		// txt.position.set(-8.5, 2, -14);
+		// txt.rotateY(Math.PI / 2);
+		// this.scene.add(txt);
+
+	}
+
 	/*
 	* updateProjects(projects) 
 	*
@@ -581,18 +805,100 @@ class Scene {
 	*
 	*/
 	updateProjects(projects) {
+		this.projects = projects;
+		this._updateProjects();
+	}
 
-		// first, empty the project
-		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-			this.scene.remove(this.hyperlinkedObjects[i]);
+	_updateProjects() {
+		if (this.font) {
+			let projects = this.projects;
+
+			for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+				this.scene.remove(this.hyperlinkedObjects[i]);
+			}
+			this.hyperlinkedObjects = [];
+
+
+			// do a check for duplicates
+			let dupeCheck = {};
+			let numUniqueProjects = 0;
+
+			let uniqueProjects = [];
+
+			for (let projectIndex = 0; projectIndex < projects.length; projectIndex ++) {
+				let proj = projects[projectIndex];
+				let project_id = proj.project_id;
+
+				if (dupeCheck[project_id]) {
+					// console.log('Duplicate with ID: ', proj.project_id);
+				} else {
+					dupeCheck[project_id] = true;
+					numUniqueProjects++;
+					uniqueProjects.push(proj);
+				}
+			}
+			console.log("Number of total projects: ", this.projects.length);
+			console.log("Number of unique projects: ", numUniqueProjects);
+
+
+
+			// console.log(dupeCheck);
+
+			// let locZ = startingPosZ + ((projectIndex % numProjectsPerRow) * projectSpacing);
+
+			// // when we turn around the row, reset gap counter
+			// if (projectIndex % numProjectsPerRow == 0) {
+			// 	// locX = -22;
+			// 	locX += 2;
+			// 	gapIndex = 0;
+			// 	gapCounter = 0;
+			// }
+
+
+			// //  every 5 projects, add a gap
+			// if (gapCounter % 5 == 0) {
+			// 	gapIndex += 1
+			// };
+
+			// locZ += (gapIndex * gapSpacing);
+
+			// gapCounter++;
+
+			// let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, projects[projectIndex]);
+			// // hyperlink.rotateZ(Math.PI/2);
+			// // if (projectIndex > numProjectsPerRow) {
+			// // 	hyperlink.rotateY(Math.PI);
+			// // }
+			// this.hyperlinkedObjects.push(hyperlink);
+			// this.scene.add(hyperlink);
 		}
-		for (let i = 0; i < projects.length; i++) {
-			let project = projects[i];
-			let locX = -70;
-			let locZ = i * -10 + 40;
-			let hyperlink = this.createHyperlinkedMesh(locX, 0, locZ, project);
-			this.hyperlinkedObjects.push(hyperlink);
-			this.scene.add(hyperlink);
+	}
+
+	// this decodes the text twice because the project database seems to be double wrapped in html...
+	// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
+	parseText(encodedStr) {
+		var dom = this.textParser.parseFromString(
+			'<!doctype html><body>' + encodedStr,
+			'text/html');
+		var decodedString = dom.body.textContent;
+		var dom2 = this.textParser.parseFromString(
+			'<!doctype html><body>' + decodedString,
+			'text/html');
+		var decodedString2 = dom2.body.textContent;
+		return decodedString2;
+	}
+
+	addLineBreak(longString) {
+		let spaceIndex = longString.indexOf(" ", 10);
+		if (spaceIndex != -1) {
+			let firstHalf = longString.slice(0, spaceIndex);
+			let secondHalf = longString.slice(spaceIndex, longString.length);
+			if (secondHalf.length > 15) {
+				secondHalf = this.addLineBreak(secondHalf);
+			}
+			return firstHalf.trim() + "\n" + secondHalf.trim();
+		} else {
+			return longString;
 		}
 	}
 
@@ -605,28 +911,57 @@ class Scene {
 	*	- returns object3D
 	*/
 	createHyperlinkedMesh(x, y, z, _project) {
-		// load a image resource
-		let tex = new THREE.TextureLoader().load('images/grid.jpg');
 
-		var geometry = new THREE.CylinderGeometry(1, 1, 8, 32);
-		var material = new THREE.MeshBasicMaterial({ map: tex, color: 0xffff00 });
-		var mesh = new THREE.Mesh(geometry, material);
+		// let linkHoverHeight = 1.5;
+		let linkHoverHeight = 0.0;
+		let linkRadius = 0.5;
+		// let linkHeight = 1;
+		// let linkWidth = 0.75;
+		let linkDepth = 0.25;
+		let fontColor = 0x232323;
+		let fontSize = 0.05;
 
-		// let textMesh = this.createText(_project.project_name, 1, 0.5, 4, 0.1, 0.1, false);
-		// textMesh.position.x += x;
-		// textMesh.position.y += y
-		// textMesh.position.z += z;
-		// this.scene.add(textMesh);
-		// mesh.add(textMesh)
-		mesh.position.set(x, y, z);
+		var geometry = new THREE.CylinderGeometry(linkRadius, linkRadius, linkDepth, 16);
+		// var geometry = new THREE.BoxGeometry(linkDepth, linkHeight, linkWidth);
+		let mat;
 
-
-
-		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
-		mesh.userData = {
-			project: _project
+		// check whether we've visited the link before and set material accordingly
+		if (localStorage.getItem(_project.project_id) == "visited") {
+			mat = this.linkVisitedMaterial;
+		} else {
+			mat = this.linkMaterial;
 		}
-		return mesh;
+
+		var sign = new THREE.Mesh(geometry, mat);
+
+		// parse text of name and add line breaks if necessary
+		var name = this.parseText(_project.project_name)
+		if (name.length > 15) {
+			name = this.addLineBreak(name);
+		}
+
+		// create name text mesh
+		var textMesh = this.createSimpleText(name, fontColor, fontSize);
+
+		// textMesh.position.y += 0.2; // offset up
+		// textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
+		textMesh.position.y += (linkDepth / 2) + 0.01; // offset forward
+		textMesh.rotateZ(Math.PI / 2);
+		textMesh.rotateY(Math.PI / 2);
+
+		sign.position.set(x, linkHoverHeight, z);
+
+		sign.add(textMesh);
+		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
+		let now = Date.now();
+		sign.userData = {
+			project: _project,
+			lastVisitedTime: now
+		}
+
+		sign.name = _project.project_id;
+
+		return sign;
 	}
 
 	/*
@@ -648,8 +983,10 @@ class Scene {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
-		if (!document.getElementById(project.project_id + "_modal")) {
-			var parser = new DOMParser;
+		if (!document.getElementsByClassName("project-modal")[0]) {
+			localStorage.setItem(project.project_id, "visited");
+			this.scene.getObjectByName(project.project_id).material = this.linkVisitedMaterial;
+
 
 			let id = project.project_id;
 			let name = project.project_name;
@@ -667,20 +1004,29 @@ class Scene {
 			let closeButton = document.createElement('button');
 			closeButton.addEventListener('click', () => {
 				modalEl.remove();
+				this.controls.lock();
+				// https://stackoverflow.com/questions/19426559/three-js-access-scene-objects-by-name-or-id
+				let now = Date.now();
+				let link = this.scene.getObjectByName(id);
+				link.userData.lastVisitedTime = now;
 			});
 			closeButton.innerHTML = "X";
 
 			let titleEl = document.createElement('h1');
-			titleEl.innerHTML = parser.parseFromString('<!doctype html><body>' + name, 'text/html').body.textContent;
+			titleEl.innerHTML = this.parseText(name);
 
 			let elevatorPitchEl = document.createElement('p');
-			elevatorPitchEl.innerHTML = parser.parseFromString('<!doctype html><body>' + pitch, 'text/html').body.textContent;
+			elevatorPitchEl.innerHTML = this.parseText(pitch);
 
 			let descriptionEl = document.createElement('p');
-			descriptionEl.innerHTML = parser.parseFromString('<!doctype html><body>' + description, 'text/html').body.textContent;
+			descriptionEl.innerHTML = this.parseText(description);
 
-			let linkEl = document.createElement('p');
-			linkEl.innerHTML = link;
+			let linkEl = document.createElement('a');
+			// linkEl.href = link;
+			linkEl.href = "https://itp.nyu.edu/shows/spring2020/";
+			linkEl.innerHTML = "Zoom Link";
+			linkEl.target = "_blank";
+			linkEl.rel = "noopener noreferrer";
 
 			contentEl.appendChild(closeButton);
 			contentEl.appendChild(titleEl);
@@ -694,35 +1040,121 @@ class Scene {
 	}
 
 	/*
-	* detectHyperlinks() 
+	* highlightHyperlinks() 
 	* 
 	* Description:
 	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array, 
 	* 	- calls this.generateProjectModal for any projects under a threshold distance
 	* 
 	*/
-	detectHyperlinks() {
-		let thresholdDistanceSquared = 2;
-		for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-			let link = this.hyperlinkedObjects[i];
-			let distSquared = this.camera.position.distanceToSquared(link.position);
-			if (distSquared < thresholdDistanceSquared) {
+	highlightHyperlinks() {
+
+		let thresholdDist = 3;
+		let now = Date.now();
+
+		// store reference to last highlighted project id
+		let lastHighlightedProjectId = this.hightlightedProjectId;
+
+		// cast ray out from camera
+		this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+		var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
+
+		// if we have intersections, highlight them
+		if (intersects.length > 0) {
+			if (intersects[0].distance < thresholdDist) {
+				let link = intersects[0].object;
+				link.material = this.testMaterial;
+				link.userData.highlighted = true;
+				link.userData.lastVisitedTime = now;
+				this.hightlightedProjectId = link.userData.project.project_id;
+			}
+		}
+
+		// if we've changed which project is highlighted
+		if (lastHighlightedProjectId != this.hightlightedProjectId) {
+			let link = this.scene.getObjectByName(lastHighlightedProjectId);
+			if (link != null) {
+				link.material = this.linkMaterial;
+			}
+		} else {
+			// no change, so lets check for 
+			let link = this.scene.getObjectByName(this.hightlightedProjectId);
+			if (link != null) {
+				if (now - link.userData.lastVisitedTime > 500) {
+
+					this.hightlightedProjectId = -1;
+
+					// reset according to whether we have visited it or not yet
+					let mat;
+					// check whether we've visited the link before and set material accordingly
+					if (localStorage.getItem(link.userData.project.project_id) == "visited") {
+						mat = this.linkVisitedMaterial;
+					} else {
+						mat = this.linkMaterial;
+					}
+
+					link.material = mat;
+				}
+			}
+		}
+
+		// let thresholdDistanceSquared = 1.25;
+
+		// let pos = new THREE.Vector3(this.camera.position.x, 0, this.camera.position.z);
+		// for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
+		// 	let link = this.hyperlinkedObjects[i];
+		// 	let distSquared = pos.distanceToSquared(link.position);
+		// 	if (distSquared < thresholdDistanceSquared) {
+		// 		if (now - link.userData.lastVisitedTime > 3000) { // cooldown period for the link
+		// 			this.controls.unlock();
+		// 			link.userData.lastVisitedTime = now;
+		// 			this.generateProjectModal(link.userData.project);
+		// 		}
+		// 	}
+		// }
+	}
+
+	activateHighlightedProject() {
+		if (this.hightlightedProjectId != -1) {
+			let link = this.scene.getObjectByName(this.hightlightedProjectId);
+			if (link != null) {
+				this.controls.unlock();
 				this.generateProjectModal(link.userData.project);
 			}
 		}
 	}
 
-	loadFont() {
-		var loader = new THREE.FontLoader();
-		loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
-			console.log('font loader response');
-			console.log(response);
-			this.font = response;
+
+
+	// creates a text mesh and returns it, from: 
+	// https://threejs.org/examples/?q=text#webgl_geometry_text_shapes
+	createSimpleText(message, fontColor, fontSize) {
+		var xMid, yMid, text;
+
+		var mat = new THREE.LineBasicMaterial({
+			color: fontColor,
+			side: THREE.DoubleSide
 		});
+
+		var shapes = this.font.generateShapes(message, fontSize);
+
+		var geometry = new THREE.ShapeBufferGeometry(shapes);
+
+		geometry.computeBoundingBox();
+
+		xMid = - 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+		yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+
+		geometry.translate(xMid, yMid, 0);
+
+		// make shape ( N.B. edge view not visible )
+		text = new THREE.Mesh(geometry, mat);
+		return text;
 	}
 
+	// this function returns 3D text object
 	// from https://threejs.org/examples/?q=text#webgl_geometry_text
-	createText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled) {
+	create3DText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror) {
 
 		let textGeo = new THREE.TextGeometry(text, {
 
@@ -744,8 +1176,8 @@ class Scene {
 		var triangle = new THREE.Triangle();
 
 		let materials = [
-			new THREE.MeshPhongMaterial({ color: 0xffffee, flatShading: true }), // front
-			new THREE.MeshPhongMaterial({ color: 0x000000 }) // side
+			new THREE.MeshPhongMaterial({ color: 0x57068c, flatShading: true }), // front
+			new THREE.MeshPhongMaterial({ color: 0xffffff }) // side
 		];
 
 		// "fix" side normals by removing z-component of normals for side faces
@@ -794,35 +1226,38 @@ class Scene {
 
 		textGeo = new THREE.BufferGeometry().fromGeometry(textGeo);
 
+		// geometry.computeBoundingBox();
+
+		let xMid = - 0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+		// let yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+
+		textGeo.translate(xMid, 0, 0);
+
 		let textMesh = new THREE.Mesh(textGeo, materials);
-		let hover = 5;
+		// let hover = 5;
 
-		textMesh.position.x = centerOffset;
-		textMesh.position.y = hover;
-		textMesh.position.z = 0;
+		// textMesh.position.x = centerOffset;
+		// textMesh.position.y = hover;
+		// textMesh.position.z = 0;
 
-		textMesh.rotation.x = 0;
-		textMesh.rotation.y = Math.PI * 2;
+		// textMesh.rotation.x = 0;
+		// textMesh.rotation.y = Math.PI * 2;
 
-		// let group = new THREE.Group();
-		// group.add(textMesh);
+		if (mirror) {
+
+			let textMesh2 = new THREE.Mesh(textGeo, materials);
+
+			textMesh2.position.x = centerOffset;
+			textMesh2.position.y = - hover;
+			textMesh2.position.z = height;
+
+			textMesh2.rotation.x = Math.PI;
+			textMesh2.rotation.y = Math.PI * 2;
+
+			return textMesh2;
+		}
 
 		return textMesh;
-
-		// if (mirror) {
-
-		// 	textMesh2 = new THREE.Mesh(textGeo, materials);
-
-		// 	textMesh2.position.x = centerOffset;
-		// 	textMesh2.position.y = - hover;
-		// 	textMesh2.position.z = height;
-
-		// 	textMesh2.rotation.x = Math.PI;
-		// 	textMesh2.rotation.y = Math.PI * 2;
-
-		// 	group.add(textMesh2);
-
-		// }
 
 	}
 
@@ -832,7 +1267,7 @@ class Scene {
 
 	// Set up pointer lock controls and corresponding event listeners
 	setupControls() {
-		let jumpSpeed = 75;
+		let jumpSpeed = 12;
 		this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);
 
 		this.moveForward = false;
@@ -847,27 +1282,21 @@ class Scene {
 		this.vertex = new THREE.Vector3();
 		this.color = new THREE.Color();
 
-		var blocker = document.getElementById('blocker');
-		var instructions = document.getElementById('instructions');
+		var overlay = document.getElementById('overlay');
 
-		blocker.addEventListener('click', () => {
-
-			this.controls.lock();
-
-		}, false);
-
-		this.controls.addEventListener('lock', function () {
-
-			instructions.style.display = 'none';
-			blocker.style.display = 'none';
-
+		this.controls.addEventListener('lock', () => {
+			this.clearControls();
+			this.paused = false;
+			overlay.style.visibility = 'hidden';
+			document.getElementById("instructions-overlay").style.visibility = "visible";
 		});
 
-		this.controls.addEventListener('unlock', function () {
+		this.controls.addEventListener('unlock', () => {
 
-			blocker.style.display = 'block';
-			instructions.style.display = '';
-
+			overlay.style.visibility = 'visible';
+			this.clearControls();
+			this.paused = true;
+			document.getElementById("instructions-overlay").style.visibility = "hidden";
 		});
 
 		document.addEventListener('keydown', (event) => {
@@ -931,22 +1360,30 @@ class Scene {
 
 		}, false);
 
+		this.velocity.y = 0;
+	}
 
-		// this.raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 1);
-		window.controls = this.controls; // for debugging
-
-		this.velocity.y = jumpSpeed;
+	// clear control state every time we reenter the game
+	clearControls() {
+		this.moveForward = false;
+		this.moveBackward = false;
+		this.moveLeft = false;
+		this.moveRight = false;
+		this.canJump = false;
+		this.velocity.x = 0;
+		this.velocity.z = 0;
+		this.velocity.y = 0;
 	}
 
 	// update for these controls, which are unfortunately not included in the controls directly...
 	// see: https://github.com/mrdoob/three.js/issues/5566
 	updateControls() {
-		let speed = 200;
+		let speed = 50;
 		if (this.controls.isLocked === true) {
 			var origin = this.controls.getObject().position.clone();
 			origin.y -= this.cameraHeight; // origin is at floor level
 
-			this.raycaster.set(origin, new THREE.Vector3(0, - 1, 0));
+			this.raycaster.set(origin, new THREE.Vector3(0, - this.cameraHeight, 0));
 
 			var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList);
 			var onObject = (intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1);
@@ -958,7 +1395,7 @@ class Scene {
 			this.velocity.x -= this.velocity.x * 10.0 * delta;
 			this.velocity.z -= this.velocity.z * 10.0 * delta;
 
-			this.velocity.y -= 9.8 * 50.0 * delta; // 100.0 = mass
+			this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
 
 			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
 			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
@@ -1006,7 +1443,7 @@ class Scene {
 	getPlayerPosition() {
 		// TODO: use quaternion or are euler angles fine here?
 		return [
-			[this.camera.position.x, this.camera.position.y - (this.cameraHeight-0.5), this.camera.position.z],
+			[this.camera.position.x, this.camera.position.y - (this.cameraHeight - 0.5), this.camera.position.z],
 			[this.camera.rotation.x, this.camera.rotation.y, this.camera.rotation.z]];
 	}
 
@@ -1016,20 +1453,26 @@ class Scene {
 
 	update() {
 		requestAnimationFrame(() => this.update());
-		this.stats.update();
 
-		// update volumes every X frames
-		this.frameCount++;
-		if (this.frameCount % 20 == 0) {
-			this.updateClientVolumes();
-			this.movementCallback();
+		if (!this.paused) {
+			this.updateControls();
+
+			// update volumes every X frames
+			this.frameCount++;
+			if (this.frameCount % 20 == 0) {
+				this.updateClientVolumes();
+				this.movementCallback();
+				this.highlightHyperlinks();
+			}
+			if (this.frameCount % 50 == 0) {
+				this.selectivelyPauseAndResumeConsumers();
+			}
+			this.detectCollisions();
 		}
 
-		this.updatePositions();
-		this.detectCollisions();
-		this.updateControls();
 
-		this.checkKeys();
+		this.stats.update();
+		this.updatePositions(); // other users
 		this.render();
 	}
 
@@ -1046,20 +1489,6 @@ class Scene {
 	}
 
 	updateVideoTextures() {
-		// update ourselves first:
-		let localVideo = document.getElementById("local_video");
-		let localVideoCanvas = document.getElementById("local_canvas");
-
-		// TODO: mirror local video --> canvas
-		// https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
-		// let ctx = localVideoCanvas.getContext('2d')
-		// ctx.translate(localVideoCanvas.width, 0);
-		// ctx.scale(-1, 1); // flip local image
-		if (localVideo != null && localVideoCanvas != null) {
-			this.redrawVideoCanvas(localVideo, localVideoCanvas, this.playerVideoTexture)
-		}
-
-
 		for (let _id in this.clients) {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
@@ -1082,73 +1511,6 @@ class Scene {
 			_videoTex.needsUpdate = true;
 		}
 	}
-
-
-	updateClientVolumes() {
-		let distanceThresholdSquared = 2500; // over this distance, no sound is heard
-		let numerator = 50; // TODO rename this
-
-		for (let _id in this.clients) {
-			if (this.clients[_id].audioElement) {
-				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
-				if (distSquared > distanceThresholdSquared) {
-					// TODO pause consumer here, rather than setting volume to zero
-					this.clients[_id].audioElement.volume = 0;
-					pauseAllConsumersForPeer(_id);
-				} else {
-					resumeAllConsumersForPeer(_id);
-					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
-
-					let volume = Math.min(1, numerator / distSquared);
-					this.clients[_id].audioElement.volume = volume;
-				}
-			}
-		}
-	}
-
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	// Event Handlers 🍽
-
-	onWindowResize(e) {
-		this.width = (window.innerWidth * 0.9);
-		this.height = (window.innerHeight * 0.8);
-		// this.width = window.innerWidth;
-		// this.height = Math.floor(window.innerHeight - (window.innerHeight * 0.3));
-		this.camera.aspect = this.width / this.height;
-		this.camera.updateProjectionMatrix();
-		this.renderer.setSize(this.width, this.height);
-	}
-
-	onLeaveCanvas(e) {
-		this.controls.enabled = false;
-	}
-	// TODO deal with issue where re-entering canvas between keydown and key-up causes 
-	// controls to be stuck on
-	onEnterCanvas(e) {
-		this.controls.enabled = true;
-	}
-
-	// keystate functions from playercontrols
-	onKeyDown(event) {
-		event = event || window.event;
-		this.keyState[event.keyCode || event.which] = true;
-	}
-
-	onKeyUp(event) {
-		event = event || window.event;
-		this.keyState[event.keyCode || event.which] = false;
-	}
-
-	checkKeys() {
-		if (this.keyState[76]) {
-			this.detectHyperlinks();
-		}
-	}
-
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	// Utilities 🚂
 
 	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
 	makeVideoTextureAndMaterial(_id) {
@@ -1179,8 +1541,43 @@ class Scene {
 		return [videoTexture, movieMaterial];
 	}
 
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Audio 📣
 
-	// TODO check this
+
+
+	updateClientVolumes() {
+		for (let _id in this.clients) {
+			if (this.clients[_id].audioElement) {
+				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
+				if (distSquared > this.distanceThresholdSquared) {
+					// TODO pause consumer here, rather than setting volume to zero
+					this.clients[_id].audioElement.volume = 0;
+				} else {
+					// from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
+					let volume = Math.min(1, this.rolloffNumerator / distSquared);
+					this.clients[_id].audioElement.volume = volume;
+				}
+			}
+		}
+	}
+
+	selectivelyPauseAndResumeConsumers() {
+		for (let _id in this.clients) {
+			if (this.clients[_id].audioElement) {
+				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
+				if (distSquared > this.distanceThresholdSquared) {
+					pauseAllConsumersForPeer(_id);
+				} else {
+					resumeAllConsumersForPeer(_id);
+				}
+			}
+		}
+	}
+
+	// At the moment, this just adds a .audioElement parameter to a client stored under _id 
+	// which will be updated above
 	createOrUpdatePositionalAudio(_id) {
 		let audioElement = document.getElementById(_id + "_audio");
 		if (audioElement == null) {
@@ -1212,6 +1609,39 @@ class Scene {
 		// 	console.log(audioSource);
 		// }
 	}
+
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Event Handlers 🍽
+
+	onWindowResize(e) {
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.7);
+		this.camera.aspect = this.width / this.height;
+		this.camera.updateProjectionMatrix();
+		this.renderer.setSize(this.width, this.height);
+	}
+
+	onMouseClick(e) { // not used currently
+		// this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+		// this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+		// console.log("Click");
+		this.activateHighlightedProject();
+	}
+
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+	// Utilities:
+
+	/**
+	 * Returns a random number between min (inclusive) and max (exclusive)
+	 * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range#1527820
+	 */
+	randomRange(min, max) {
+		return Math.random() * (max - min) + min;
+	}
+
+	//==//==//==//==//==//==//==//==// fin //==//==//==//==//==//==//==//==//==//
 }
 
 export default Scene;
