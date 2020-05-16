@@ -10,12 +10,8 @@
 *
 */
 
-const config = require('./config');
-const debugModule = require('debug');
-const mediasoup = require('mediasoup');
-const express = require('express');
-const https = require('https');
-const fs = require('fs');
+// Set environment variables
+// Set Debug level before we require 'debug' or 'mediasoup'!
 
 require('dotenv').config();
 // if we are in production environment, copy over config from .env file:
@@ -29,6 +25,21 @@ if (process.env.NODE_ENV == 'production') {
     { ip: process.env.PRODUCTION_IP, announcedIp: null }
   ];
 }
+
+console.log("Environment Variables:");
+console.log("~~~~~~~~~~~~~~~~~~~~~~~~~");
+console.log(process.env);
+console.log("~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+
+// IMPORTS
+const config = require('./config');
+const debugModule = require('debug');
+const mediasoup = require('mediasoup');
+const express = require('express');
+const https = require('https');
+const fs = require('fs');
+
 
 const expressApp = express();
 let httpsServer;
