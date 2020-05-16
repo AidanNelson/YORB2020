@@ -56,6 +56,7 @@ class Scene {
 		// STATS for debugging:
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.dom);
+		this.stats.dom.style = "visibility: hidden;";
 
 		//THREE Camera
 		this.cameraHeight = 1.75;
@@ -786,15 +787,6 @@ class Scene {
 		txt.rotateY(-Math.PI / 2);
 		this.scene.add(txt);
 
-
-
-
-		// message = "Use your mouse to\nlook at a project & \nclick to activate!";
-		// txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
-		// txt.position.set(-8.5, 2, -14);
-		// txt.rotateY(Math.PI / 2);
-		// this.scene.add(txt);
-
 	}
 
 	/*
@@ -1177,6 +1169,7 @@ class Scene {
 
 			let projectImageEl = document.createElement('img');
 			let filename = "https://itp.nyu.edu" + project.image;
+			// let filename = "images/project_thumbnails/" + project.project_id + ".png";
 			projectImageEl.src = filename;
 			projectImageEl.className = "project-modal-img";
 
@@ -1321,7 +1314,7 @@ class Scene {
 		} else {
 			mat = this.linkMaterial;
 		}
-		console.log(link);
+		// console.log(link);
 		link.children[0].material = mat;
 	}
 
@@ -1680,7 +1673,6 @@ class Scene {
 			}
 			this.detectCollisions();
 		}
-
 
 		this.stats.update();
 		this.updatePositions(); // other users
