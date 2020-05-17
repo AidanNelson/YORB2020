@@ -309,8 +309,40 @@ body {
     /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
-    width: 80%;
+    width: 50%;
     /* Could be more or less, depending on screen size */
+}
+
+.project-modal-img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    /* width: 30%; */
+    max-height:220px;
+}
+
+.project-modal-title {
+    text-align: center;
+}
+
+.project-modal-names {
+    text-align: center;
+    font-size: 14px;
+}
+
+.project-modal-text {
+    font-size: 14px;
+    line-height: 17px;
+    font-family: monospace;
+    width:80%;
+    margin-left: 5%;
+}
+
+.project-modal-link-container {
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
 }
 
 /* The Close Button */

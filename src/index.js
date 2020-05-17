@@ -73,10 +73,25 @@ export let mySocketID,
 window.clients = {}; // array of connected clients for three.js scene
 window.lastPollSyncData = {};
 
+
+// adding constraints, VIDEO_CONSTRAINTS is video quality levels
+// localMediaCOnstraints is passed to the getUserMedia object to request a lower video quality than the maximum
+// I believe some webcam settings may override this request 
+
+const VIDEO_CONSTRAINTS =
+{
+	qvga : { width: { ideal: 320 }, height: { ideal: 240 } },
+	vga  : { width: { ideal: 640 }, height: { ideal: 480 } },
+	hd   : { width: { ideal: 1280 }, height: { ideal: 720 } }
+};
 let localMediaConstraints = {
 	audio: true,
-	video: true
-};
+	video: {
+		width: VIDEO_CONSTRAINTS.qvga.width,
+		height: VIDEO_CONSTRAINTS.qvga.height,
+		frameRate: {max: 30}
+	}
+}; 
 
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -237,6 +252,17 @@ function updateProjects(_projects) {
 
 function onPlayerMove() {
 	socket.emit('move', yorbScene.getPlayerPosition());
+}
+
+export function hackToRemovePlayerTemporarily(){
+	console.log("removing user temporarily");
+	let pos = [0,10000,0];
+	let rotation = [0,0,0];
+	socket.emit('move',[pos,rotation]);
+
+	for (let _id in clients) {
+		pauseAllConsumersForPeer(_id);
+	}
 }
 
 function createScene() {
