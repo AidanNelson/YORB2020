@@ -6,7 +6,7 @@
 */
 
 
-import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
+import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayerTemporarily } from './index.js'
 
 const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
@@ -988,7 +988,7 @@ class Scene {
 					let locX = -21 + offset;
 					let locZ = -106.5;
 					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-					hyperlink.rotateY(-Math.PI/2);
+					hyperlink.rotateY(-Math.PI / 2);
 					this.hyperlinkedObjects.push(hyperlink);
 					this.scene.add(hyperlink);
 				}
@@ -1001,7 +1001,7 @@ class Scene {
 					let locX = -21 + offset;
 					let locZ = -95.125;
 					let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-					hyperlink.rotateY(Math.PI/2);
+					hyperlink.rotateY(Math.PI / 2);
 					this.hyperlinkedObjects.push(hyperlink);
 					this.scene.add(hyperlink);
 				}
@@ -1324,6 +1324,7 @@ class Scene {
 			if (link != null) {
 				this.controls.unlock();
 				this.generateProjectModal(link.userData.project);
+				hackToRemovePlayerTemporarily();
 			}
 		}
 	}

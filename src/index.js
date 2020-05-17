@@ -254,6 +254,17 @@ function onPlayerMove() {
 	socket.emit('move', yorbScene.getPlayerPosition());
 }
 
+export function hackToRemovePlayerTemporarily(){
+	console.log("removing user temporarily");
+	let pos = [0,10000,0];
+	let rotation = [0,0,0];
+	socket.emit('move',[pos,rotation]);
+
+	for (let _id in clients) {
+		pauseAllConsumersForPeer(_id);
+	}
+}
+
 function createScene() {
 	// initialize three.js scene
 	console.log("Creating three.js scene...")
