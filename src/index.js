@@ -1249,7 +1249,7 @@ export async function getCurrentDeviceId() {
 //
 const CAM_VIDEO_SIMULCAST_ENCODINGS =
 	[
-		{ maxBitrate: 24000, scaleResolutionDownBy: 4 },
+		{ maxBitrate: 36000, scaleResolutionDownBy: 2 },
 		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
 		// { maxBitrate: 680000, scaleResolutionDownBy: 1 },
 	];
