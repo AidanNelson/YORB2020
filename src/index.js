@@ -20,9 +20,6 @@ import * as config from '../config';
 import * as mediasoup from 'mediasoup-client';
 import debugModule from 'debug';
 
-// const $ = document.querySelector.bind(document);
-// const $$ = document.querySelectorAll.bind(document);
-
 const log = debugModule('demo-app');
 const warn = debugModule('demo-app:WARN');
 const err = debugModule('demo-app:ERROR');
@@ -80,18 +77,18 @@ window.lastPollSyncData = {};
 
 const VIDEO_CONSTRAINTS =
 {
-	qvga : { width: { ideal: 320 }, height: { ideal: 240 } },
-	vga  : { width: { ideal: 640 }, height: { ideal: 480 } },
-	hd   : { width: { ideal: 1280 }, height: { ideal: 720 } }
+	qvga: { width: { ideal: 320 }, height: { ideal: 240 } },
+	vga: { width: { ideal: 640 }, height: { ideal: 480 } },
+	hd: { width: { ideal: 1280 }, height: { ideal: 720 } }
 };
 let localMediaConstraints = {
 	audio: true,
 	video: {
 		width: VIDEO_CONSTRAINTS.qvga.width,
 		height: VIDEO_CONSTRAINTS.qvga.height,
-		frameRate: {max: 30}
+		frameRate: { max: 30 }
 	}
-}; 
+};
 
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -254,11 +251,11 @@ function onPlayerMove() {
 	socket.emit('move', yorbScene.getPlayerPosition());
 }
 
-export function hackToRemovePlayerTemporarily(){
+export function hackToRemovePlayerTemporarily() {
 	console.log("removing user temporarily");
-	let pos = [0,10000,0];
-	let rotation = [0,0,0];
-	socket.emit('move',[pos,rotation]);
+	let pos = [0, 10000, 0];
+	let rotation = [0, 0, 0];
+	socket.emit('move', [pos, rotation]);
 
 	for (let _id in clients) {
 		pauseAllConsumersForPeer(_id);
@@ -316,10 +313,8 @@ function setupControls() {
 function toggleWebcamImage() {
 	let webcamImage = document.getElementById("webcam-status-image");
 	if (getCamPausedState()) {
-		// webcamImage.style.visibility = "hidden";
 		webcamImage.src = "images/no-webcam.png";
 	} else {
-		// webcamImage.style.visibility = "visible";
 		webcamImage.src = "images/webcam.png";
 	}
 
@@ -328,10 +323,8 @@ function toggleWebcamImage() {
 function toggleMicrophoneImage() {
 	let micImg = document.getElementById("microphone-status-image");
 	if (getMicPausedState()) {
-		// micImg.style.visibility = "hidden";
 		micImg.src = "images/no-mic.png";
 	} else {
-		// micImg.style.visibility = "visible";
 		micImg.src = "images/mic.png";
 	}
 }
@@ -510,15 +503,7 @@ export async function joinRoom() {
 		return;
 	}
 
-	// super-simple signaling: let's poll at 1-second intervals
-	// pollingInterval = setInterval(async () => {
-	// 	let { error } = await pollAndUpdate();
-	// 	if (error) {
-	// 		clearInterval(pollingInterval);
-	// 		err(error);
-	// 	}
-	// }, 1000);
-	await pollAndUpdate();
+	await pollAndUpdate(); // start this polling loop
 }
 
 export async function sendCameraStreams() {
@@ -576,7 +561,6 @@ export async function sendCameraStreams() {
 
 export async function startScreenshare() {
 	log('start screen share');
-	// $('#share-screen').style.display = 'none';
 
 	// make sure we've joined the room and that we have a sending
 	// transport
@@ -808,7 +792,7 @@ export async function subscribeToTrack(peerId, mediaTag) {
 		await sleep(100);
 	}
 	// okay, we're ready. let's ask the peer to send us media
-	//await resumeConsumer(consumer);
+	await resumeConsumer(consumer);
 
 	// keep track of all our consumers
 	consumers.push(consumer);
@@ -834,16 +818,15 @@ export async function unsubscribeFromTrack(peerId, mediaTag) {
 // TODO check these functions
 export async function pauseAllConsumersForPeer(_id) {
 	if (lastPollSyncData[_id]) {
-		if (!lastPollSyncData[_id].paused) {
-			if (!(_id === mySocketID)) {
-				console.log("Pausing all consumers for peer with ID: " + _id);
-				for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
-					let consumer = findConsumerForTrack(_id, mediaTag);
-					if (consumer) {
+		if (!(_id === mySocketID)) {
+			for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
+				let consumer = findConsumerForTrack(_id, mediaTag);
+				if (consumer) {
+					if (!consumer.paused) {
+						log("Pausing", mediaTag, "consumer for peer with ID: " + _id);
 						await pauseConsumer(consumer);
 					}
 				}
-				lastPollSyncData[_id].paused = true;
 			}
 		}
 	}
@@ -851,16 +834,15 @@ export async function pauseAllConsumersForPeer(_id) {
 
 export async function resumeAllConsumersForPeer(_id) {
 	if (lastPollSyncData[_id]) {
-		if (lastPollSyncData[_id].paused) {
-			console.log("Resuming all consumers for peer with ID: " + _id);
-			if (!(_id === mySocketID)) {
-				for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
-					let consumer = findConsumerForTrack(_id, mediaTag);
-					if (consumer) {
+		if (!(_id === mySocketID)) {
+			for (let [mediaTag, info] of Object.entries(lastPollSyncData[_id].media)) {
+				let consumer = findConsumerForTrack(_id, mediaTag);
+				if (consumer) {
+					if (consumer.paused) {
+						log("Resuming", mediaTag, "consumer for peer with ID: " + _id);
 						await resumeConsumer(consumer);
 					}
 				}
-				lastPollSyncData[_id].paused = false;
 			}
 		}
 	}
@@ -1030,20 +1012,16 @@ async function createTransport(direction) {
 //
 
 async function pollAndUpdate() {
+	log('Polling server for current peers array!');
 	let { peers, error } = await socket.request('sync');
 
 	if (error) {
 		err('PollAndUpdateError: ', error);
-		// return ({ error });
 	}
 
 	if (!mySocketID in peers) {
 		warn("Server doesn't think you're connected!");
 	}
-
-	// console.log(producers);
-	// always update bandwidth stats and active speaker display
-	// currentActiveSpeaker = activeSpeaker;
 
 	// decide if we need to update tracks list and video/audio
 	// elements. build list of peers, sorted by join time, removing last
@@ -1053,32 +1031,26 @@ async function pollAndUpdate() {
 
 	// auto-subscribe to their feeds:
 	// TODO auto subscribe at lowest spatial layer
-	for (let id in peers) {
-		if (id !== mySocketID) {
-			for (let [mediaTag, info] of Object.entries(peers[id].media)) {
-				if (!findConsumerForTrack(id, mediaTag)) {
-					// if we've seen this peer before, check if we already started a subscription request
-					if (lastPollSyncData[id]) {
-						if (!lastPollSyncData[id].subscriptionStarted) {
-							lastPollSyncData[id].subscriptionStarted = true;
-							lastPollSyncData[id].paused = true;
-						}
-					} else {
+	let closestPeers = yorbScene.getClosestPeers();
+	for (let id in peers) { // for each peer...
+		if (id !== mySocketID) { // if it isnt me...
+			if (closestPeers.includes(id)) { // and if it is close enough in the 3d space...
+				for (let [mediaTag, info] of Object.entries(peers[id].media)) { // for each of the peer's producers...
+					if (!findConsumerForTrack(id, mediaTag)) { // that we don't already have consumers for...
 						log(`auto subscribing to track that ${id} has added`);
 						await subscribeToTrack(id, mediaTag);
-						peers[id].subscriptionStarted = true;
-						peers[id].paused = true;
 					}
 				}
 			}
 		}
 	}
 
+
 	// if a peer has gone away, we need to close all consumers we have
 	// for that peer and remove video and audio elements
 	for (let id in lastPollSyncData) {
 		if (!peers[id]) {
-			log(`peer ${id} has exited`);
+			log(`Peer ${id} has exited`);
 			consumers.forEach((consumer) => {
 				if (consumer.appData.peerId === id) {
 					closeConsumer(consumer);
@@ -1092,42 +1064,20 @@ async function pollAndUpdate() {
 	consumers.forEach((consumer) => {
 		let { peerId, mediaTag } = consumer.appData;
 		if (!peers[peerId]) {
-			log(`peer ${peerId} has stopped transmitting ${mediaTag}`);
+			log(`Peer ${peerId} has stopped transmitting ${mediaTag}`);
 			closeConsumer(consumer);
 		} else if (!peers[peerId].media[mediaTag]) {
-			log(`peer ${peerId} has stopped transmitting ${mediaTag}`);
+			log(`Peer ${peerId} has stopped transmitting ${mediaTag}`);
 			closeConsumer(consumer);
 		}
 	});
 
 	// push through the paused state to new sync list
-	let newLastPollSyncData = peers;
-	for (let id in lastPollSyncData) {
-		if (lastPollSyncData[id].paused) {
-			if (newLastPollSyncData[id]) {
-				newLastPollSyncData[id].paused = true;
-			}
-		}
-		if (lastPollSyncData[id].subscriptionStarted) {
-			if (newLastPollSyncData[id]) {
-				newLastPollSyncData[id].subscriptionStarted = true;
-			}
-		}
-	}
-	lastPollSyncData = newLastPollSyncData;
-
+	lastPollSyncData = peers;
 
 	setTimeout(pollAndUpdate, 1000);
-
-	// return ({}); // return an empty object if there isn't an error
-
 }
 
-// function sortPeers(peers) {
-// 	return Object.entries(peers)
-// 		.map(([id, info]) => ({ id, joinTs: info.joinTs, media: { ...info.media } }))
-// 		.sort((a, b) => (a.joinTs > b.joinTs) ? 1 : ((b.joinTs > a.joinTs) ? -1 : 0));
-// }
 
 function findConsumerForTrack(peerId, mediaTag) {
 	return consumers.find((c) => (c.appData.peerId === peerId &&
