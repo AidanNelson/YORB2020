@@ -1136,6 +1136,19 @@ class Scene {
 	*		}
 	* 
 	*/
+	zoomStatusDecoder(status){
+		if(status=="0"){
+			return "Currently Offline"
+		} else if(status=="1"){
+			return "Currently Live"
+		} else if(status=="2"){
+			return "Project Creator Will Be Right Back"
+		} else if(status=="3"){
+			return "Room Full Try Again Soon" 
+		} else{
+			return ""
+		}
+	}
 	generateProjectModal(project) {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
@@ -1148,6 +1161,8 @@ class Scene {
 			let pitch = project.elevator_pitch;
 			let description = project.description;
 			let link = project.zoom_link;
+			let room_status = zoomStatusDecoder(project.zoom_status) 
+		
 
 			let modalEl = document.createElement('div');
 			modalEl.className = "project-modal";
@@ -1202,6 +1217,9 @@ class Scene {
 			descriptionEl.innerHTML = this.parseText(description);
 			descriptionEl.className = "project-modal-text"
 
+			let talkToCreatorDiv = document.createElement('div');
+			talkToCreatorDiv.className = "project-modal-links-header";
+			talkToCreatorDiv.innerHTML = "Talk To The Project Creator In The Zoom Room:"
 
 			let linksDiv = document.createElement('div');
 			linksDiv.className = "project-modal-link-container";
@@ -1214,10 +1232,11 @@ class Scene {
 			projectLinkEl.rel = "noopener noreferrer";
 
 
+
 			let zoomLinkEl = document.createElement('a');
-			// zoomLinkEl.href = link;
+			// zoomLinkEl.href = link
 			zoomLinkEl.href = link;
-			zoomLinkEl.innerHTML = "Zoom Link";
+			zoomLinkEl.innerHTML = "Zoom Room - " + room_status;
 			zoomLinkEl.target = "_blank";
 			zoomLinkEl.rel = "noopener noreferrer";
 
@@ -1234,6 +1253,7 @@ class Scene {
 			contentEl.appendChild(elevatorPitchEl);
 			contentEl.appendChild(descriptionHeaderEl);
 			contentEl.appendChild(descriptionEl);
+			contentEl.appendChild(talkToCreatorDiv);
 			contentEl.appendChild(linksDiv);
 
 
