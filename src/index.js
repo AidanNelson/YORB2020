@@ -1000,7 +1000,8 @@ async function createTransport(direction) {
 		// we leave the room)
 		if (state === 'closed' || state === 'failed' || state === 'disconnected') {
 			log('transport closed ... leaving the room and resetting');
-			leaveRoom();
+			// leaveRoom();
+			alert("Your connection failed.  Please restart the page");
 		}
 	});
 
