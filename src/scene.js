@@ -1060,14 +1060,18 @@ class Scene {
 	*	- adds _project as userData to the object3D
 	*	- returns object3D
 	*/
+
 	createHyperlinkedMesh(x, y, z, _project) {
 
 		let linkDepth = 0.1;
 		let fontColor = 0x343434;
+		let statusColor = 0xFF0000; 
 		let fontSize = 0.05;
 
 		var geometry = new THREE.BoxGeometry(linkDepth, 0.75, 0.75);
 		var textBoxGeometry = new THREE.BoxGeometry(linkDepth, 0.5, 0.75);
+		// var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.5,0.5);
+
 		let textBoxMat;
 
 		// check whether we've visited the link before and set material accordingly
@@ -1076,6 +1080,8 @@ class Scene {
 		} else {
 			textBoxMat = this.linkMaterial;
 		}
+
+
 
 		let filename = "images/project_thumbnails/" + _project.project_id + ".png";
 
@@ -1092,6 +1098,14 @@ class Scene {
 
 		var textSign = new THREE.Mesh(textBoxGeometry, textBoxMat);
 		var imageSign = new THREE.Mesh(geometry, imageMat);
+		// var statusSign = new THREE.mesh(statusBoxGemoetry, statusMat)
+
+		// parse zoom room status
+		var status_code = this.parseText(_project.zoom_status);
+		let status = "";
+		if(status_code == "1"){
+			status = "Talk To Creator!"; 
+		}
 
 		// parse text of name and add line breaks if necessary
 		var name = this.parseText(_project.project_name)
@@ -1099,14 +1113,21 @@ class Scene {
 			name = this.addLineBreak(name);
 		}
 
+		var statusMesh = this.createSimpleText(status, statusColor, fontSize)
+		statusMesh.position.x += (linkDepth / 2) + 0.01;
+		statusMesh.rotateY(Math.PI / 2);
+
 		// create name text mesh
 		var textMesh = this.createSimpleText(name, fontColor, fontSize);
 
 		textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
 		textMesh.rotateY(Math.PI / 2);
 
+
+
 		imageSign.position.set(x, y, z);
 		textSign.position.set(0, -0.75 / 2 - 0.5 / 2, 0);
+		textSign.add(statusMesh);
 		textSign.add(textMesh);
 		imageSign.add(textSign);
 
