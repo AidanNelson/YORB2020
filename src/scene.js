@@ -1767,15 +1767,24 @@ class Scene {
 		}
 	}
 
+	getClosestPeers() {
+		let peerIDs = [];
+		for (let _id in this.clients) {
+			let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
+			if (distSquared <= this.distanceThresholdSquared) {
+				peerIDs.push(_id);
+			}
+		}
+		return peerIDs;
+	}
+
 	selectivelyPauseAndResumeConsumers() {
 		for (let _id in this.clients) {
-			if (this.clients[_id].audioElement) {
-				let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
-				if (distSquared > this.distanceThresholdSquared) {
-					pauseAllConsumersForPeer(_id);
-				} else {
-					resumeAllConsumersForPeer(_id);
-				}
+			let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position);
+			if (distSquared > this.distanceThresholdSquared) {
+				pauseAllConsumersForPeer(_id);
+			} else {
+				resumeAllConsumersForPeer(_id);
 			}
 		}
 	}
