@@ -280,7 +280,7 @@ async function runSocketServer() {
 
     //Add a new client indexed by his id
     clients[socket.id] = {
-      position: [1000,0.5,1000], // deal with phantom clients by putting them way away in the distance until they update their position
+      position: [1000, 0.5, 1000], // deal with phantom clients by putting them way away in the distance until they update their position
       // position: [0, 0.5, 0],
       // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
       rotation: [0, 0, 0]
@@ -540,7 +540,7 @@ async function runSocketServer() {
 
         // await closeProducer(producer, peerId);
         await closeProducerAndAllPipeProducers(producer, peerId);
-        
+
         callback({ closed: true });
       } catch (e) {
         console.error(e);
@@ -581,6 +581,7 @@ async function runSocketServer() {
         // log(roomStates[peerLoc]);
 
         // pipe to all other routers
+        log('Cloning Producer with ID: ', producer.id, ' from peer with id ', producer.appData.peerId);
         for (let i = 0; i < numCPUs; i++) {
           if (i == peerLoc) {
             continue;
@@ -588,6 +589,7 @@ async function runSocketServer() {
             let { pipeProducer } = await routers[peerLoc].pipeToRouter({ producerId: producer.id, router: routers[i] })
             // await routers[peerLoc].pipeToRouter({ producerId: peerId, router: routers[i] })
             roomStates[i].producers.push(pipeProducer);
+            log('Adding pipeProducer with id:', pipeProducer.id, ' from peer with id ', producer.appData.peerId, ' to room # ', i);
           }
         }
 
@@ -596,7 +598,7 @@ async function runSocketServer() {
           log('producer\'s transport closed', producer.id);
           closeProducerAndAllPipeProducers(producer, peerId);
           // closeProducer(producer, peerId);
-          
+
         });
 
         // monitor audio level of this producer. we call addProducer() here,
@@ -1030,12 +1032,14 @@ async function closeProducerAndAllPipeProducers(producer, peerId) {
     let peerLoc = peerLocations[peerId.toString()];
 
 
-    // first, cloes all of the pipe producer clones
+    // first, close all of the pipe producer clones
+    log('Closing all pipe producers for peer with id', peerId);
     for (let i = 0; i < roomStates.length; i++) {
       if (i == peerLoc) {
         continue; // we'll deal with this one later
       } else {
         // remove this producer from our roomState.producers list
+        log('Closing pipe producer in room ', i);
         roomStates[i].producers = roomStates[i].producers
           .filter((p) => p.id !== producer.id);
       }
