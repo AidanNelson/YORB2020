@@ -58,6 +58,7 @@ class Scene {
 		document.body.appendChild(this.stats.dom);
 		this.stats.dom.style = "visibility: hidden;";
 
+
 		//THREE Camera
 		this.cameraHeight = 1.75;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
@@ -1641,7 +1642,9 @@ class Scene {
 
 
 			var time = performance.now();
-			var delta = (time - this.prevTime) / 1000;
+			var rawDelta = (time - this.prevTime) / 1000;
+			// clamp delta so lower frame rate clients don't end up way far away
+			let delta = Math.min(rawDelta, 0.1);
 
 			this.velocity.x -= this.velocity.x * 10.0 * delta;
 			this.velocity.z -= this.velocity.z * 10.0 * delta;
