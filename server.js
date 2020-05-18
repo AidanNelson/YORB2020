@@ -273,6 +273,17 @@ async function runSocketServer() {
     io.sockets.emit('userPositions', clients);
   }, 200);
 
+  // every 5 seconds, check for inactive clients and send them into cyberspace
+  setInterval(() => {
+    let now = Date.now();
+    for (let id in clients){
+      if (now - clients[id].lastSeenTs > 30000) {
+        log("Culling inactive user with id",id);
+        clients[id].position = [1000,1000,1000];
+      }
+    }
+  }, 5000);
+
 
   io.on('connection', (socket) => {
 
@@ -299,9 +310,11 @@ async function runSocketServer() {
 
 
     socket.on('move', (data) => {
+      let now = Date.now();
       if (clients[socket.id]) {
         clients[socket.id].position = data[0];
         clients[socket.id].rotation = data[1];
+        clients[socket.id].lastSeenTs = now;
       }
       // io.sockets.emit('userPositions', clients);
     });
