@@ -168,6 +168,7 @@ class Scene {
 
 		this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
 		this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
+		this.statusBoxMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
 
 		// wall material:
 		this.wallMaterial = new THREE.MeshLambertMaterial({
@@ -1065,12 +1066,11 @@ class Scene {
 
 		let linkDepth = 0.1;
 		let fontColor = 0x343434;
-		let statusColor = 0xFF0000; 
+		let statusColor = 0xFFFFFF;
 		let fontSize = 0.05;
 
 		var geometry = new THREE.BoxGeometry(linkDepth, 0.75, 0.75);
 		var textBoxGeometry = new THREE.BoxGeometry(linkDepth, 0.5, 0.75);
-		// var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.5,0.5);
 
 		let textBoxMat;
 
@@ -1080,8 +1080,6 @@ class Scene {
 		} else {
 			textBoxMat = this.linkMaterial;
 		}
-
-
 
 		let filename = "images/project_thumbnails/" + _project.project_id + ".png";
 
@@ -1098,14 +1096,7 @@ class Scene {
 
 		var textSign = new THREE.Mesh(textBoxGeometry, textBoxMat);
 		var imageSign = new THREE.Mesh(geometry, imageMat);
-		// var statusSign = new THREE.mesh(statusBoxGemoetry, statusMat)
 
-		// parse zoom room status
-		var status_code = this.parseText(_project.zoom_status);
-		let status = "";
-		if(status_code == "1"){
-			status = "Talk To Creator!"; 
-		}
 
 		// parse text of name and add line breaks if necessary
 		var name = this.parseText(_project.project_name)
@@ -1113,9 +1104,7 @@ class Scene {
 			name = this.addLineBreak(name);
 		}
 
-		var statusMesh = this.createSimpleText(status, statusColor, fontSize)
-		statusMesh.position.x += (linkDepth / 2) + 0.01;
-		statusMesh.rotateY(Math.PI / 2);
+
 
 		// create name text mesh
 		var textMesh = this.createSimpleText(name, fontColor, fontSize);
@@ -1123,13 +1112,29 @@ class Scene {
 		textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
 		textMesh.rotateY(Math.PI / 2);
 
-
-
 		imageSign.position.set(x, y, z);
 		textSign.position.set(0, -0.75 / 2 - 0.5 / 2, 0);
-		textSign.add(statusMesh);
 		textSign.add(textMesh);
 		imageSign.add(textSign);
+
+		// parse zoom room status
+		var status_code = _project.zoom_status;
+		let status = "";
+		// status_code = 1;
+		if (status_code == "1") {
+			var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5);
+			var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
+			status = "Live now!";
+			var statusTextMesh = this.createSimpleText(status, statusColor, fontSize)
+			statusTextMesh.position.x += (linkDepth / 2) + 0.01;
+			statusTextMesh.position.y -= 0.0625;
+			statusTextMesh.rotateY(Math.PI / 2);
+			statusSign.add(statusTextMesh);
+			statusSign.position.y += 0.25;
+			statusSign.position.x += 0.01;
+
+			imageSign.add(statusSign);
+		}
 
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
 		let now = Date.now();
@@ -1157,16 +1162,16 @@ class Scene {
 	*		}
 	* 
 	*/
-	zoomStatusDecoder(status){
-		if(status=="0"){
+	zoomStatusDecoder(status) {
+		if (status == "0") {
 			return "Currently Offline"
-		} else if(status=="1"){
+		} else if (status == "1") {
 			return "Currently Live"
-		} else if(status=="2"){
+		} else if (status == "2") {
 			return "Project Creator Will Be Right Back"
-		} else if(status=="3"){
-			return "Room Full Try Again Soon" 
-		} else{
+		} else if (status == "3") {
+			return "Room Full Try Again Soon"
+		} else {
 			return ""
 		}
 	}
@@ -1182,8 +1187,8 @@ class Scene {
 			let pitch = project.elevator_pitch;
 			let description = project.description;
 			let link = project.zoom_link;
-			let room_status = zoomStatusDecoder(project.zoom_status) 
-		
+			let room_status = this.zoomStatusDecoder(project.zoom_status)
+
 
 			let modalEl = document.createElement('div');
 			modalEl.className = "project-modal";
