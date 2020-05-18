@@ -168,6 +168,7 @@ class Scene {
 
 		this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
 		this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
+		this.statusBoxMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
 
 		// wall material:
 		this.wallMaterial = new THREE.MeshLambertMaterial({
@@ -1060,14 +1061,17 @@ class Scene {
 	*	- adds _project as userData to the object3D
 	*	- returns object3D
 	*/
+
 	createHyperlinkedMesh(x, y, z, _project) {
 
 		let linkDepth = 0.1;
 		let fontColor = 0x343434;
+		let statusColor = 0xFFFFFF;
 		let fontSize = 0.05;
 
 		var geometry = new THREE.BoxGeometry(linkDepth, 0.75, 0.75);
 		var textBoxGeometry = new THREE.BoxGeometry(linkDepth, 0.5, 0.75);
+
 		let textBoxMat;
 
 		// check whether we've visited the link before and set material accordingly
@@ -1093,11 +1097,14 @@ class Scene {
 		var textSign = new THREE.Mesh(textBoxGeometry, textBoxMat);
 		var imageSign = new THREE.Mesh(geometry, imageMat);
 
+
 		// parse text of name and add line breaks if necessary
 		var name = this.parseText(_project.project_name)
 		if (name.length > 15) {
 			name = this.addLineBreak(name);
 		}
+
+
 
 		// create name text mesh
 		var textMesh = this.createSimpleText(name, fontColor, fontSize);
@@ -1109,6 +1116,25 @@ class Scene {
 		textSign.position.set(0, -0.75 / 2 - 0.5 / 2, 0);
 		textSign.add(textMesh);
 		imageSign.add(textSign);
+
+		// parse zoom room status
+		var status_code = _project.zoom_status;
+		let status = "";
+		// status_code = 1;
+		if (status_code == "1") {
+			var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5);
+			var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
+			status = "Live now!";
+			var statusTextMesh = this.createSimpleText(status, statusColor, fontSize)
+			statusTextMesh.position.x += (linkDepth / 2) + 0.01;
+			statusTextMesh.position.y -= 0.0625;
+			statusTextMesh.rotateY(Math.PI / 2);
+			statusSign.add(statusTextMesh);
+			statusSign.position.y += 0.25;
+			statusSign.position.x += 0.01;
+
+			imageSign.add(statusSign);
+		}
 
 		// https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
 		let now = Date.now();
@@ -1136,6 +1162,19 @@ class Scene {
 	*		}
 	* 
 	*/
+	zoomStatusDecoder(status) {
+		if (status == "0") {
+			return "Currently Offline"
+		} else if (status == "1") {
+			return "Currently Live"
+		} else if (status == "2") {
+			return "Project Creator Will Be Right Back"
+		} else if (status == "3") {
+			return "Room Full Try Again Soon"
+		} else {
+			return ""
+		}
+	}
 	generateProjectModal(project) {
 		// parse project descriptions to render without &amp; etc.
 		// https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
@@ -1148,6 +1187,8 @@ class Scene {
 			let pitch = project.elevator_pitch;
 			let description = project.description;
 			let link = project.zoom_link;
+			let room_status = this.zoomStatusDecoder(project.zoom_status)
+
 
 			let modalEl = document.createElement('div');
 			modalEl.className = "project-modal";
@@ -1202,6 +1243,9 @@ class Scene {
 			descriptionEl.innerHTML = this.parseText(description);
 			descriptionEl.className = "project-modal-text"
 
+			let talkToCreatorDiv = document.createElement('div');
+			talkToCreatorDiv.className = "project-modal-links-header";
+			talkToCreatorDiv.innerHTML = "Talk To The Project Creator In The Zoom Room:"
 
 			let linksDiv = document.createElement('div');
 			linksDiv.className = "project-modal-link-container";
@@ -1214,10 +1258,11 @@ class Scene {
 			projectLinkEl.rel = "noopener noreferrer";
 
 
+
 			let zoomLinkEl = document.createElement('a');
-			// zoomLinkEl.href = link;
+			// zoomLinkEl.href = link
 			zoomLinkEl.href = link;
-			zoomLinkEl.innerHTML = "Zoom Link";
+			zoomLinkEl.innerHTML = "Zoom Room - " + room_status;
 			zoomLinkEl.target = "_blank";
 			zoomLinkEl.rel = "noopener noreferrer";
 
@@ -1234,6 +1279,7 @@ class Scene {
 			contentEl.appendChild(elevatorPitchEl);
 			contentEl.appendChild(descriptionHeaderEl);
 			contentEl.appendChild(descriptionEl);
+			contentEl.appendChild(talkToCreatorDiv);
 			contentEl.appendChild(linksDiv);
 
 
