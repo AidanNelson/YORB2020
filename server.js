@@ -229,7 +229,7 @@ async function main() {
   // setInterval(updatePeerStats, 3000);
 
   updateProjects();
-  // setInterval(updateProjects, 300000); // update projects every five minutes
+  setInterval(updateProjects, 180000); // update projects every five minutes
 }
 
 main();
@@ -251,7 +251,6 @@ async function updateProjects() {
       var json = JSON.parse(body);
       projects = json;
       log("Updated projects from database.");
-      // log(projects);
       io.sockets.emit('projects', projects);
     });
   }).on('error', function (e) {
@@ -277,7 +276,7 @@ async function runSocketServer() {
   setInterval(() => {
     let now = Date.now();
     for (let id in clients){
-      if (now - clients[id].lastSeenTs > 30000) {
+      if (now - clients[id].lastSeenTs > 60000) {
         log("Culling inactive user with id",id);
         clients[id].position = [1000,1000,1000];
       }
