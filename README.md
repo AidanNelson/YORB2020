@@ -18,6 +18,9 @@ For more information about *YORB*, see the *YARCHIVE* at [yorb.online](yorb.onli
 
 For more information about how the project is built and how you could be involved, take a look at [CONTRIBUTING.md](/docs/CONTRIBUTING.md).
 
+### License:
+
+Still figuring it out... For the moment, please contact me if you want to use any part of this code.  
 
 ### Credits
 
