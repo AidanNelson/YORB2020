@@ -7,7 +7,7 @@ YORB2020 is a shared virtual space to hang out, collaborate and work near each o
 
 **YORB2020** is based on the 1990s interactive television show *YORB* (Your Orb) created by Dan O'Sullivan for Manhattan Neighborhood Network -- a public access television station in New York City.  It existed and evolved over several years as an ongoing project at the [Interactive Telecommunications Program](https://tisch.nyu.edu/itp) (ITP) at New York University.  
 
-For more information about *YORB*, see the *YARCHIVE* at [yorb.online](yorb.online).
+For more information about *YORB*, see the *YARCHIVE* at [yorb.online](https://yorb.online/).
 
 ![image of YORB television show](docs/images/yorb.png "YORB")
 
