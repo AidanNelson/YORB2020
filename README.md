@@ -11,16 +11,11 @@ For more information about *YORB*, see the *YARCHIVE* at [yorb.online](https://y
 
 ![image of YORB television show](docs/images/yorb.png "YORB")
 
-**YORB2020** is a project built by a number of the current [Researchers in Residence](https://itp.nyu.edu/residents/) at ITP.  Inspired by YORB and created in response to the quarantine conditions of COVID-19, this project attempts to provide the ITP community with a shared virtual space to hang out, collaborate and work near each other.  
-
-
-### Getting Involved:
-
-For more information about how the project is built and how you could be involved, take a look at [CONTRIBUTING.md](/docs/CONTRIBUTING.md).
+**YORB2020** is a project built by a number of the current Researchers in Residence at New York University's [Interactive Telecommunications Program](https://itp.nyu.edu/).  Inspired by YORB and created in response to the quarantine conditions of COVID-19, this project attempts to provide the ITP community with a shared virtual space to hang out, collaborate and work near each other.  
 
 ### License:
 
-Still figuring it out... For the moment, please contact me if you want to use any part of this repo.  
+Please contact me if you want to use any part of this repo.
 
 ### Credits
 
