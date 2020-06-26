@@ -761,15 +761,15 @@ class Scene {
 		let curveSegments = 3;
 		let message, txt;
 
-		message = "Welcome to the";
-		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-2, 2.75, 0.5);
-		txt.rotateY(Math.PI / 2);
-		this.scene.add(txt);
+		// message = "Welcome to the";
+		// // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		// txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		// txt.position.set(-2, 2.75, 0.5);
+		// txt.rotateY(Math.PI / 2);
+		// this.scene.add(txt);
 
 
-		message = "ITP / IMA Spring Show ";
+		message = "ITP Camp 2020";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-2, 1.5, 0.0);
@@ -783,7 +783,7 @@ class Scene {
 		txt.rotateY(0);
 		this.scene.add(txt);
 
-		message = "Resident's Residence";
+		message = "Residents' Residence";
 		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-12.5, 1.75, -0.75);
 		txt.rotateY(-Math.PI / 2);
