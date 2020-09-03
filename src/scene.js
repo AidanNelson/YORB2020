@@ -181,7 +181,7 @@ class Scene {
 
 		// floor material
 		// https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
-		let floorTexture = new THREE.TextureLoader().load("textures/floor.jpg");
+		let floorTexture = new THREE.TextureLoader().load("textures/pizza.png");
 		floorTexture.wrapS = THREE.RepeatWrapping;
 		floorTexture.wrapT = THREE.RepeatWrapping;
 		floorTexture.repeat.set(1, 1);
