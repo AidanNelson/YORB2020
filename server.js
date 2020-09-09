@@ -20,6 +20,7 @@ if (process.env.NODE_ENV == 'production') {
   config.sslCrt = process.env.PRODUCTION_CERT;
   config.sslKey = process.env.PRODUCTION_KEY;
   config.httpIp = process.env.PRODUCTION_IP;
+  config.httpPort = process.env.PRODUCTION_PORT;
 
   config.mediasoup.webRtcTransport.listenIps = [
     { ip: '127.0.0.1', announcedIp: null },
