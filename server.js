@@ -42,7 +42,7 @@ const https = require("https");
 const fs = require("fs");
 
 const expressApp = express();
-let httpServer = require('http').createServer(app);
+let httpServer = require('http').createServer(expressApp);
 let io;
 let socketIO = require("socket.io");
 
