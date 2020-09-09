@@ -41,10 +41,20 @@ const express = require("express");
 const https = require("https");
 const fs = require("fs");
 
-const expressApp = express();
-let httpServer = require('http').createServer(expressApp);
-let io;
-let socketIO = require("socket.io");
+
+
+
+// HTTP Server setup:
+// https://stackoverflow.com/questions/27393705/how-to-resolve-a-socket-io-404-not-found-error
+var express = require('express'),
+    http = require('http');
+var app = express();
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
+
+app.use(express.static(__dirname + "/public"));
+
+server.listen(3000);
 
 const log = debugModule("demo-app");
 const warn = debugModule("demo-app:WARN");
@@ -120,12 +130,7 @@ let peerLocations = {};
 // correlate tracks.
 //
 
-//
-// our http server needs to send 'index.html' and 'client-bundle.js'.
-// might as well just send everything in this directory ...
-//
 
-expressApp.use(express.static(__dirname + "/public"));
 
 /**
  * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
@@ -175,13 +180,6 @@ async function main() {
     // audioLevelObservers[i] = audioLevelObserver;
     roomStates[i] = roomState;
   }
-
-  // start https server, falling back to http if https fails
-  log("starting express");
-
-  expressApp.listen(config.httpPort, config.httpIp, () => {
-    log(`http server listening on port ${config.httpPort}`);
-  });
 
   runSocketServer();
 
@@ -238,7 +236,6 @@ async function updateProjects() {
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function runSocketServer() {
-  io = socketIO(httpServer);
 
   // update all sockets at regular intervals
   setInterval(() => {
@@ -324,7 +321,6 @@ async function runSocketServer() {
     // lets us use sendBeacon or fetch interchangeably to POST to
     // signaling endpoints. (sendBeacon can't set the Content-Type header)
     //
-    // expressApp.use(express.json({ type: '*/*' }));
 
     // --> /signaling/sync
     //
@@ -373,7 +369,6 @@ async function runSocketServer() {
     // transport that the peer will use for receiving media. returns
     // router rtpCapabilities for mediasoup-client device initialization
     //
-    // expressApp.post('/signaling/join-as-new-peer', async (req, res) => {
     socket.on("join-as-new-peer", async (data, callback) => {
       try {
         // let { peerId } = req.body;
