@@ -157,7 +157,7 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket = io();
+		socket = io('wss://yorb.itp.io');
 		socket.request = socketPromise(socket);
 
 		socket.on('connect', () => { });
