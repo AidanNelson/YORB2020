@@ -979,25 +979,6 @@ async function startMediasoup() {
   const mediaCodecs = config.mediasoup.router.mediaCodecs;
   const router = await worker.createRouter({ mediaCodecs });
 
-  // audioLevelObserver for signaling active speaker
-  //
-  // const audioLevelObserver = await router.createAudioLevelObserver({
-  //   interval: 800
-  // });
-  // audioLevelObserver.on('volumes', (volumes) => {
-  //   const { producer, volume } = volumes[0];
-  //   log('audio-level volumes event', producer.appData.peerId, volume);
-  //   roomState.activeSpeaker.producerId = producer.id;
-  //   roomState.activeSpeaker.volume = volume;
-  //   roomState.activeSpeaker.peerId = producer.appData.peerId;
-  // });
-  // audioLevelObserver.on('silence', () => {
-  //   log('audio-level silence event');
-  //   roomState.activeSpeaker.producerId = null;
-  //   roomState.activeSpeaker.volume = null;
-  //   roomState.activeSpeaker.peerId = null;
-  // });
-
   return { worker, router, roomState };
 }
 
@@ -1029,26 +1010,6 @@ async function closeTransport(transport, peerId) {
     err(e);
   }
 }
-
-// async function closeProducer(producer, peerId) {
-//   log('closing producer', producer.id, producer.appData);
-//   try {
-//     let peerLoc = peerLocations[peerId.toString()];
-//     await producer.close();
-
-//     // remove this producer from our roomState.producers list
-//     roomStates[peerLoc].producers = roomStates[peerLoc].producers
-//       .filter((p) => p.id !== producer.id);
-
-//     // remove this track's info from our roomState...mediaTag bookkeeping
-//     if (roomStates[peerLoc].peers[producer.appData.peerId]) {
-//       delete (roomStates[peerLoc].peers[producer.appData.peerId]
-//         .media[producer.appData.mediaTag]);
-//     }
-//   } catch (e) {
-//     err(e);
-//   }
-// }
 
 async function closeProducerAndAllPipeProducers(producer, peerId) {
   log("closing producer", producer.id, producer.appData);
@@ -1124,49 +1085,3 @@ async function createWebRtcTransport({ peerId, direction }) {
 
   return transport;
 }
-
-//
-// stats
-//
-
-// async function updatePeerStats() {
-//   for (let i = 0; i < roomStates.length; i++) {
-//     let roomState = roomStates[i];
-//     for (let producer of roomState.producers) {
-//       if (producer.kind !== 'video') {
-//         continue;
-//       }
-//       try {
-//         let stats = await producer.getStats(),
-//           peerId = producer.appData.peerId;
-//         roomState.peers[peerId].stats[producer.id] = stats.map((s) => ({
-//           bitrate: s.bitrate,
-//           fractionLost: s.fractionLost,
-//           jitter: s.jitter,
-//           score: s.score,
-//           rid: s.rid
-//         }));
-//       } catch (e) {
-//         warn('error while updating producer stats', e);
-//       }
-//     }
-
-//     for (let consumer of roomState.consumers) {
-//       try {
-//         let stats = (await consumer.getStats())
-//           .find((s) => s.type === 'outbound-rtp'),
-//           peerId = consumer.appData.peerId;
-//         if (!stats || !roomState.peers[peerId]) {
-//           continue;
-//         }
-//         roomState.peers[peerId].stats[consumer.id] = {
-//           bitrate: stats.bitrate,
-//           fractionLost: stats.fractionLost,
-//           score: stats.score
-//         }
-//       } catch (e) {
-//         warn('error while updating consumer stats', e);
-//       }
-//     }
-//   }
-// }
