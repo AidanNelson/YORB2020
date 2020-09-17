@@ -15,6 +15,8 @@
 
 const config = require("./config");
 require("dotenv").config();
+
+
 // if we are in production environment, copy over config from .env file:
 if (process.env.NODE_ENV == "production") {
   config.sslCrt = process.env.PRODUCTION_CERT;
@@ -54,6 +56,8 @@ var io = require('socket.io').listen(server);
 app.use(express.static(__dirname + "/public"));
 
 server.listen(process.env.PRODUCTION_PORT);
+console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT);
+
 
 const log = debugModule("demo-app");
 const warn = debugModule("demo-app:WARN");
