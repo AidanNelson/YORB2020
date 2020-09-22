@@ -510,7 +510,7 @@ class Scene {
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
 
 		let _head = new THREE.Mesh(
-			new THREE.BoxGeometry(5, 5, 5),
+			new THREE.BoxGeometry(1, 1, 1),
 			videoMaterial
 		);
 
@@ -1772,8 +1772,8 @@ class Scene {
 		document.body.appendChild(rvideoImageCanvas);
 
 		rvideoImageCanvas.id = _id + "_canvas";
-		rvideoImageCanvas.width = 2000;
-		rvideoImageCanvas.height = 2000;
+		// rvideoImageCanvas.width = 2000;
+		// rvideoImageCanvas.height = 2000;
 		rvideoImageCanvas.style = "visibility: hidden;";
 
 		// get canvas drawing context
