@@ -42,12 +42,18 @@ Client-side:
     mkdir certs
     openssl req  -nodes -new -x509  -keyout certs/privkey.pem -out certs/fullchain.pem
     ```
-4. Create a new branch and start developing:
+4. Create a `.env` file following the `example.env` example:
+    ```
+   PRODUCTION_IP="YOUR.IP.ON.LOCAL.NETWORK" 
+   PRODUCTION_PORT="3000"
+   DEBUG = "demo-app*"
+   ```
+5. Create a new branch and start developing:
     ```bash
     git checkout -b add-feature
     ```
     
-5. Start the build system and node server:
+6. Start the build system and node server:
     ```
     npm start
     ```
