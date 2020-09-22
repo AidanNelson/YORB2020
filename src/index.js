@@ -1260,7 +1260,12 @@ function camEncodings() {
 // how do we limit bandwidth for screen share streams?
 //
 function screenshareEncodings() {
-	null;
+	// null;
+	return [
+		// { maxBitrate: 36000, scaleResolutionDownBy: 2 },
+		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
+		{ maxBitrate: 680000, scaleResolutionDownBy: 1 },
+	];
 }
 
 //
