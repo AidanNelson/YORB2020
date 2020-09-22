@@ -7,6 +7,7 @@
 
 
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayerTemporarily } from './index.js'
+import { create3DText, createSimpleText } from './utils';
 
 const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
@@ -763,7 +764,7 @@ class Scene {
 
 		message = "Welcome to the";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt = create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false, this.font);
 		txt.position.set(-2, 2.75, 0.5);
 		txt.rotateY(Math.PI / 2);
 		this.scene.add(txt);
@@ -771,20 +772,20 @@ class Scene {
 
 		message = "ITP / IMA Spring Show ";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt = create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false, this.font);
 		txt.position.set(-2, 1.5, 0.0);
 		txt.rotateY(Math.PI / 2);
 		this.scene.add(txt);
 
 
 		message = "The E.R.";
-		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt = create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false, this.font);
 		txt.position.set(-11.25, 1.75, -18.5);
 		txt.rotateY(0);
 		this.scene.add(txt);
 
 		message = "Resident's Residence";
-		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt = create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false, this.font);
 		txt.position.set(-12.5, 1.75, -0.75);
 		txt.rotateY(-Math.PI / 2);
 		this.scene.add(txt);
@@ -1108,7 +1109,7 @@ class Scene {
 
 
 		// create name text mesh
-		var textMesh = this.createSimpleText(name, fontColor, fontSize);
+		var textMesh = createSimpleText(name, fontColor, fontSize, this.font);
 
 		textMesh.position.x += (linkDepth / 2) + 0.01; // offset forward
 		textMesh.rotateY(Math.PI / 2);
@@ -1126,7 +1127,7 @@ class Scene {
 			var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5);
 			var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
 			status = "Live now!";
-			var statusTextMesh = this.createSimpleText(status, statusColor, fontSize)
+			var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
 			statusTextMesh.position.x += (linkDepth / 2) + 0.01;
 			statusTextMesh.position.y -= 0.0625;
 			statusTextMesh.rotateY(Math.PI / 2);
@@ -1378,140 +1379,9 @@ class Scene {
 
 
 
-	// creates a text mesh and returns it, from: 
-	// https://threejs.org/examples/?q=text#webgl_geometry_text_shapes
-	createSimpleText(message, fontColor, fontSize) {
-		var xMid, yMid, text;
+	
 
-		var mat = new THREE.LineBasicMaterial({
-			color: fontColor,
-			side: THREE.DoubleSide
-		});
-
-		var shapes = this.font.generateShapes(message, fontSize);
-
-		var geometry = new THREE.ShapeBufferGeometry(shapes);
-
-		geometry.computeBoundingBox();
-
-		xMid = - 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
-		yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-
-		geometry.translate(xMid, yMid, 0);
-
-		// make shape ( N.B. edge view not visible )
-		text = new THREE.Mesh(geometry, mat);
-		return text;
-	}
-
-	// this function returns 3D text object
-	// from https://threejs.org/examples/?q=text#webgl_geometry_text
-	create3DText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror) {
-
-		let textGeo = new THREE.TextGeometry(text, {
-
-			font: this.font,
-
-			size: size,
-			height: height,
-			curveSegments: curveSegments,
-
-			bevelThickness: bevelThickness,
-			bevelSize: bevelSize,
-			bevelEnabled: bevelEnabled
-
-		});
-
-		textGeo.computeBoundingBox();
-		textGeo.computeVertexNormals();
-
-		var triangle = new THREE.Triangle();
-
-		let materials = [
-			new THREE.MeshPhongMaterial({ color: 0x57068c, flatShading: true }), // front
-			new THREE.MeshPhongMaterial({ color: 0xffffff }) // side
-		];
-
-		// "fix" side normals by removing z-component of normals for side faces
-		// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
-
-		if (!bevelEnabled) {
-
-			var triangleAreaHeuristics = 0.1 * (height * size);
-
-			for (var i = 0; i < textGeo.faces.length; i++) {
-
-				var face = textGeo.faces[i];
-
-				if (face.materialIndex == 1) {
-
-					for (var j = 0; j < face.vertexNormals.length; j++) {
-
-						face.vertexNormals[j].z = 0;
-						face.vertexNormals[j].normalize();
-
-					}
-
-					var va = textGeo.vertices[face.a];
-					var vb = textGeo.vertices[face.b];
-					var vc = textGeo.vertices[face.c];
-
-					var s = triangle.set(va, vb, vc).getArea();
-
-					if (s > triangleAreaHeuristics) {
-
-						for (var j = 0; j < face.vertexNormals.length; j++) {
-
-							face.vertexNormals[j].copy(face.normal);
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		var centerOffset = - 0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
-
-		textGeo = new THREE.BufferGeometry().fromGeometry(textGeo);
-
-		// geometry.computeBoundingBox();
-
-		let xMid = - 0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
-		// let yMid = 0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-
-		textGeo.translate(xMid, 0, 0);
-
-		let textMesh = new THREE.Mesh(textGeo, materials);
-		// let hover = 5;
-
-		// textMesh.position.x = centerOffset;
-		// textMesh.position.y = hover;
-		// textMesh.position.z = 0;
-
-		// textMesh.rotation.x = 0;
-		// textMesh.rotation.y = Math.PI * 2;
-
-		if (mirror) {
-
-			let textMesh2 = new THREE.Mesh(textGeo, materials);
-
-			textMesh2.position.x = centerOffset;
-			textMesh2.position.y = - hover;
-			textMesh2.position.z = height;
-
-			textMesh2.rotation.x = Math.PI;
-			textMesh2.rotation.y = Math.PI * 2;
-
-			return textMesh2;
-		}
-
-		return textMesh;
-
-	}
+	
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
