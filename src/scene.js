@@ -217,92 +217,6 @@ class Scene {
 
 		this.glassFixturingMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
 		this.graniteBarMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-		// this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
-
-		// this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
-		// this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
-
-
-
-		// let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
-		// paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
-		// paintedRoughnessTexture.wrapT = THREE.RepeatWrapping;
-		// paintedRoughnessTexture.repeat.set(5, 5);
-
-		// // wall material:
-		// this.wallMaterial = new THREE.MeshPhongMaterial({
-		// 	color: 0xffffe6,
-		// 	bumpMap: paintedRoughnessTexture,
-		// 	bumpScale: 0.25,
-		// 	specular: 0xfffff5,
-		// 	reflectivity: 0.01,
-		// 	shininess: 0.1,
-		// 	envMap: null
-		// });
-
-		// // ceiling material
-		// this.ceilingMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
-
-		// // floor material
-		// // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
-		// let floorTexture = new THREE.TextureLoader().load("textures/floor.jpg");
-		// floorTexture.wrapS = THREE.RepeatWrapping;
-		// floorTexture.wrapT = THREE.RepeatWrapping;
-		// floorTexture.repeat.set(1, 1);
-
-		// this.floorMaterial = new THREE.MeshPhongMaterial({
-		// 	color: 0xffffff,
-		// 	map: floorTexture,
-		// 	bumpMap: floorTexture,
-		// 	bumpScale: 0.005,
-		// 	specular: 0xffffff,
-		// 	reflectivity: 0.5,
-		// 	shininess: 4,
-		// 	envMap: null
-		// });
-
-		// this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
-		// 	color: 0x1a1a1a,
-		// 	bumpMap: paintedRoughnessTexture,
-		// 	bumpScale: 0.2,
-		// 	specular: 0xffffff,
-		// 	reflectivity: 0.01,
-		// 	shininess: 1,
-		// 	envMap: null
-		// });
-
-		// this.windowShelfMaterial = new THREE.MeshPhongMaterial({
-		// 	color: 0xdddddd
-		// });
-
-		// // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
-		// this.glassMaterial = new THREE.MeshPhysicalMaterial({
-		// 	color: 0xD9ECFF,
-		// 	metalness: 0.05,
-		// 	roughness: 0,
-		// 	alphaTest: 0.5,
-		// 	depthWrite: false,
-		// 	envMap: this.envMap,
-		// 	envMapIntensity: 1,
-		// 	transparency: 1, // use material.transparency for glass materials
-		// 	opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
-		// 	transparent: true
-		// });
-
-		// this.lightHousingMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
-
-		// this.lightDiffuserMaterial = new THREE.MeshPhongMaterial({
-		// 	color: 0xcccccc,
-		// 	emissive: 0xffffff,
-		// 	emissiveIntensity: 10,
-		// 	specular: 0xffffff,
-		// 	reflectivity: 0.01,
-		// 	shininess: 1,
-		// 	envMap: null
-		// });
-
-		// this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-		// this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
 	}
 
 	loadModel(_file, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {
@@ -566,11 +480,6 @@ class Scene {
 				if (this.clients[_id].group.position.distanceTo(this.clients[_id].desiredPosition) < snapDistance) {
 					this.clients[_id].group.position.set(this.clients[_id].desiredPosition.x, this.clients[_id].desiredPosition.y, this.clients[_id].desiredPosition.z);
 				}
-
-				// this.clients[_id].group.quaternion.slerp(this.clients[_id].desiredRotation, 0.2);
-				// if (this.clients[_id].group.quaternion.angleTo(this.clients[_id].desiredRotation) < snapAngle) {
-				// 	this.clients[_id].group.quaternion.set(this.clients[_id].desiredRotation.x, this.clients[_id].desiredRotation.y, this.clients[_id].desiredRotation.z, this.clients[_id].desiredRotation.w);
-				// }
 			}
 		}
 	}
@@ -598,24 +507,6 @@ class Scene {
 			right: false,
 			left: false
 		}
-
-		// var numCollisionDetectionPointsPerSide = 3;
-		// var numTotalCollisionDetectionPoints = numCollisionDetectionPointsPerSide * 4;
-
-		// get the headMesh vertices
-		// var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
-
-		// these are the four vertices of each side:
-		// figured out which ones were which with pen and paper...
-		// var forwardVertices = [headMeshVertices[1], headMeshVertices[3], headMeshVertices[4], headMeshVertices[6]];
-		// var backwardVertices = [headMeshVertices[0], headMeshVertices[2], headMeshVertices[5], headMeshVertices[7]];
-		// var rightVertices = [headMeshVertices[0], headMeshVertices[1], headMeshVertices[2], headMeshVertices[3]];
-		// var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
-
-		// this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numCollisionDetectionPointsPerSide);
-		// this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numCollisionDetectionPointsPerSide);
-		// this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numCollisionDetectionPointsPerSide);
-		// this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numCollisionDetectionPointsPerSide);
 
 		// for use debugging collision detection
 		if (this.DEBUG_MODE) {
@@ -686,12 +577,6 @@ class Scene {
 		var rightDir = forwardDir.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
 		var leftDir = rightDir.clone().negate();
 
-		// let forwardDir = new THREE.Vector3();
-		// this.controls.getDirection(forwardDir);
-		// var backwardDir = forwardDir.clone().negate();
-		// var rightDir = forwardDir.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
-		// var leftDir = rightDir.clone().negate();
-
 		// TODO more points around avatar so we can't be inside of walls
 		let pt = this.controls.getObject().position.clone();
 
@@ -699,8 +584,6 @@ class Scene {
 		this.backwardCollisionDetectionPoints = [pt];
 		this.rightCollisionDetectionPoints = [pt];
 		this.leftCollisionDetectionPoints = [pt];
-
-
 
 		// check forward
 		this.obstacles.forward = this.checkCollisions(this.forwardCollisionDetectionPoints, forwardDir, 0);
