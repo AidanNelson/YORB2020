@@ -7,7 +7,7 @@
 
 
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayerTemporarily } from './index.js'
-import { create3DText, createSimpleText } from './utils';
+import { create3DText, createSimpleText, makeVideoTextureAndMaterial, redrawVideoCanvas, randomRange } from './utils';
 
 const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
@@ -66,8 +66,8 @@ class Scene {
 
 		// starting position
 		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
-		let randX = this.randomRange(3, 28);
-		let randZ = this.randomRange(-2.5, 1.5);
+		let randX = randomRange(3, 28);
+		let randZ = randomRange(-2.5, 1.5);
 		this.camera.position.set(randX, this.cameraHeight, randZ);
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
@@ -477,7 +477,7 @@ class Scene {
 			new THREE.MeshNormalMaterial()
 		);
 
-		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial("local");
+		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial("local");
 
 		let _head = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
@@ -508,7 +508,7 @@ class Scene {
 			new THREE.MeshNormalMaterial()
 		);
 
-		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
+		let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id);
 
 		let _head = new THREE.Mesh(
 			new THREE.BoxGeometry(1, 1, 1),
@@ -1616,53 +1616,12 @@ class Scene {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
 			if (remoteVideo != null && remoteVideoCanvas != null) {
-				this.redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture);
+				redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture);
 			}
 		}
 	}
 
-	// this function redraws on a 2D <canvas> from a <video> and indicates to three.js
-	// that the _videoTex should be updated
-	redrawVideoCanvas(_videoEl, _canvasEl, _videoTex) {
-		let _canvasDrawingContext = _canvasEl.getContext('2d');
-
-		// check that we have enough data on the video element to redraw the canvas
-		if (_videoEl.readyState === _videoEl.HAVE_ENOUGH_DATA) {
-			// if so, redraw the canvas from the video element
-			_canvasDrawingContext.drawImage(_videoEl, 0, 0, _canvasEl.width, _canvasEl.height);
-			// and indicate to three.js that the texture needs to be redrawn from the canvas
-			_videoTex.needsUpdate = true;
-		}
-	}
-
-	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
-	makeVideoTextureAndMaterial(_id) {
-		// create a canvas and add it to the body
-		let rvideoImageCanvas = document.createElement('canvas');
-		document.body.appendChild(rvideoImageCanvas);
-
-		rvideoImageCanvas.id = _id + "_canvas";
-		// rvideoImageCanvas.width = 2000;
-		// rvideoImageCanvas.height = 2000;
-		rvideoImageCanvas.style = "visibility: hidden;";
-
-		// get canvas drawing context
-		let rvideoImageContext = rvideoImageCanvas.getContext('2d');
-
-		// background color if no video present
-		rvideoImageContext.fillStyle = '#000000';
-		rvideoImageContext.fillRect(0, 0, rvideoImageCanvas.width, rvideoImageCanvas.height);
-
-		// make texture
-		let videoTexture = new THREE.Texture(rvideoImageCanvas);
-		videoTexture.minFilter = THREE.LinearFilter;
-		videoTexture.magFilter = THREE.LinearFilter;
-
-		// make material from texture
-		var movieMaterial = new THREE.MeshBasicMaterial({ map: videoTexture, overdraw: true, side: THREE.DoubleSide });
-
-		return [videoTexture, movieMaterial];
-	}
+	
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -1719,27 +1678,6 @@ class Scene {
 		this.clients[_id].audioElement = audioElement;
 		console.log("The following audio element attached to client with ID " + _id + ":");
 		console.log(this.clients[_id].audioElement);
-
-		// for the moment, positional audio using webAudio and THREE.PositionalAudio doesn't work...
-		// see the issues on github
-		// let audioSource;	
-		// if (this.clients[_id]) {
-		// 	if ("positionalAudioSource" in this.clients[_id]) {
-		// 		audioSource = this.clients[_id].positionalAudioSource;
-		// 		this.scene.remove(audioSource);
-		// 	}
-
-		// 	audioSource = new THREE.PositionalAudio(this.listener);
-		// 	audioSource.setRefDistance(10);
-		// 	audioSource.setRolloffFactor(10);
-		// 	audioSource.setVolume(1);
-		// 	this.clients[_id].positionalAudioSource = audioSource;
-		// 	this.clients[_id].group.add(audioSource);
-
-		// 	// audioSource.setMediaStreamSource(_audioStream);
-		// 	audioSource.setMediaElementSource(audioElement);
-		// 	console.log(audioSource);
-		// }
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -1754,26 +1692,10 @@ class Scene {
 		this.renderer.setSize(this.width, this.height);
 	}
 
-	onMouseClick(e) { // not used currently
-		// this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-		// this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
-		// console.log("Click");
+	onMouseClick(e) { 
 		this.activateHighlightedProject();
 	}
 
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-	// Utilities:
-
-	/**
-	 * Returns a random number between min (inclusive) and max (exclusive)
-	 * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range#1527820
-	 */
-	randomRange(min, max) {
-		return Math.random() * (max - min) + min;
-	}
-
-	//==//==//==//==//==//==//==//==// fin //==//==//==//==//==//==//==//==//==//
 }
 
 export default Scene;
