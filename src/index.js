@@ -120,7 +120,6 @@ window.onload = async () => {
 	// the page unloads
 	window.addEventListener('unload', () => {
 		socket.request('leave', {});
-		// sig('leave', {}, true)
 	});
 
 	alert("Allow YORB to access your webcam for the full experience");
@@ -294,9 +293,6 @@ function setupControls() {
 		if (e.keyCode == 77) { // "M"
 			toggleWebcamAudioPauseState();
 		}
-		// if (e.keyCode == 13) { // "Enter"
-		// 	yorbScene.activateHighlightedProject();
-		// }
 		if (e.keyCode == 49) { // "1"
 			yorbScene.swapMaterials();
 		}
