@@ -92,7 +92,7 @@ class Scene {
 		this.loadBackground();
 		this.loadFloorModel();
 
-		this.setupSpringShow();
+		// this.setupSpringShow();
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
