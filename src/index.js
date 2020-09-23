@@ -14,9 +14,7 @@ import Scene from './scene';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
-const hostname = window.location.hostname;
 
-import * as config from '../config';
 import * as mediasoup from 'mediasoup-client';
 import debugModule from 'debug';
 
