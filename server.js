@@ -815,39 +815,6 @@ async function runSocketServer() {
       }
     });
 
-    // --> /signaling/consumer-set-layers
-    //
-    // called to set the largest spatial layer that a specific client
-    // wants to receive
-    //
-    socket.on("consumer-set-layers", async (data, callback) => {
-      try {
-        let peerId = socket.id;
-        let peerLoc = peerLocations[peerId.toString()];
-
-        let { consumerId, spatialLayer } = data,
-          consumer = roomStates[peerLoc].consumers.find(
-            (c) => c.id === consumerId
-          );
-
-        if (!consumer) {
-          err(
-            `consumer-set-layers: server-side consumer ${consumerId} not found`
-          );
-          callback({ error: `server-side consumer ${consumerId} not found` });
-          return;
-        }
-
-        log("consumer-set-layers", spatialLayer, consumer.appData);
-
-        await consumer.setPreferredLayers({ spatialLayer });
-
-        callback({ layersSet: true });
-      } catch (e) {
-        console.error("error in /signaling/consumer-set-layers", e);
-        callback({ error: e });
-      }
-    });
 
     // --> /signaling/pause-producer
     //
