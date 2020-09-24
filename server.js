@@ -65,10 +65,9 @@ const err = debugModule("demo-app:ERROR");
 
 // one mediasoup worker and router
 //
-// let worker, router, audioLevelObserver;
+// let worker, router
 let workers = [];
 let routers = [];
-// let audioLevelObservers = [];
 let roomStates = [];
 
 //
@@ -123,8 +122,7 @@ let peerLocations = {};
 //   }
 // }
 //
-// we also send information about the active speaker, as tracked by
-// our audioLevelObserver.
+
 //
 // internally, we keep lists of transports, producers, and
 // consumers. whenever we create a transport, producer, or consumer,
@@ -180,7 +178,6 @@ async function main() {
     ({ worker, router, roomState } = await startMediasoup());
     workers[i] = worker;
     routers[i] = router;
-    // audioLevelObservers[i] = audioLevelObserver;
     roomStates[i] = roomState;
   }
 
@@ -614,15 +611,8 @@ async function runSocketServer() {
         producer.on("transportclose", () => {
           log("producer's transport closed", producer.id);
           closeProducerAndAllPipeProducers(producer, peerId);
-          // closeProducer(producer, peerId);
         });
 
-        // monitor audio level of this producer. we call addProducer() here,
-        // but we don't ever need to call removeProducer() because the core
-        // AudioLevelObserver code automatically removes closed producers
-        // if (producer.kind === 'audio') {
-        //   audioLevelObservers[peerLoc].addProducer({ producerId: producer.id });
-        // }
 
         roomStates[peerLoc].producers.push(producer);
         roomStates[peerLoc].peers[peerId].media[appData.mediaTag] = {
