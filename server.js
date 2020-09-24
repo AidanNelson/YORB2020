@@ -148,19 +148,7 @@ function getRandomInt(min, max) {
 }
 
 let clients = {};
-let testProjects = [
-  {
-    project_id: "8558",
-    project_name: "You Are Not the Only Particle in Universe",
-    elevator_pitch:
-      "A multi-media performance using home lamps as performing instruments. You Are Not the Only Particle in Universe is an experiment of transforming home lamps to new interfaces of performing music and light as interactive props in performance.",
-    description:
-      "I have a background in stage lighting design. In most stage performances, designers hide the light instrument above the stage or on the side behind curtains where audience could not see the light source itself. When I designed lighting for dance, I always thought I am also creating choreography but with medium of light. With this experience, I started to wonder what if I put light on stage, so that they are no longer complimentary roles in performance, but instead an actor, an expressive performing instrument on stage. &amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;\r\n&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;\r\nYou Are Not the Only Particle in Universe is a continued research from a past performance project, In a Box, which I first created a performance that included a custom made instrument with home lamps and home lamp switches. My thesis project further develops this instrument with more interactive functions and allows the performer to create more versatile music and movement.&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;\r\n&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;\r\nLight 2.0 is a multimedia performance that combines light, music, and movement, when light and music are not complementary roles and movement and performers are also not leading roles. Together, all these elements become performing instruments on stage.&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;\r\n&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;\r\nThe performer can bow, tap, or spin the lamps to create various combinations of music, light, and movement. When bowing the lamp with a bow or tap near the sensors, it looks like bowing a cello and plucking. The performer can also spin the lamp shade to activate different parts of music composition.&amp;lt;br /&amp;gt;",
-    zoom_link: "https://nyu.zoom.us/j/2673933378",
-  },
-];
 let projects = [];
-// projects = testProjects;
 
 //
 // main() -- our execution entry point
