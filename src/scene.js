@@ -1772,8 +1772,8 @@ class Scene {
 		document.body.appendChild(rvideoImageCanvas);
 
 		rvideoImageCanvas.id = _id + "_canvas";
-		// rvideoImageCanvas.width = videoWidth;
-		// rvideoImageCanvas.height = videoHeight;
+		// rvideoImageCanvas.width = 2000;
+		// rvideoImageCanvas.height = 2000;
 		rvideoImageCanvas.style = "visibility: hidden;";
 
 		// get canvas drawing context

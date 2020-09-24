@@ -42,12 +42,24 @@ Client-side:
     mkdir certs
     openssl req  -nodes -new -x509  -keyout certs/privkey.pem -out certs/fullchain.pem
     ```
-4. Create a new branch and start developing:
+4. Create a `.env` file following the `example.env` example:
+    ```
+   PRODUCTION_IP="YOUR.LOCAL.NETWORK.IP" 
+   PRODUCTION_PORT="3000"
+   DEBUG = "demo-app*"
+   ```
+   If you'd like to connect to the yorb.itp.io backend, use this `.env` configuration:
+    ```
+   PRODUCTION_IP="yorb.itp.io" 
+   PRODUCTION_PORT="443"
+   DEBUG = "demo-app*"
+   ```
+5. Create a new branch with a unique name and start developing:
     ```bash
-    git checkout -b add-feature
+    git checkout -b add-cool-feature
     ```
     
-5. Start the build system and node server:
+6. Start the build system and node server:
     ```
-    npm start
+    sudo npm start
     ```
