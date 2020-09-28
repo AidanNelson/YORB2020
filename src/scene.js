@@ -1,4 +1,4 @@
-/* 
+/*
 * YORB 2020
 *
 * Aidan Nelson, April 2020
@@ -65,9 +65,14 @@ class Scene {
 
 		// starting position
 		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
-		let randX = this.randomRange(3, 28);
-		let randZ = this.randomRange(-2.5, 1.5);
-		this.camera.position.set(randX, this.cameraHeight, randZ);
+		// let randX = this.randomRange(3, 28);
+		// let randZ = this.randomRange(-2.5, 1.5);
+		// this.camera.position.set(randX, this.cameraHeight, randZ);
+		let classRoom1 = {	x:9.495,
+												y:0.5,
+												z:28.685
+											}
+		this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
@@ -90,6 +95,7 @@ class Scene {
 		this.createMaterials();
 		this.loadBackground();
 		this.loadFloorModel();
+		this.createProjectorScreens();
 
 		this.setupSpringShow();
 
@@ -466,6 +472,29 @@ class Scene {
 		return mat;
 	}
 
+	createProjectorScreens() {
+
+		let dims = { width: 1920, height: 1080 }
+
+		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial("screen1", dims);
+
+		this.screen = new THREE.Mesh(
+			new THREE.BoxGeometry(5, 5*9/16, 0.1),
+			videoMaterial
+		);
+
+		// this.screen.visible = true;
+
+		// set position of head before adding to parent object
+		let classRoom1 = [3.2497759, 1.9, 24.606520];
+		this.screen.position.set(classRoom1[0], classRoom1[1], classRoom1[2]);
+		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
+		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
+		// this.screen.rotateY(Math.PI/2);
+		this.screen.rotateY(Math.PI*2 - Math.PI/2);
+		this.scene.add(this.screen);
+	}
+
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Clients 👫
@@ -510,7 +539,7 @@ class Scene {
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
 
 		let _head = new THREE.Mesh(
-			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.BoxGeometry(3, 3, 3),
 			videoMaterial
 		);
 
@@ -632,7 +661,7 @@ class Scene {
 	*
 	* Description:
 	* Returns an array of numPoints THREE.Vector3 objects evenly spaced between vecA and vecB, including vecA and vecB
-	* 
+	*
 	* based on:
 	* https://stackoverflow.com/questions/21249739/how-to-calculate-the-points-between-two-given-points-and-given-distance
 	*
@@ -651,21 +680,21 @@ class Scene {
 	/*
 	* detectCollisions()
 	*
-	* based on method shown here: 
+	* based on method shown here:
 	* https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
 	*
 	* Description:
 	* 1. Creates THREE.Vector3 objects representing the current forward, left, right, backward direction of the character.
-	* 2. For each side of the cube, 
+	* 2. For each side of the cube,
 	* 		- uses the collision detection points created in this.setupCollisionDetection()
-	*		- sends a ray out from each point in the direction set up above 
+	*		- sends a ray out from each point in the direction set up above
 	* 		- if any one of the rays hits an object, set this.obstacles.SIDE (i.e. right or left) to true
 	* 3. Give this.obstacles object to this.controls
 	*
 	* To Do: setup helper function to avoid repetitive code
 	*/
 	detectCollisions() {
-		// reset obstacles: 
+		// reset obstacles:
 		this.obstacles = {
 			forward: false,
 			backward: false,
@@ -675,7 +704,7 @@ class Scene {
 
 
 		// TODO only use XZ components of forward DIR in case we are looking up or down while travelling forward
-		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)... 
+		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)...
 		// Weird, but this function respects those directions for the sake of not having to make conversions
 		// https://github.com/mrdoob/three.js/issues/1606
 		var matrix = new THREE.Matrix4();
@@ -740,6 +769,7 @@ class Scene {
 		}
 		return false;
 	}
+
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Interactable Hyperlinks for Spring Show 💎
@@ -769,7 +799,7 @@ class Scene {
 		this.scene.add(txt);
 
 
-		message = "ITP / IMA Spring Show ";
+		message = "Coding Lab Testing Facility ";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-2, 1.5, 0.0);
@@ -792,7 +822,7 @@ class Scene {
 	}
 
 	/*
-	* updateProjects(projects) 
+	* updateProjects(projects)
 	*
 	* Description:
 	* 	- empties out the existing projects array and any existing hyperlink objects within it
@@ -1055,10 +1085,10 @@ class Scene {
 	}
 
 	/*
-	* createHyperlinkedMesh(x,y,z,_project) 
+	* createHyperlinkedMesh(x,y,z,_project)
 	*
 	* Description:
-	* 	- creates an object3D for each project at position x,y,z 
+	* 	- creates an object3D for each project at position x,y,z
 	*	- adds _project as userData to the object3D
 	*	- returns object3D
 	*/
@@ -1149,11 +1179,11 @@ class Scene {
 	}
 
 	/*
-	* generateProjectModal(project) 
-	* 
+	* generateProjectModal(project)
+	*
 	* Description:
-	* 	- generates a modal pop up for a given project object 
-	* 	- project objects look like this: 
+	* 	- generates a modal pop up for a given project object
+	* 	- project objects look like this:
 	*		{
 	*			"project_id": "1234",
 	*			"project_name": "Cats",
@@ -1161,7 +1191,7 @@ class Scene {
 	*			"description": "Cats is about building a sustainable online community for earth humans.",
 	*			"zoom_link": "http://example.com"
 	*		}
-	* 
+	*
 	*/
 	zoomStatusDecoder(status) {
 		if (status == "0") {
@@ -1290,12 +1320,12 @@ class Scene {
 	}
 
 	/*
-	* highlightHyperlinks() 
-	* 
+	* highlightHyperlinks()
+	*
 	* Description:
-	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array, 
+	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array,
 	* 	- calls this.generateProjectModal for any projects under a threshold distance
-	* 
+	*
 	*/
 	highlightHyperlinks() {
 
@@ -1328,7 +1358,7 @@ class Scene {
 				this.resetLinkMaterial(link);
 			}
 		} else {
-			// no change, so lets check for 
+			// no change, so lets check for
 			let link = this.scene.getObjectByName(this.hightlightedProjectId);
 			if (link != null) {
 				if (now - link.userData.lastVisitedTime > 500) {
@@ -1378,7 +1408,7 @@ class Scene {
 
 
 
-	// creates a text mesh and returns it, from: 
+	// creates a text mesh and returns it, from:
 	// https://threejs.org/examples/?q=text#webgl_geometry_text_shapes
 	createSimpleText(message, fontColor, fontSize) {
 		var xMid, yMid, text;
@@ -1766,14 +1796,19 @@ class Scene {
 	}
 
 	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
-	makeVideoTextureAndMaterial(_id) {
+	makeVideoTextureAndMaterial(_id, dims=null) {
 		// create a canvas and add it to the body
 		let rvideoImageCanvas = document.createElement('canvas');
 		document.body.appendChild(rvideoImageCanvas);
 
 		rvideoImageCanvas.id = _id + "_canvas";
-		// rvideoImageCanvas.width = videoWidth;
-		// rvideoImageCanvas.height = videoHeight;
+
+		// Dims for projector screens.
+		if (dims) {
+			rvideoImageCanvas.width = dims.width;
+			rvideoImageCanvas.height = dims.height;
+		}
+
 		rvideoImageCanvas.style = "visibility: hidden;";
 
 		// get canvas drawing context
@@ -1793,6 +1828,7 @@ class Scene {
 
 		return [videoTexture, movieMaterial];
 	}
+
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -1838,7 +1874,7 @@ class Scene {
 		}
 	}
 
-	// At the moment, this just adds a .audioElement parameter to a client stored under _id 
+	// At the moment, this just adds a .audioElement parameter to a client stored under _id
 	// which will be updated above
 	createOrUpdatePositionalAudio(_id) {
 		let audioElement = document.getElementById(_id + "_audio");
@@ -1852,7 +1888,7 @@ class Scene {
 
 		// for the moment, positional audio using webAudio and THREE.PositionalAudio doesn't work...
 		// see the issues on github
-		// let audioSource;	
+		// let audioSource;
 		// if (this.clients[_id]) {
 		// 	if ("positionalAudioSource" in this.clients[_id]) {
 		// 		audioSource = this.clients[_id].positionalAudioSource;

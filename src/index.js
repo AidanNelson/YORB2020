@@ -1,4 +1,4 @@
-/* 
+/*
 * YORB 2020
 *
 * Aidan Nelson, April 2020
@@ -73,7 +73,7 @@ window.lastPollSyncData = {};
 
 // adding constraints, VIDEO_CONSTRAINTS is video quality levels
 // localMediaCOnstraints is passed to the getUserMedia object to request a lower video quality than the maximum
-// I believe some webcam settings may override this request 
+// I believe some webcam settings may override this request
 
 const VIDEO_CONSTRAINTS =
 {
@@ -95,7 +95,7 @@ let localMediaConstraints = {
 // Start-Up Sequence:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-// start with user interaction with the DOM so we can auto-play audio/video from 
+// start with user interaction with the DOM so we can auto-play audio/video from
 // now on...
 window.onload = async () => {
 	console.log("Window loaded.");
@@ -474,7 +474,7 @@ function removeClientDOMElements(_id) {
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-// Mediasoup Code: 
+// Mediasoup Code:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 
@@ -1161,7 +1161,7 @@ function addVideoAudio(consumer, peerId) {
 			el = document.createElement('video');
 			el.id = `${peerId}_${consumer.kind}`;
 			el.autoplay = true;
-			el.muted = true; // necessary for 
+			el.muted = true; // necessary for
 			el.style = "visibility: hidden;";
 			document.body.appendChild(el);
 			el.setAttribute('playsinline', true);
@@ -1259,8 +1259,15 @@ function camEncodings() {
 
 // how do we limit bandwidth for screen share streams?
 //
+const SCREEN_SIMULCAST_ENCODINGS =
+	[
+		{ maxBitrate: 36000, scaleResolutionDownBy: 2 },
+		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
+		// { maxBitrate: 680000, scaleResolutionDownBy: 1 },
+	];
+
 function screenshareEncodings() {
-	null;
+	return SCREEN_SIMULCAST_ENCODINGS;
 }
 
 //
