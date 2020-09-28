@@ -1920,6 +1920,11 @@ class Scene {
 			const sketchAndLocation = p5sketches[i];
 			this.addSketchToScene(sketchAndLocation.sketch, sketchAndLocation.location);
 		}
+
+		let el = document.createElement('iframe');
+		el.setAttribute('src', 'https://editor.p5js.org/p5/embed/rBqmyGZlS9');
+		el.setAttribute('id', 'myiframe');
+		document.body.appendChild(el);
 	}
 	/**
 	 * 
