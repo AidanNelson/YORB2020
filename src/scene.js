@@ -474,9 +474,11 @@ class Scene {
 
 	createProjectorScreens() {
 
+		let _id = "screen1"
+
 		let dims = { width: 1920, height: 1080 }
 
-		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial("screen1", dims);
+		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
 
 		this.screen = new THREE.Mesh(
 			new THREE.BoxGeometry(5, 5*9/16, 0.1),
@@ -490,8 +492,7 @@ class Scene {
 		this.screen.position.set(classRoom1[0], classRoom1[1], classRoom1[2]);
 		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
 		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
-		// this.screen.rotateY(Math.PI/2);
-		this.screen.rotateY(Math.PI*2 - Math.PI/2);
+		this.screen.rotateY(Math.PI/2);
 		this.scene.add(this.screen);
 	}
 

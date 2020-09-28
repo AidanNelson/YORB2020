@@ -173,6 +173,7 @@ function initSocketConnection() {
 			for (let i = 0; i < _ids.length; i++) {
 				if (_ids[i] != mySocketID) {
 					addClient(_ids[i]);
+
 				}
 			}
 			resolve();
