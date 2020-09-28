@@ -473,8 +473,9 @@ class Scene {
 	}
 
 	createProjectorScreens() {
+		this.projectorVideoTextures = [];
 
-		let _id = "screen1"
+		let _id = "screenshare"
 
 		let dims = { width: 1920, height: 1080 }
 
@@ -484,6 +485,7 @@ class Scene {
 			new THREE.BoxGeometry(5, 5*9/16, 0.1),
 			videoMaterial
 		);
+		this.projectorVideoTextures.push(videoTexture);
 
 		// this.screen.visible = true;
 
@@ -1773,6 +1775,18 @@ class Scene {
 	}
 
 	updateVideoTextures() {
+		// for (let i = 0; i < this.projectorVideoTextures; i++){
+		// 	console.log('updating projector video texture');
+		// 	this.projectorVideoTextures[i].needsUpdate = true;
+		// }
+
+		let remoteVideo1 = document.getElementById("screenshare");
+			let remoteVideoCanvas1 = document.getElementById("screenshare_canvas");
+			if (remoteVideo1 != null && remoteVideoCanvas1 != null) {
+				this.redrawVideoCanvas(remoteVideo1, remoteVideoCanvas1, this.projectorVideoTextures[0]);
+			}
+
+		// update for the clients
 		for (let _id in this.clients) {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");

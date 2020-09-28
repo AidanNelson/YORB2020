@@ -755,6 +755,7 @@ export async function leaveRoom() {
 
 export async function subscribeToTrack(peerId, mediaTag) {
 	log('subscribe to track', peerId, mediaTag);
+	log('mediaTag: ', mediaTag)
 
 	// create a receive transport if we don't already have one
 	if (!recvTransport) {
@@ -798,7 +799,8 @@ export async function subscribeToTrack(peerId, mediaTag) {
 	consumers.push(consumer);
 
 	// ui
-	await addVideoAudio(consumer, peerId);
+	const isScreenshare = (mediaTag == "screen-video");
+	await addVideoAudio(consumer, peerId, isScreenshare);
 }
 
 export async function unsubscribeFromTrack(peerId, mediaTag) {
@@ -1038,6 +1040,7 @@ async function pollAndUpdate() {
 			if (closestPeers.includes(id)) { // and if it is close enough in the 3d space...
 				for (let [mediaTag, info] of Object.entries(peers[id].media)) { // for each of the peer's producers...
 					if (!findConsumerForTrack(id, mediaTag)) { // that we don't already have consumers for...
+
 						log(`auto subscribing to track that ${id} has added`);
 						await subscribeToTrack(id, mediaTag);
 					}
@@ -1146,11 +1149,15 @@ export async function toggleScreenshareAudioPauseState() {
 
 
 
-function addVideoAudio(consumer, peerId) {
+function addVideoAudio(consumer, peerId, isScreenshare = false) {
 	if (!(consumer && consumer.track)) {
 		return;
 	}
 	let elementID = `${peerId}_${consumer.kind}`;
+	if (isScreenshare){
+		elementID = "screenshare";
+		// elementID = `${peerId}_${consumer.kind}_screenshare`;
+	}
 	let el = document.getElementById(elementID);
 
 	// set some attributes on our audio and video elements to make
@@ -1161,11 +1168,16 @@ function addVideoAudio(consumer, peerId) {
 			console.log("Creating video element for user with ID: " + peerId);
 			el = document.createElement('video');
 			el.id = `${peerId}_${consumer.kind}`;
+			if (isScreenshare){
+				el.id = "screenshare";
+				// el.id = `${peerId}_${consumer.kind}_screenshare`;
+			}
 			el.autoplay = true;
 			el.muted = true; // necessary for
 			el.style = "visibility: hidden;";
 			document.body.appendChild(el);
 			el.setAttribute('playsinline', true);
+			document.body.appendChild(el);
 		}
 
 		// TODO: do i need to update video width and height? or is that based on stream...?
@@ -1262,9 +1274,9 @@ function camEncodings() {
 //
 const SCREEN_SIMULCAST_ENCODINGS =
 	[
-		{ maxBitrate: 36000, scaleResolutionDownBy: 2 },
+		// { maxBitrate: 36000, scaleResolutionDownBy: 2 },
 		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
-		// { maxBitrate: 680000, scaleResolutionDownBy: 1 },
+		{ maxBitrate: 680000, scaleResolutionDownBy: 1 },
 	];
 
 function screenshareEncodings() {
