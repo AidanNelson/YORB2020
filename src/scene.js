@@ -11,6 +11,8 @@ import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayer
 const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
 
+const p5 = require('p5');
+
 // slightly awkward syntax, but these statements add these functions to THREE
 require('./libs/GLTFLoader.js')(THREE);
 require('./libs/pointerLockControls.js')(THREE);
@@ -92,6 +94,9 @@ class Scene {
 		this.loadFloorModel();
 
 		this.setupSpringShow();
+
+		this.updateableVideoTextures = [];
+		this.addSketches();
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
@@ -1708,6 +1713,8 @@ class Scene {
 	update() {
 		requestAnimationFrame(() => this.update());
 
+		this.updateSketches();
+
 		if (!this.paused) {
 			this.updateControls();
 
@@ -1901,6 +1908,107 @@ class Scene {
 	 */
 	randomRange(min, max) {
 		return Math.random() * (max - min) + min;
+	}
+
+
+
+
+	addSketches(){
+		const s = (sketch) => {
+			
+			sketch.setup = ()=> {
+				sketch.createCanvas(100, 100, sketch.WEBGL);
+			  };
+			  
+			sketch.draw = () => {
+				sketch.background(205, 105, 94);
+				sketch.rotateY(sketch.millis() / 1000);
+				sketch.sphere(40, 16, 3);
+			  };
+		};
+
+		this.addSketchToScene(s, -14,1.5,-14);
+
+
+		const s1 = (sketch) => {
+			let ballX = 100;
+			let ballY = 100;
+			let velocityX = sketch.random(-5, 5);
+			let velocityY = sketch.random(-5, 5);
+			let buffer = 25;
+	
+			sketch.setup = () => {
+				sketch.createCanvas(400, 400);
+				ballX = sketch.width / 2;
+				ballY = sketch.height / 2;
+				sketch.pixelDensity(1);
+				sketch.frameRate(25);
+				sketch.rectMode(sketch.CENTER);
+				sketch.ellipseMode(sketch.CENTER);
+			};
+	
+			sketch.draw = () => {
+				sketch.background(10, 10, 200);
+				ballX += velocityX;
+				ballY += velocityY;
+				if (ballX >= (sketch.width - buffer) || ballX <= buffer) {
+					velocityX = -velocityX;
+				}
+				if (ballY >= (sketch.height - buffer) || ballY <= buffer) {
+					velocityY = -velocityY;
+				}
+				sketch.fill(240, 120, 0);
+				sketch.ellipse(ballX, ballY, 50, 50);
+			};
+		};
+
+		this.addSketchToScene(s1, -11,1.5,-9);
+	}
+	/**
+	 * 
+	 * This function will add a p5 sketch to the scene:
+	 * creates a canvas and attaches sketch to that canvas,
+	 * creates a canvasTexture, 
+	 * creates a THREE.js plane object to hold sketch,
+	 * applies canvasTexture to material on that plane
+	 * 
+	 */
+	addSketchToScene(sketchDefinition,x,y,z){
+		
+		const sketch = new p5(sketchDefinition);
+		console.log(sketch);
+
+		// const canvasEl = document.getElementById('defaultCanvas0');
+		const canvasEl = sketch.canvas;
+		// get canvas drawing context
+		let rvideoImageContext = canvasEl.getContext('2d');
+
+		// background color if no video present
+		// rvideoImageContext.fillStyle = '#000000';
+		// rvideoImageContext.fillRect(0, 0, canvasEl.width, canvasEl.height);
+
+		// make texture
+		let videoTexture = new THREE.Texture(canvasEl);
+		videoTexture.minFilter = THREE.LinearFilter;
+		videoTexture.magFilter = THREE.LinearFilter;
+
+		// make material from texture
+		var videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture, overdraw: true, side: THREE.DoubleSide });
+
+		this.updateableVideoTextures.push(videoTexture)
+		let sketchBox = new THREE.Mesh(
+			new THREE.BoxGeometry(2,2,2),
+			videoMaterial
+		);
+
+		sketchBox.position.set(x,y,z);
+		this.scene.add(sketchBox);
+	}
+
+	updateSketches(){
+		this.updateableVideoTextures.forEach((tex) => {
+			tex.needsUpdate = true;
+		})
 	}
 
 	//==//==//==//==//==//==//==//==// fin //==//==//==//==//==//==//==//==//==//
