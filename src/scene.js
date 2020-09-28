@@ -12,6 +12,7 @@ const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
 
 const p5 = require('p5');
+const p5sketches = require('./p5sketches');
 
 // slightly awkward syntax, but these statements add these functions to THREE
 require('./libs/GLTFLoader.js')(THREE);
@@ -1914,55 +1915,11 @@ class Scene {
 
 
 	addSketches(){
-		const s = (sketch) => {
-			
-			sketch.setup = ()=> {
-				sketch.createCanvas(100, 100, sketch.WEBGL);
-			  };
-			  
-			sketch.draw = () => {
-				sketch.background(205, 105, 94);
-				sketch.rotateY(sketch.millis() / 1000);
-				sketch.sphere(40, 16, 3);
-			  };
-		};
-
-		this.addSketchToScene(s, -14,1.5,-14);
-
-
-		const s1 = (sketch) => {
-			let ballX = 100;
-			let ballY = 100;
-			let velocityX = sketch.random(-5, 5);
-			let velocityY = sketch.random(-5, 5);
-			let buffer = 25;
-	
-			sketch.setup = () => {
-				sketch.createCanvas(400, 400);
-				ballX = sketch.width / 2;
-				ballY = sketch.height / 2;
-				sketch.pixelDensity(1);
-				sketch.frameRate(25);
-				sketch.rectMode(sketch.CENTER);
-				sketch.ellipseMode(sketch.CENTER);
-			};
-	
-			sketch.draw = () => {
-				sketch.background(10, 10, 200);
-				ballX += velocityX;
-				ballY += velocityY;
-				if (ballX >= (sketch.width - buffer) || ballX <= buffer) {
-					velocityX = -velocityX;
-				}
-				if (ballY >= (sketch.height - buffer) || ballY <= buffer) {
-					velocityY = -velocityY;
-				}
-				sketch.fill(240, 120, 0);
-				sketch.ellipse(ballX, ballY, 50, 50);
-			};
-		};
-
-		this.addSketchToScene(s1, -11,1.5,-9);
+		console.log("Adding p5.js sketches to the scene!");
+		for (let i = 0; i < p5sketches.length; i++){
+			const sketchAndLocation = p5sketches[i];
+			this.addSketchToScene(sketchAndLocation.sketch, sketchAndLocation.location);
+		}
 	}
 	/**
 	 * 
@@ -1973,7 +1930,7 @@ class Scene {
 	 * applies canvasTexture to material on that plane
 	 * 
 	 */
-	addSketchToScene(sketchDefinition,x,y,z){
+	addSketchToScene(sketchDefinition,location){
 		
 		const sketch = new p5(sketchDefinition);
 		console.log(sketch);
@@ -2001,7 +1958,7 @@ class Scene {
 			videoMaterial
 		);
 
-		sketchBox.position.set(x,y,z);
+		sketchBox.position.set(location.x,location.y,location.z);
 		this.scene.add(sketchBox);
 	}
 
