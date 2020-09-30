@@ -502,7 +502,8 @@ class Scene extends EventEmitter {
 
 		screen.userData = {
 			videoTexture: videoTexture,
-			activeUserId: ""
+			activeUserId: "",
+			screenId: _id
 		}
 
 		this.projectionScreens[_id] = screen;
@@ -524,7 +525,7 @@ class Scene extends EventEmitter {
 	* This function will loop through all of the projection screens,
 	* and update them if there is an active user and that user
 	* is screensharing currently
-	* 
+	*
 	*/
 	updateProjectionScreens(){
 		for (let screenId in this.projectionScreens){
@@ -539,6 +540,60 @@ class Scene extends EventEmitter {
 				this.redrawVideoCanvas(videoEl, canvasEl, videoTexture);
 			}
 		}
+	}
+
+	checkProjectorCollisions() {
+
+		var matrix = new THREE.Matrix4();
+		matrix.extractRotation(this.camera.matrix);
+		var backwardDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
+		var forwardDir = backwardDir.clone().negate();
+
+		// TODO more points around avatar so we can't be inside of walls
+		let pt = this.controls.getObject().position.clone();
+
+		let raycaster = new THREE.Raycaster();
+
+		raycaster.set( pt, forwardDir );
+
+		var intersects = raycaster.intersectObjects( Object.values(this.projectionScreens) );
+
+		// if we have intersections, highlight them
+		let thresholdDist = 7;
+		if (intersects.length > 0) {
+			if (intersects[0].distance < thresholdDist) {
+				let screen = intersects[0].object;
+				this.hightlightedScreen = screen;
+			} else {
+				this.hightlightedScreen = null;
+			}
+		}
+
+		console.log("intersects are ", intersects);
+
+		//if INTERSECTED, hightlight
+			//if mouseClicked
+
+		// if ( intersects.length > 0 ) {
+		//
+		// 	if ( INTERSECTED != intersects[ 0 ].object ) {
+		//
+		// 		if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+		//
+		// 		INTERSECTED = intersects[ 0 ].object;
+		// 		INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+		// 		INTERSECTED.material.emissive.setHex( 0xff0000 );
+		//
+		// 	}
+		//
+		// } else {
+		//
+		// 	if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+		//
+		// 	INTERSECTED = null;
+		//
+		// }
+
 	}
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -1792,6 +1847,7 @@ class Scene extends EventEmitter {
 				this.updateClientVolumes();
 				this.movementCallback();
 				this.highlightHyperlinks();
+				this.checkProjectorCollisions();
 			}
 			if (this.frameCount % 50 == 0) {
 				this.selectivelyPauseAndResumeConsumers();
@@ -1804,7 +1860,7 @@ class Scene extends EventEmitter {
 		this.render();
 	}
 	// hey billy!
-	// can you read this??  
+	// can you read this??
 	// i'm writing javascript!
 	// function myfunc() = cool stuff;
 
@@ -1977,6 +2033,9 @@ class Scene extends EventEmitter {
 		// this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
 		// console.log("Click");
 		this.activateHighlightedProject();
+		if (this.hightlightedScreen){
+			projectToScreen(this.hightlightedScreen.userData.screenId);
+		}
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
