@@ -799,8 +799,7 @@ export async function subscribeToTrack(peerId, mediaTag) {
 	consumers.push(consumer);
 
 	// ui
-	const isScreenshare = (mediaTag == "screen-video");
-	await addVideoAudio(consumer, peerId, isScreenshare);
+	await addVideoAudio(consumer, peerId, mediaTag);
 }
 
 export async function unsubscribeFromTrack(peerId, mediaTag) {
@@ -1149,14 +1148,17 @@ export async function toggleScreenshareAudioPauseState() {
 
 
 
-function addVideoAudio(consumer, peerId, isScreenshare = false) {
+function addVideoAudio(consumer, peerId, mediaTag) {
 	if (!(consumer && consumer.track)) {
 		return;
 	}
+
+	const isScreenshare = (mediaTag == "screen-video");
+	console.log('MediaTag: ',mediaTag, " / isScreenshare: ",isScreenshare);
+
 	let elementID = `${peerId}_${consumer.kind}`;
 	if (isScreenshare){
-		elementID = "screenshare";
-		// elementID = `${peerId}_${consumer.kind}_screenshare`;
+		elementID = `${peerId}_screenshare`;
 	}
 	let el = document.getElementById(elementID);
 
@@ -1169,8 +1171,7 @@ function addVideoAudio(consumer, peerId, isScreenshare = false) {
 			el = document.createElement('video');
 			el.id = `${peerId}_${consumer.kind}`;
 			if (isScreenshare){
-				el.id = "screenshare";
-				// el.id = `${peerId}_${consumer.kind}_screenshare`;
+				el.id = `${peerId}_screenshare`;
 			}
 			el.autoplay = true;
 			el.muted = true; // necessary for
