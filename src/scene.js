@@ -510,6 +510,7 @@ class Scene extends EventEmitter {
 	}
 
 	projectToScreen(screenId){
+		console.log("began projecting by mouse click")
 		this.emit("projectToScreen", screenId);
 	}
 
@@ -2034,7 +2035,7 @@ class Scene extends EventEmitter {
 		// console.log("Click");
 		this.activateHighlightedProject();
 		if (this.hightlightedScreen){
-			projectToScreen(this.hightlightedScreen.userData.screenId);
+			this.projectToScreen(this.hightlightedScreen.userData.screenId);
 		}
 	}
 
