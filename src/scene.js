@@ -516,7 +516,7 @@ class Scene extends EventEmitter {
 		let screenId = config.screenId;
 		let activeUserId = config.activeUserId;
 
-		this.projectionScreens[screenId].activeUserId  = activeUserId;
+		this.projectionScreens[screenId].userData.activeUserId  = activeUserId;
 	}
 
 	/*
