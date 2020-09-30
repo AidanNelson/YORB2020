@@ -10,16 +10,19 @@ import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayer
 
 const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
+const EventEmitter = require( 'events' );
 
 // slightly awkward syntax, but these statements add these functions to THREE
 require('./libs/GLTFLoader.js')(THREE);
 require('./libs/pointerLockControls.js')(THREE);
 
-class Scene {
+
+class Scene extends EventEmitter {
 	constructor(
 		_movementCallback,
 		_clients,
 		mySocketID) {
+			super();
 
 		// add this to window to allow javascript console debugging
 		window.scene = this;
@@ -496,6 +499,12 @@ class Scene {
 		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
 		this.screen.rotateY(Math.PI/2);
 		this.scene.add(this.screen);
+	}
+
+	projectToScreen(screenId){
+		this.emit("project", {
+			screenId: screenId
+		})
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -1761,6 +1770,10 @@ class Scene {
 		this.updatePositions(); // other users
 		this.render();
 	}
+	// hey billy!
+	// can you read this??  
+	// i'm writing javascript!
+	// function myfunc() = cool stuff;
 
 
 
