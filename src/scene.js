@@ -98,7 +98,10 @@ class Scene extends EventEmitter {
 		this.createMaterials();
 		this.loadBackground();
 		this.loadFloorModel();
+
+		this.projectionScreens = {}; // object to store projector screens
 		this.createProjectorScreens();
+
 
 		this.setupSpringShow();
 
@@ -478,13 +481,10 @@ class Scene extends EventEmitter {
 	createProjectorScreens() {
 		this.projectorVideoTextures = [];
 
-		let _id = "screenshare"
-
+		let _id = "screenshare1"
 		let dims = { width: 1920, height: 1080 }
-
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
-
-		this.screen = new THREE.Mesh(
+		let screen = new THREE.Mesh(
 			new THREE.BoxGeometry(5, 5*9/16, 0.1),
 			videoMaterial
 		);
@@ -494,19 +494,52 @@ class Scene extends EventEmitter {
 
 		// set position of head before adding to parent object
 		let classRoom1 = [3.2497759, 1.9, 24.606520];
-		this.screen.position.set(classRoom1[0], classRoom1[1], classRoom1[2]);
+		screen.position.set(classRoom1[0], classRoom1[1], classRoom1[2]);
 		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
 		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
-		this.screen.rotateY(Math.PI/2);
-		this.scene.add(this.screen);
+		screen.rotateY(Math.PI/2);
+		this.scene.add(screen);
+
+		screen.userData = {
+			videoTexture: videoTexture,
+			activeUserId: ""
+		}
+
+		this.projectionScreens[_id] = screen;
 	}
 
 	projectToScreen(screenId){
-		this.emit("project", {
-			screenId: screenId
-		})
+		this.emit("projectToScreen", screenId);
 	}
 
+	updateProjectionScreen(config){
+		let screenId = config.screenId;
+		let activeUserId = config.activeUserId;
+
+		this.projectionScreens[screenId].activeUserId  = activeUserId;
+	}
+
+	/*
+	* updateProjectionScreens()
+	* This function will loop through all of the projection screens,
+	* and update them if there is an active user and that user
+	* is screensharing currently
+	* 
+	*/
+	updateProjectionScreens(){
+		for (let screenId in this.projectionScreens){
+			let screen  = this.projectionScreens[screenId];
+			let activeUserId = screen.userData.activeUserId;
+			let videoTexture = screen.userData.videoTexture;
+
+			let canvasEl = document.getElementById(`${screenId}_canvas`);
+			let videoEl = document.getElementById(`${activeUserId}_screenshare`);
+
+			if (videoEl != null && canvasEl != null) {
+				this.redrawVideoCanvas(videoEl, canvasEl, videoTexture);
+			}
+		}
+	}
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Clients 👫
@@ -1784,21 +1817,12 @@ class Scene extends EventEmitter {
 	render() {
 		// Update video canvases for each client
 		this.updateVideoTextures();
+		// update all projection screens:
+		this.updateProjectionScreens();
 		this.renderer.render(this.scene, this.camera);
 	}
 
 	updateVideoTextures() {
-		// for (let i = 0; i < this.projectorVideoTextures; i++){
-		// 	console.log('updating projector video texture');
-		// 	this.projectorVideoTextures[i].needsUpdate = true;
-		// }
-
-		let remoteVideo1 = document.getElementById("screenshare");
-			let remoteVideoCanvas1 = document.getElementById("screenshare_canvas");
-			if (remoteVideo1 != null && remoteVideoCanvas1 != null) {
-				this.redrawVideoCanvas(remoteVideo1, remoteVideoCanvas1, this.projectorVideoTextures[0]);
-			}
-
 		// update for the clients
 		for (let _id in this.clients) {
 			let remoteVideo = document.getElementById(_id + "_video");

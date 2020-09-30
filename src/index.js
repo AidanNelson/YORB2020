@@ -118,6 +118,18 @@ window.onload = async () => {
 
 	await initSocketConnection();
 
+	yorbScene.on('projectToScreen', (screenId) => {
+		console.log("Starting screenshare to screen with ID ", screenId);
+
+		console.log(socket);
+		socket.emit('projectToScreen', {
+			screenId: screenId,
+			activeUserId: mySocketID
+		});
+
+		startScreenshare();
+	})
+
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads
 	window.addEventListener('unload', () => {
@@ -158,6 +170,7 @@ function initSocketConnection() {
 
 		console.log("Initializing socket.io...");
 		socket = io('wss://yorb.itp.io');
+		window.socket = socket;
 		socket.request = socketPromise(socket);
 
 		socket.on('connect', () => { });
@@ -214,6 +227,12 @@ function initSocketConnection() {
 		// Update when one of the users moves in space
 		socket.on('userPositions', _clientProps => {
 			yorbScene.updateClientPositions(_clientProps);
+		});
+
+		// listen for projection screen changes:
+		socket.on('projectToScreen', (config) => {
+			console.log('Received incoming projection screen config:', config);
+			yorbScene.updateProjectionScreen(config);
 		});
 
 	});
@@ -561,7 +580,6 @@ export async function sendCameraStreams() {
 
 export async function startScreenshare() {
 	log('start screen share');
-
 	// make sure we've joined the room and that we have a sending
 	// transport
 	await joinRoom();

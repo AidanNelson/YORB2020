@@ -298,6 +298,11 @@ async function runSocketServer() {
       // io.sockets.emit('userPositions', clients);
     });
 
+    socket.on("projectToScreen", (data) => {
+      log('Received projection screen config: ',  data);
+      io.sockets.emit('projectToScreen', data);
+    });
+
     // Handle the disconnection
     socket.on("disconnect", () => {
       //Delete this client from the object
