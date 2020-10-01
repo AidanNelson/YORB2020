@@ -58,8 +58,11 @@ Client-side:
     ```bash
     git checkout -b add-cool-feature
     ```
-    
-6. Start the build system and node server:
+6. Add a new js folder for the program to put the bundle files:
+    ```
+    mkdir public/js
+    ```    
+7. Start the build system and node server:
     ```
     sudo npm start
     ```
