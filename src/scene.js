@@ -1916,6 +1916,12 @@ class Scene {
 
 	addSketches(){
 		console.log("Adding p5.js sketches to the scene!");
+
+		let sketchFrame = document.getElementById('sketchFrame');
+		console.log(sketchFrame);
+		let canvas = sketchFrame.contentDocument.getElementById('defaultCanvas0');
+		console.log(canvas);
+
 		for (let i = 0; i < p5sketches.length; i++){
 			const sketchAndLocation = p5sketches[i];
 			this.addSketchToScene(sketchAndLocation.sketch, sketchAndLocation.location);
