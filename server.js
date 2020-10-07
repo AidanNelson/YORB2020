@@ -16,7 +16,6 @@
 const config = require("./config");
 require("dotenv").config();
 
-
 // if we are in production environment, copy over config from .env file:
 if (process.env.NODE_ENV == "production") {
   config.sslCrt = process.env.PRODUCTION_CERT;
@@ -42,22 +41,20 @@ const mediasoup = require("mediasoup");
 const fs = require("fs");
 const https = require("https");
 
-
-
-
 // HTTP Server setup:
 // https://stackoverflow.com/questions/27393705/how-to-resolve-a-socket-io-404-not-found-error
-var express = require('express'),
-    http = require('http');
+var express = require("express"),
+  http = require("http");
 var app = express();
 var server = http.createServer(app);
-var io = require('socket.io').listen(server);
+var io = require("socket.io").listen(server);
 
 app.use(express.static(__dirname + "/public"));
 
 server.listen(process.env.PRODUCTION_PORT);
-console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT);
-
+console.log(
+  "Server listening on http://localhost:" + process.env.PRODUCTION_PORT
+);
 
 const log = debugModule("demo-app");
 const warn = debugModule("demo-app:WARN");
@@ -132,8 +129,6 @@ let peerLocations = {};
 // and consumers we also keep track of the client-side "media tag", to
 // correlate tracks.
 //
-
-
 
 /**
  * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
@@ -214,32 +209,35 @@ main();
 
 async function updateProjects() {
   let url = process.env.PROJECT_DATABASE_URL;
-  https
-    .get(url, (res) => {
-      var body = "";
+  try {
+    https
+      .get(url, (res) => {
+        var body = "";
 
-      res.on("data", function (chunk) {
-        body += chunk;
-      });
+        res.on("data", function (chunk) {
+          body += chunk;
+        });
 
-      res.on("end", function () {
-        // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
-        var json = JSON.parse(body);
-        projects = json;
-        log("Updated projects from database.");
-        io.sockets.emit("projects", projects);
+        res.on("end", function () {
+          // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
+          var json = JSON.parse(body);
+          projects = json;
+          log("Updated projects from database.");
+          io.sockets.emit("projects", projects);
+        });
+      })
+      .on("error", function (e) {
+        log("Got an error: ", e);
       });
-    })
-    .on("error", function (e) {
-      log("Got an error: ", e);
-    });
+  } catch (err) {
+    console.error("update projects error: " + err);
+  }
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function runSocketServer() {
-
   // update all sockets at regular intervals
   setInterval(() => {
     io.sockets.emit("userPositions", clients);
