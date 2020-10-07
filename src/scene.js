@@ -484,9 +484,11 @@ class Scene extends EventEmitter {
 		let _id = "screenshare1"
 		let dims = { width: 1920, height: 1080 }
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
+		let [blankScreenTexture, blankScreenMaterial] = this.makeBlankScreenTextureAndMaterial(_id, dims);
+
 		let screen = new THREE.Mesh(
 			new THREE.BoxGeometry(5, 5*9/16, 0.1),
-			videoMaterial
+			blankScreenMaterial
 		);
 		this.projectorVideoTextures.push(videoTexture);
 
@@ -501,12 +503,27 @@ class Scene extends EventEmitter {
 		this.scene.add(screen);
 
 		screen.userData = {
+			// initialTexture: new THREE.texture("images/old-television.png")
 			videoTexture: videoTexture,
 			activeUserId: "",
 			screenId: _id
 		}
 
 		this.projectionScreens[_id] = screen;
+	}
+
+	makeBlankScreenTextureAndMaterial() {
+		let textureLoader = new THREE.TextureLoader();
+		let texture = textureLoader.load("images/old-television.png");
+		texture.encoding = THREE.sRGBEncoding;
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.repeat.x = -1;
+
+		let material = new THREE.MeshStandardMaterial({
+			map: texture
+		});
+
+		return [texture, material]
 	}
 
 	projectToScreen(screenId){
@@ -563,6 +580,9 @@ class Scene extends EventEmitter {
 		let thresholdDist = 7;
 		if (intersects.length > 0) {
 			if (intersects[0].distance < thresholdDist) {
+				// this.screenHoverImage.style = "visiblity: visible;"
+				intersects[0].object.userData.videoTexture.image = this.screenHoverImage.src;
+				console.log(intersects[0].object.userData.videoTexture.image);
 				let screen = intersects[0].object;
 				this.hightlightedScreen = screen;
 			} else {
@@ -570,7 +590,7 @@ class Scene extends EventEmitter {
 			}
 		}
 
-		console.log("intersects are ", intersects);
+		// console.log("intersects are ", intersects);
 
 		//if INTERSECTED, hightlight
 			//if mouseClicked
@@ -1908,6 +1928,7 @@ class Scene extends EventEmitter {
 	makeVideoTextureAndMaterial(_id, dims=null) {
 		// create a canvas and add it to the body
 		let rvideoImageCanvas = document.createElement('canvas');
+		rvideoImageCanvas.src = "images/old-television.png";
 		document.body.appendChild(rvideoImageCanvas);
 
 		rvideoImageCanvas.id = _id + "_canvas";
@@ -2034,6 +2055,7 @@ class Scene extends EventEmitter {
 		// this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
 		// console.log("Click");
 		this.activateHighlightedProject();
+		//typo on line 2045****
 		if (this.hightlightedScreen){
 			this.projectToScreen(this.hightlightedScreen.userData.screenId);
 		}
