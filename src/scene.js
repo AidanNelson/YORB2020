@@ -49,7 +49,6 @@ class Scene extends EventEmitter {
 		this.textureLoader = new THREE.TextureLoader();
 
 
-
 		// audio variables:
 		this.distanceThresholdSquared = 500;
 		this.rolloffNumerator = 5;
@@ -99,8 +98,12 @@ class Scene extends EventEmitter {
 		this.loadBackground();
 		this.loadFloorModel();
 
+		[	this.blankScreenTexture, this.blankScreenMaterial ] = this.makeBlankScreenTextureAndMaterial();
 		this.projectionScreens = {}; // object to store projector screens
 		this.createProjectorScreens();
+		// Blank projector screen
+
+
 
 
 		this.setupSpringShow();
@@ -483,19 +486,19 @@ class Scene extends EventEmitter {
 
 		let _id = "screenshare1"
 		let dims = { width: 1920, height: 1080 }
-		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
-		let [blankScreenTexture, blankScreenMaterial] = this.makeBlankScreenTextureAndMaterial(_id, dims);
+		// let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
 
 		let screen = new THREE.Mesh(
-			new THREE.BoxGeometry(5, 5*9/16, 0.1),
-			blankScreenMaterial
+			new THREE.BoxGeometry(5, 5*9/16, 0.0000001),
+			this.blankScreenMaterial
+			// videoMaterial
 		);
-		this.projectorVideoTextures.push(videoTexture);
+		this.projectorVideoTextures.push(this.blankScreenTexture);
 
 		// this.screen.visible = true;
 
 		// set position of head before adding to parent object
-		let classRoom1 = [3.2497759, 1.9, 24.606520];
+		let classRoom1 = [2.8, 1.9, 24.586520];
 		screen.position.set(classRoom1[0], classRoom1[1], classRoom1[2]);
 		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
 		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
@@ -503,8 +506,8 @@ class Scene extends EventEmitter {
 		this.scene.add(screen);
 
 		screen.userData = {
-			// initialTexture: new THREE.texture("images/old-television.png")
-			videoTexture: videoTexture,
+			videoTexture: this.blankScreenMaterial,
+			// videoMaterial: videoMaterial,
 			activeUserId: "",
 			screenId: _id
 		}
@@ -512,16 +515,55 @@ class Scene extends EventEmitter {
 		this.projectionScreens[_id] = screen;
 	}
 
+	// makeBlankScreenTextureAndMaterial() {
+	//
+	// 	let blankScreenCanvas = document.createElement('canvas');
+	// 	blankScreenCanvas.style= "visibility: hidden;";
+	// 	blankScreenCanvas.id = 'blank_screen';
+	// 	// document.body.appendChild(blankScreenCanvas);
+	// 	let blankScreenContext = blankScreenCanvas.getContext('2d');
+	// 	let blankScreenImage = new THREE.TextureLoader();
+	// 	blankScreenImage.load(
+	// 		'images/old-television.jpg',
+	// 		function(image) {
+	// 			// console.log('blank screen image', image)
+	// 			blankScreenContext.drawImage(image.image, 0, 0);
+	// 		},
+	// 		undefined,
+	// 		function() {
+	// 			console.error('An error happened.')
+	// 		});
+	//
+	// 		let blankScreenTexture = new THREE.Texture(blankScreenCanvas);
+	// 		// let texture = textureLoader.load("images/old-television.jpg");
+	// 		blankScreenTexture.encoding = THREE.sRGBEncoding;
+	// 		blankScreenTexture.wrapS = THREE.RepeatWrapping;
+	// 		// texture.repeat.x = -1;
+	//
+	// 		let blankScreenMaterial = new THREE.MeshBasicMaterial({
+	// 			map: blankScreenTexture
+	// 		});
+	//
+	// 		return [ blankScreenTexture, blankScreenMaterial ]
+	// }
+
 	makeBlankScreenTextureAndMaterial() {
 		let textureLoader = new THREE.TextureLoader();
-		let texture = textureLoader.load("images/old-television.png");
+		let texture = textureLoader.load("images/old-television.jpg");
 		texture.encoding = THREE.sRGBEncoding;
 		texture.wrapS = THREE.RepeatWrapping;
-		texture.repeat.x = -1;
+		// texture.repeat.x = -1;
 
-		let material = new THREE.MeshStandardMaterial({
+		let material = new THREE.MeshBasicMaterial({
 			map: texture
 		});
+
+		let blankScreenCanvas = document.createElement('canvas');
+		blankScreenCanvas.style= "visibility: hidden;";
+		blankScreenCanvas.id = 'blank_screen';
+		document.body.appendChild(blankScreenCanvas);
+		let blankScreenContext = blankScreenCanvas.getContext('2d');
+		// blankScreenContext.drawImage(texture.image, 0, 0);
 
 		return [texture, material]
 	}
@@ -534,7 +576,7 @@ class Scene extends EventEmitter {
 	updateProjectionScreen(config){
 		let screenId = config.screenId;
 		let activeUserId = config.activeUserId;
-
+		// this.projectionScreens[screenId].material = this.projectionScreens[screenId].userData.videoMaterial;
 		this.projectionScreens[screenId].userData.activeUserId  = activeUserId;
 	}
 
@@ -553,6 +595,7 @@ class Scene extends EventEmitter {
 
 			let canvasEl = document.getElementById(`${screenId}_canvas`);
 			let videoEl = document.getElementById(`${activeUserId}_screenshare`);
+			// let screenEl = document.getElementById('blank_screen');
 
 			if (videoEl != null && canvasEl != null) {
 				this.redrawVideoCanvas(videoEl, canvasEl, videoTexture);
@@ -581,10 +624,9 @@ class Scene extends EventEmitter {
 		if (intersects.length > 0) {
 			if (intersects[0].distance < thresholdDist) {
 				// this.screenHoverImage.style = "visiblity: visible;"
-				intersects[0].object.userData.videoTexture.image = this.screenHoverImage.src;
-				console.log(intersects[0].object.userData.videoTexture.image);
 				let screen = intersects[0].object;
 				this.hightlightedScreen = screen;
+				console.log(screen.material)
 			} else {
 				this.hightlightedScreen = null;
 			}
@@ -1731,6 +1773,13 @@ class Scene extends EventEmitter {
 					this.canJump = false;
 					break;
 
+				// case 16: // shift
+				// 	this.controls.unlock();
+				// 	this.paused = true;
+				// 	overlay.style.visibility = 'hidden';
+				// 	document.getElementById("instructions-overlay").style.visibility = "hidden";
+				// 	break;
+
 			}
 
 		}, false);
@@ -1758,6 +1807,13 @@ class Scene extends EventEmitter {
 				case 68: // d
 					this.moveRight = false;
 					break;
+
+				// case 16: // shift
+				// 	this.controls.lock();
+				// 	this.paused = false;
+				// 	overlay.style.visibility = 'hidden';
+				// 	// document.getElementById("instructions-overlay").style.visibility = "visible";
+				// 	break;
 
 			}
 
@@ -1928,7 +1984,6 @@ class Scene extends EventEmitter {
 	makeVideoTextureAndMaterial(_id, dims=null) {
 		// create a canvas and add it to the body
 		let rvideoImageCanvas = document.createElement('canvas');
-		rvideoImageCanvas.src = "images/old-television.png";
 		document.body.appendChild(rvideoImageCanvas);
 
 		rvideoImageCanvas.id = _id + "_canvas";
