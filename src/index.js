@@ -169,7 +169,7 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket = io('wss://yorb.itp.io');
+		socket = io();
 		window.socket = socket;
 		socket.request = socketPromise(socket);
 

@@ -482,18 +482,19 @@ class Scene extends EventEmitter {
 	}
 
 	createProjectorScreens() {
-		this.projectorVideoTextures = [];
+		let blankScreenVideo = document.createElement('video');
+		blankScreenVideo.setAttribute('id', 'default_screenshare');
+		document.body.appendChild(blankScreenVideo);
+		blankScreenVideo.src = 
 
 		let _id = "screenshare1"
 		let dims = { width: 1920, height: 1080 }
-		// let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
+		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
 
 		let screen = new THREE.Mesh(
 			new THREE.BoxGeometry(5, 5*9/16, 0.0000001),
-			this.blankScreenMaterial
-			// videoMaterial
+			videoMaterial
 		);
-		this.projectorVideoTextures.push(this.blankScreenTexture);
 
 		// this.screen.visible = true;
 
@@ -506,9 +507,8 @@ class Scene extends EventEmitter {
 		this.scene.add(screen);
 
 		screen.userData = {
-			videoTexture: this.blankScreenMaterial,
-			// videoMaterial: videoMaterial,
-			activeUserId: "",
+			videoTexture: videoTexture,
+			activeUserId: "default",
 			screenId: _id
 		}
 
@@ -569,15 +569,15 @@ class Scene extends EventEmitter {
 	}
 
 	projectToScreen(screenId){
-		console.log("began projecting by mouse click")
+		console.log("I'm going to project to screen " + screenId);
 		this.emit("projectToScreen", screenId);
 	}
 
 	updateProjectionScreen(config){
 		let screenId = config.screenId;
 		let activeUserId = config.activeUserId;
-		// this.projectionScreens[screenId].material = this.projectionScreens[screenId].userData.videoMaterial;
 		this.projectionScreens[screenId].userData.activeUserId  = activeUserId;
+		console.log("Updating Projection Screen: " + screenId + " with screenshare from user " + activeUserId);
 	}
 
 	/*
@@ -595,7 +595,6 @@ class Scene extends EventEmitter {
 
 			let canvasEl = document.getElementById(`${screenId}_canvas`);
 			let videoEl = document.getElementById(`${activeUserId}_screenshare`);
-			// let screenEl = document.getElementById('blank_screen');
 
 			if (videoEl != null && canvasEl != null) {
 				this.redrawVideoCanvas(videoEl, canvasEl, videoTexture);
@@ -626,36 +625,11 @@ class Scene extends EventEmitter {
 				// this.screenHoverImage.style = "visiblity: visible;"
 				let screen = intersects[0].object;
 				this.hightlightedScreen = screen;
-				console.log(screen.material)
+				// console.log(screen.material)
 			} else {
 				this.hightlightedScreen = null;
 			}
 		}
-
-		// console.log("intersects are ", intersects);
-
-		//if INTERSECTED, hightlight
-			//if mouseClicked
-
-		// if ( intersects.length > 0 ) {
-		//
-		// 	if ( INTERSECTED != intersects[ 0 ].object ) {
-		//
-		// 		if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-		//
-		// 		INTERSECTED = intersects[ 0 ].object;
-		// 		INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-		// 		INTERSECTED.material.emissive.setHex( 0xff0000 );
-		//
-		// 	}
-		//
-		// } else {
-		//
-		// 	if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-		//
-		// 	INTERSECTED = null;
-		//
-		// }
 
 	}
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
