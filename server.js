@@ -17,18 +17,16 @@ const config = require("./config");
 require("dotenv").config();
 
 
-// if we are in production environment, copy over config from .env file:
-if (process.env.NODE_ENV == "production") {
-  config.sslCrt = process.env.PRODUCTION_CERT;
-  config.sslKey = process.env.PRODUCTION_KEY;
-  config.httpIp = process.env.PRODUCTION_IP;
-  config.httpPort = process.env.PRODUCTION_PORT;
+// copy over config from .env file:
 
-  config.mediasoup.webRtcTransport.listenIps = [
-    { ip: "127.0.0.1", announcedIp: null },
-    { ip: process.env.PRODUCTION_IP, announcedIp: null },
-  ];
-}
+config.httpIp = process.env.PRODUCTION_IP;
+config.httpPort = process.env.PRODUCTION_PORT;
+
+config.mediasoup.webRtcTransport.listenIps = [
+  { ip: "127.0.0.1", announcedIp: null },
+  { ip: process.env.PRODUCTION_IP, announcedIp: null },
+];
+
 
 console.log("Environment Variables:");
 console.log("~~~~~~~~~~~~~~~~~~~~~~~~~");
