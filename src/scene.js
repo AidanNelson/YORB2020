@@ -482,6 +482,7 @@ class Scene extends EventEmitter {
 	}
 
 	createProjectorScreens() {
+
 		let blankScreenVideo = document.createElement('video');
 		blankScreenVideo.setAttribute('id', 'default_screenshare');
 		document.body.appendChild(blankScreenVideo);
