@@ -482,7 +482,6 @@ class Scene extends EventEmitter {
 	}
 
 	createProjectorScreens() {
-		this.projectorVideoTextures = [];
 
 		let _id = "screenshare1"
 		let dims = { width: 1920, height: 1080 }
