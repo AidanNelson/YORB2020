@@ -27,6 +27,10 @@ const err = debugModule('demo-app:ERROR');
 // load p5 for self view
 const p5 = require('p5');
 
+const PRODUCTION = false;
+const WEB_SOCKET_SERVER = "wss://yorb.itp.io";
+const INSTANCE_PATH = ""; // leave blank unless running behind NGINX
+
 
 
 
@@ -169,7 +173,14 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket = io();
+		if (PRODUCTION){
+		socket = io(WEB_SOCKET_SERVER, {
+			path: INSTANCE_PATH + "/socket.io"
+		});
+		}else {
+			socket= io();
+		}
+
 		window.socket = socket;
 		socket.request = socketPromise(socket);
 
