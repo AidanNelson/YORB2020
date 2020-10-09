@@ -486,14 +486,14 @@ class Scene extends EventEmitter {
 		let blankScreenVideo = document.createElement('video');
 		blankScreenVideo.setAttribute('id', 'default_screenshare');
 		document.body.appendChild(blankScreenVideo);
-		blankScreenVideo.src = 
+		blankScreenVideo.src = "/images/old-television-glitch-more-grain-0.5mB.mp4";
 
 		let _id = "screenshare1"
 		let dims = { width: 1920, height: 1080 }
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
 
 		let screen = new THREE.Mesh(
-			new THREE.BoxGeometry(5, 5*9/16, 0.0000001),
+			new THREE.BoxGeometry(5, 5*9/16, 0.01),
 			videoMaterial
 		);
 
