@@ -1190,6 +1190,10 @@ class Scene {
 			let link = project.zoom_link;
 			let room_status = this.zoomStatusDecoder(project.zoom_status)
 
+			// https://nyu.zoom.us/j/95468016938
+			let uniqueId = link.split('/').pop();
+			link = "https://yorb.itp.io/rooms/" + "?room=" + uniqueId;
+
 
 			let modalEl = document.createElement('div');
 			modalEl.className = "project-modal";
