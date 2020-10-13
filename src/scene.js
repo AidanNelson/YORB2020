@@ -486,7 +486,7 @@ class Scene extends EventEmitter {
 		let blankScreenVideo = document.createElement('video');
 		blankScreenVideo.setAttribute('id', 'default_screenshare');
 		document.body.appendChild(blankScreenVideo);
-		blankScreenVideo.src = "/images/old-television-glitch-more-grain-0.5mB.mp4";
+		blankScreenVideo.src = "/images/old-television.mp4";
 		blankScreenVideo.loop = true;
 		blankScreenVideo.play();
 
