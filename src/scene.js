@@ -98,7 +98,6 @@ class Scene extends EventEmitter {
 		this.loadBackground();
 		this.loadFloorModel();
 
-		[	this.blankScreenTexture, this.blankScreenMaterial ] = this.makeBlankScreenTextureAndMaterial();
 		this.projectionScreens = {}; // object to store projector screens
 		this.createProjectorScreens();
 		// Blank projector screen
@@ -518,62 +517,11 @@ class Scene extends EventEmitter {
 		this.projectionScreens[_id] = screen;
 	}
 
-	// makeBlankScreenTextureAndMaterial() {
-	//
-	// 	let blankScreenCanvas = document.createElement('canvas');
-	// 	blankScreenCanvas.style= "visibility: hidden;";
-	// 	blankScreenCanvas.id = 'blank_screen';
-	// 	// document.body.appendChild(blankScreenCanvas);
-	// 	let blankScreenContext = blankScreenCanvas.getContext('2d');
-	// 	let blankScreenImage = new THREE.TextureLoader();
-	// 	blankScreenImage.load(
-	// 		'images/old-television.jpg',
-	// 		function(image) {
-	// 			// console.log('blank screen image', image)
-	// 			blankScreenContext.drawImage(image.image, 0, 0);
-	// 		},
-	// 		undefined,
-	// 		function() {
-	// 			console.error('An error happened.')
-	// 		});
-	//
-	// 		let blankScreenTexture = new THREE.Texture(blankScreenCanvas);
-	// 		// let texture = textureLoader.load("images/old-television.jpg");
-	// 		blankScreenTexture.encoding = THREE.sRGBEncoding;
-	// 		blankScreenTexture.wrapS = THREE.RepeatWrapping;
-	// 		// texture.repeat.x = -1;
-	//
-	// 		let blankScreenMaterial = new THREE.MeshBasicMaterial({
-	// 			map: blankScreenTexture
-	// 		});
-	//
-	// 		return [ blankScreenTexture, blankScreenMaterial ]
-	// }
-
-	makeBlankScreenTextureAndMaterial() {
-		let textureLoader = new THREE.TextureLoader();
-		let texture = textureLoader.load("images/old-television.jpg");
-		texture.encoding = THREE.sRGBEncoding;
-		texture.wrapS = THREE.RepeatWrapping;
-		// texture.repeat.x = -1;
-
-		let material = new THREE.MeshBasicMaterial({
-			map: texture
-		});
-
-		let blankScreenCanvas = document.createElement('canvas');
-		blankScreenCanvas.style= "visibility: hidden;";
-		blankScreenCanvas.id = 'blank_screen';
-		document.body.appendChild(blankScreenCanvas);
-		let blankScreenContext = blankScreenCanvas.getContext('2d');
-		// blankScreenContext.drawImage(texture.image, 0, 0);
-
-		return [texture, material]
-	}
 
 	projectToScreen(screenId){
 		console.log("I'm going to project to screen " + screenId);
 		this.emit("projectToScreen", screenId);
+		this.projectionScreens[screenId].userData.activeUserId = this.mySocketID;
 	}
 
 	updateProjectionScreen(config){

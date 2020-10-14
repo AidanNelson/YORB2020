@@ -601,8 +601,20 @@ export async function startScreenshare() {
 	// get a screen share track
 	localScreen = await navigator.mediaDevices.getDisplayMedia({
 		video: true,
-		audio: true
+		audio: false
 	});
+
+	// also make a local video Element to hold the stream
+	let videoEl = document.getElementById(mySocketID + "_screenshare");
+	if (!videoEl){
+		videoEl = document.createElement('video');
+		videoEl.setAttribute('id', mySocketID + "_screenshare");
+		videoEl.setAttribute('muted',true);
+		videoEl.setAttribute('autoplay',true);
+		videoEl.setAttribute('style', "visibility: hidden;");
+		document.body.appendChild(videoEl);
+	}
+	videoEl.srcObject = localScreen;
 
 	// create a producer for video
 	screenVideoProducer = await sendTransport.produce({
@@ -1075,6 +1087,7 @@ async function pollAndUpdate() {
 				}
 			}
 		}
+
 	}
 
 
