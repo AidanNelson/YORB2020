@@ -1,0 +1,3 @@
+## Real Time Commmmunications in Yorb
+
+[Mediasoup](https://mediasoup.org/) is a collection of libraries which implement a *Selective Forwarding Unit* (SFU) server. This allows more participants to connect to one another than would be possible with direct peer-to-peer connections.  More specifically, *[an SFU](https://webrtcglossary.com/sfu/) is capable of receiving multiple media streams and then decide which of these media streams should be sent to which participants.*   Also, because Mediasoup is a C++ based SFU with node.js bindings and a javascript client side API, we are able to do all of our programming in Javascript and Node.js.
