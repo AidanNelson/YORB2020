@@ -67,19 +67,28 @@ class Scene extends EventEmitter {
 
 		// starting position
 		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
-		// let randX = this.randomRange(3, 28);
-		// let randZ = this.randomRange(-2.5, 1.5);
-		// this.camera.position.set(randX, this.cameraHeight, randZ);
-		let classRoom1 = {	x:9.495,
-												y:0.5,
-												z:28.685
-											}
-		this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
+
+		// For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3  
+		let randX = this.randomRange(-7.4, -13.05);
+		let randZ = this.randomRange(-16.8, -8.3);
+		this.camera.position.set(randX, this.cameraHeight, randZ); 
+		
+		// let classRoom1 = {	x:9.495,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
+		
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
 		this.scene.add(this.camera);
-		this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
+		
+		// For Empire State Maker Faire: make the camera looking at the middle point betwen the two columns in Red Square
+
+		// this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
+		this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5));
+
 		window.camera = this.camera;
 
 		//THREE WebGL renderer
