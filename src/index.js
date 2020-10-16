@@ -173,13 +173,7 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		if (PRODUCTION){
-		socket = io(WEB_SOCKET_SERVER, {
-			path: INSTANCE_PATH + "/socket.io"
-		});
-		}else {
-			socket= io();
-		}
+		socket= io();
 
 		window.socket = socket;
 		socket.request = socketPromise(socket);
@@ -217,7 +211,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			updateProjects(_projects);
+			// updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (_id, _ids) => {

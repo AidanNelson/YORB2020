@@ -122,7 +122,10 @@ class Scene extends EventEmitter {
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
 		domElement.addEventListener('click', e => this.onMouseClick(e), false);
+		window.addEventListener('keydown', e => this.onKeyDown(e), false);
+		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
+		this.shift_down = false;
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
@@ -637,7 +640,7 @@ class Scene extends EventEmitter {
 		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
 
 		let _head = new THREE.Mesh(
-			new THREE.BoxGeometry(3, 3, 3),
+			new THREE.BoxGeometry(1, 1, 1),
 			videoMaterial
 		);
 
@@ -952,14 +955,16 @@ class Scene extends EventEmitter {
 
 			for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
 				let proj = projects[projectIndex];
-				let project_id = proj.project_id;
+				if (proj){
+					let project_id = proj.project_id;
 
-				if (dupeCheck[project_id]) {
-					// console.log('Duplicate with ID: ', proj.project_id);
-				} else {
-					dupeCheck[project_id] = true;
-					numUniqueProjects++;
-					uniqueProjects.push(proj);
+					if (dupeCheck[project_id]) {
+						// console.log('Duplicate with ID: ', proj.project_id);
+					} else {
+						dupeCheck[project_id] = true;
+						numUniqueProjects++;
+						uniqueProjects.push(proj);
+					}
 				}
 			}
 			console.log("Number of total projects: ", this.projects.length);
@@ -2032,8 +2037,20 @@ class Scene extends EventEmitter {
 		// console.log("Click");
 		this.activateHighlightedProject();
 		//typo on line 2045****
-		if (this.hightlightedScreen){
+		if (this.hightlightedScreen && this.shift_down){
 			this.projectToScreen(this.hightlightedScreen.userData.screenId);
+		}
+	}
+
+	onKeyDown(e){
+		if (e.keyCode == 16) {
+			this.shift_down = true;
+		}
+	}
+
+	onKeyUp(e){
+		if (e.keyCode == 16) {
+			this.shift_down = false;
 		}
 	}
 
