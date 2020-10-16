@@ -68,22 +68,22 @@ class Scene extends EventEmitter {
 		// starting position
 		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
-		// For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3  
+		// For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
 		let randX = this.randomRange(-7.4, -13.05);
 		let randZ = this.randomRange(-16.8, -8.3);
-		this.camera.position.set(randX, this.cameraHeight, randZ); 
-		
+		this.camera.position.set(randX, this.cameraHeight, randZ);
+
 		// let classRoom1 = {	x:9.495,
 		// 										y:0.5,
 		// 										z:28.685
 		// 									}
 		// this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
-		
+
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
 		this.scene.add(this.camera);
-		
+
 		// For Empire State Maker Faire: make the camera looking at the middle point betwen the two columns in Red Square
 
 		// this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
@@ -510,8 +510,9 @@ class Scene extends EventEmitter {
 		// this.screen.visible = true;
 
 		// set position of head before adding to parent object
-		let classRoom1 = [2.8, 1.9, 24.586520];
-		screen.position.set(classRoom1[0], classRoom1[1], classRoom1[2]);
+		// let classRoom1 = [2.8, 1.9, 24.586520];
+		let redSquare = [-23.5, 1.9, -14.675];
+		screen.position.set(redSquare[0], redSquare[1], redSquare[2]);
 		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
 		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
 		screen.rotateY(Math.PI/2);
@@ -1707,13 +1708,6 @@ class Scene extends EventEmitter {
 					this.canJump = false;
 					break;
 
-				// case 16: // shift
-				// 	this.controls.unlock();
-				// 	this.paused = true;
-				// 	overlay.style.visibility = 'hidden';
-				// 	document.getElementById("instructions-overlay").style.visibility = "hidden";
-				// 	break;
-
 			}
 
 		}, false);
@@ -1741,13 +1735,6 @@ class Scene extends EventEmitter {
 				case 68: // d
 					this.moveRight = false;
 					break;
-
-				// case 16: // shift
-				// 	this.controls.lock();
-				// 	this.paused = false;
-				// 	overlay.style.visibility = 'hidden';
-				// 	// document.getElementById("instructions-overlay").style.visibility = "visible";
-				// 	break;
 
 			}
 
