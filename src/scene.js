@@ -892,7 +892,7 @@ class Scene extends EventEmitter {
 		let curveSegments = 3;
 		let message, txt;
 
-		message = "Welcome to the";
+		message = "Welcome to YORB!";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-2, 2.75, 0.5);
@@ -900,7 +900,7 @@ class Scene extends EventEmitter {
 		this.scene.add(txt);
 
 
-		message = "Coding Lab Testing Facility ";
+		message = "Empire State Maker Faire 2020 ";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-2, 1.5, 0.0);
@@ -908,13 +908,14 @@ class Scene extends EventEmitter {
 		this.scene.add(txt);
 
 
-		message = "The E.R.";
+		// message = "The E.R.";
+		message = "YORB";
 		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-11.25, 1.75, -18.5);
 		txt.rotateY(0);
 		this.scene.add(txt);
 
-		message = "Resident's Residence";
+		message = "Your office here";
 		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-12.5, 1.75, -0.75);
 		txt.rotateY(-Math.PI / 2);
