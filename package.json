@@ -36,6 +36,7 @@
     "browserify": "^15.2.0",
     "concurrently": "^3.5.1",
     "nodemon": "^1.14.12",
+    "prettier": "2.1.2",
     "uglify-js": "^3.3.9",
     "watchify": "^3.10.0"
   },
