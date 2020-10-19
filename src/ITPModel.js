@@ -1,9 +1,11 @@
 const THREE = require('./libs/three.min.js')
 
-class ITPModel {
+export class ITPModel {
     constructor(scene) {
         this.scene = scene
         this.createMaterials()
+        this.loadFloorModel();
+        this.collidableMeshList = [];
     }
     // this method instantiates materials for various parts of the ITP floor model
     // wall, ceiling, floor
@@ -67,6 +69,10 @@ class ITPModel {
         this.graniteBarMaterial = new THREE.MeshLambertMaterial({
             color: 0x000000,
         })
+    }
+
+    getCollidableMeshList(){
+        return this.collidableMeshList;
     }
 
     loadModel(_file, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {

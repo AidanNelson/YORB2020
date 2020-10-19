@@ -8,6 +8,7 @@
 import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayerTemporarily } from './index.js'
 import { create3DText, createSimpleText, makeVideoTextureAndMaterial, redrawVideoCanvas, randomRange } from './utils'
 import { SpringShow } from './SpringShow'
+import { ITPModel } from './ITPModel';
 
 const THREE = require('./libs/three.min.js')
 const Stats = require('./libs/stats.min.js')
@@ -78,9 +79,10 @@ class Scene {
         this.setupControls()
         this.addLights()
         this.setupCollisionDetection()
-        this.createMaterials()
+        // this.createMaterials()
         this.loadBackground()
-        this.loadFloorModel()
+        // this.loadFloorModel()
+        this.floorModel = new ITPModel(this.scene)
         this.springShow = new SpringShow(this.scene, this.camera, this.controls)
         this.springShow.setupSpringShow()
 
@@ -261,7 +263,6 @@ class Scene {
      *
      */
     setupCollisionDetection() {
-        this.collidableMeshList = []
 
         this.obstacles = {
             forward: false,
@@ -364,7 +365,7 @@ class Scene {
             // pt.y += 1.0; // bias upward to head area of player
 
             this.raycaster.set(pt, dir)
-            var collisions = this.raycaster.intersectObjects(this.collidableMeshList)
+            var collisions = this.raycaster.intersectObjects(this.floorModel.getCollidableMeshList());
 
             // arrow helpers for debugging
             if (this.DEBUG_MODE) {
@@ -507,7 +508,7 @@ class Scene {
 
             this.raycaster.set(origin, new THREE.Vector3(0, -this.cameraHeight, 0))
 
-            var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList)
+            var intersectionsDown = this.raycaster.intersectObjects(this.floorModel.getCollidableMeshList());
             var onObject = intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1
 
             var time = performance.now()
