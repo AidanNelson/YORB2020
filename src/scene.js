@@ -5,7 +5,7 @@
  *
  */
 
-import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayerTemporarily } from './index.js'
+import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './Comms.js'
 import { create3DText, createSimpleText, makeVideoTextureAndMaterial, redrawVideoCanvas, randomRange } from './utils'
 import { SpringShow } from './SpringShow'
 import { ITPModel } from './ITPModel';
