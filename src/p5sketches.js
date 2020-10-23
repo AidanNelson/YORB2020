@@ -17,15 +17,27 @@ myCoolSketch = (sketch) => {
 
 // create a location for this sketch in the scene:
 location = {
-  x: -14,
+  x: -8,
   y: 1.5,
-  z: -14,
+  z: -8,
 };
+size = {
+  x: 1,
+  y: 1,
+  z: 1
+}
+rotation = {
+  x: 0,
+  y: 0,
+  z: 0
+}
 
 // Add this sketch to the array:
 sketches.push({
   sketch: myCoolSketch,
   location: location,
+  size: size,
+  rotation: rotation
 });
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
@@ -63,14 +75,26 @@ myCoolSketch = (sketch) => {
 };
 
 location = {
-  x: -16,
+  x: -8,
   y: 2,
-  z: -12,
+  z: -18,
 };
+size = {
+  x: 2,
+  y: 2,
+  z: 0.05
+}
+rotation = {
+  x: 0,
+  y: 0,
+  z: 0
+}
 // Add this sketch to the array:
 sketches.push({
   sketch: myCoolSketch,
   location: location,
+  size: size,
+  rotation: rotation
 });
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//

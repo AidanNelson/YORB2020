@@ -1923,8 +1923,8 @@ class Scene {
 		console.log(canvas);
 
 		for (let i = 0; i < p5sketches.length; i++){
-			const sketchAndLocation = p5sketches[i];
-			this.addSketchToScene(sketchAndLocation.sketch, sketchAndLocation.location);
+			const info = p5sketches[i];
+			this.addSketchToScene(info.sketch, info.location,info.size,info.rotation);
 		}
 
 		let el = document.createElement('iframe');
@@ -1941,7 +1941,7 @@ class Scene {
 	 * applies canvasTexture to material on that plane
 	 * 
 	 */
-	addSketchToScene(sketchDefinition,location){
+	addSketchToScene(sketchDefinition,location, size, rotation){
 		
 		const sketch = new p5(sketchDefinition);
 		console.log(sketch);
@@ -1965,7 +1965,7 @@ class Scene {
 
 		this.updateableVideoTextures.push(videoTexture)
 		let sketchBox = new THREE.Mesh(
-			new THREE.BoxGeometry(2,2,2),
+			new THREE.BoxGeometry(size.x,size.y,size.z),
 			videoMaterial
 		);
 
