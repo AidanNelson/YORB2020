@@ -109,13 +109,26 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
 
 // myCoolSketch = (sketch) => {
 //     // add sketch 'definition' here
@@ -126,13 +139,26 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
-
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
+
 
 // myCoolSketch = (sketch) => {
 //     // add sketch 'definition' here
@@ -143,13 +169,26 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
-
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
+
 
 // myCoolSketch = (sketch) => {
 //     // add sketch 'definition' here
@@ -160,13 +199,26 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
-
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
+
 
 // myCoolSketch = (sketch) => {
 //     // add sketch 'definition' here
@@ -177,13 +229,26 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
-
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
+
 
 // myCoolSketch = (sketch) => {
 //     // add sketch 'definition' here
@@ -194,13 +259,27 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
+
 
 // myCoolSketch = (sketch) => {
 //     // add sketch 'definition' here
@@ -211,11 +290,23 @@ sketches.push({
 //     y: 0,
 //     z: 0
 // }
-// // Add this sketch to the array:
+// size = {
+//   x: 1,
+//   y: 1,
+//   z: 1
+// }
+// rotation = {
+//   x: 0,
+//   y: 0,
+//   z: 0
+// }
+// Add this sketch to the array:
 // sketches.push({
-//     sketch: mySketch,
-//     location: location,
-//   });
+//   sketch: myCoolSketch,
+//   location: location,
+//   size: size,
+//   rotation: rotation
+// });
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
 // this makes the sketches available to the scene:

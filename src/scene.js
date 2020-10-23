@@ -1966,6 +1966,7 @@ class Scene {
 		this.updateableVideoTextures.push(videoTexture)
 		let sketchBox = new THREE.Mesh(
 			new THREE.BoxGeometry(size.x,size.y,size.z),
+			// new THREE.SphereGeometry(1,12,12),
 			videoMaterial
 		);
 
