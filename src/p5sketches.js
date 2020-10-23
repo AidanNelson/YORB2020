@@ -100,32 +100,65 @@ sketches.push({
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
 
 
-// myCoolSketch = (sketch) => {
-//     // add sketch 'definition' here
-// }
-// // where should the sketch end up in the scene:
-// location = {
-//     x: 0,
-//     y: 0,
-//     z: 0
-// }
-// size = {
-//   x: 1,
-//   y: 1,
-//   z: 1
-// }
-// rotation = {
-//   x: 0,
-//   y: 0,
-//   z: 0
-// }
-// Add this sketch to the array:
-// sketches.push({
-//   sketch: myCoolSketch,
-//   location: location,
-//   size: size,
-//   rotation: rotation
-// });
+myCoolSketch = (sketch) => {
+  sketch.setup = ()=> {
+    sketch.createCanvas(400, 400);
+  }
+
+  sketch.draw = () => {
+    sketch.background(127, 0, 150);
+    sketch.strokeWeight(3);
+    var a = 0;
+    var p = [];
+    var inc = sketch.TWO_PI / 25.0;
+    let blueLineLen, blueLineDest;
+
+    for (var i = 0; i < 41; i++) {
+      if (i % 2 !== 1) sketch.stroke('yellow')
+      else sketch.stroke('red')
+      let x = 60;
+      let y = 200;
+      let x2 = 300 + sketch.sin(sketch.frameCount * 0.05 + i) * 10;
+      let y2 = 42 + sketch.cos(a) + i * 8;
+      sketch.line(x, y, x2, y2);
+      p[i] = {
+        "x": x2,
+        "y": y2
+      }
+      sketch.stroke('cyan');
+      if (p[i - 1]) {
+        sketch.line(x2 - blueLineDest, y2 - blueLineLen, p[i - 1].x, p[i - 1].y)
+      }
+      a = a + inc;
+    }
+    sketch.noFill();
+    sketch.ellipse(60, 200, 50);
+  }
+}
+// where should the sketch end up in the scene:
+// [-8.774632992681308, 0.5, 16.359285500664296]
+location = {
+    x: -9,
+    y: 1,
+    z: 16
+}
+size = {
+  x: 1.5,
+  y: 1.5,
+  z: 1.5
+}
+rotation = {
+  x: 0,
+  y: 0,
+  z: 0
+}
+Add this sketch to the array:
+sketches.push({
+  sketch: myCoolSketch,
+  location: location,
+  size: size,
+  rotation: rotation
+});
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
 
@@ -309,5 +342,9 @@ sketches.push({
 // });
 
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
+
+
+
+
 // this makes the sketches available to the scene:
 module.exports = sketches;
