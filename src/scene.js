@@ -1,4 +1,4 @@
-/* 
+/*
 * YORB 2020
 *
 * Aidan Nelson, April 2020
@@ -10,6 +10,7 @@ import { pauseAllConsumersForPeer, resumeAllConsumersForPeer, hackToRemovePlayer
 
 const THREE = require('./libs/three.min.js');
 const Stats = require('./libs/stats.min.js');
+const EventEmitter = require( 'events' );
 
 const p5 = require('p5');
 const p5sketches = require('./p5sketches');
@@ -18,11 +19,13 @@ const p5sketches = require('./p5sketches');
 require('./libs/GLTFLoader.js')(THREE);
 require('./libs/pointerLockControls.js')(THREE);
 
-class Scene {
+
+class Scene extends EventEmitter {
 	constructor(
 		_movementCallback,
 		_clients,
 		mySocketID) {
+			super();
 
 		// add this to window to allow javascript console debugging
 		window.scene = this;
@@ -49,7 +52,6 @@ class Scene {
 		this.textureLoader = new THREE.TextureLoader();
 
 
-
 		// audio variables:
 		this.distanceThresholdSquared = 500;
 		this.rolloffNumerator = 5;
@@ -68,14 +70,28 @@ class Scene {
 
 		// starting position
 		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
-		let randX = this.randomRange(3, 28);
-		let randZ = this.randomRange(-2.5, 1.5);
+
+		// For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
+		let randX = this.randomRange(-7.4, -13.05);
+		let randZ = this.randomRange(-16.8, -8.3);
 		this.camera.position.set(randX, this.cameraHeight, randZ);
+
+		// let classRoom1 = {	x:9.495,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
+
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
 		this.scene.add(this.camera);
-		this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
+
+		// For Empire State Maker Faire: make the camera looking at the middle point betwen the two columns in Red Square
+
+		// this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
+		this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5));
+
 		window.camera = this.camera;
 
 		//THREE WebGL renderer
@@ -94,6 +110,13 @@ class Scene {
 		this.loadBackground();
 		this.loadFloorModel();
 
+		this.projectionScreens = {}; // object to store projector screens
+		this.createProjectorScreens();
+		// Blank projector screen
+
+
+
+
 		this.setupSpringShow();
 
 		this.updateableVideoTextures = [];
@@ -105,7 +128,10 @@ class Scene {
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
 		domElement.addEventListener('click', e => this.onMouseClick(e), false);
+		window.addEventListener('keydown', e => this.onKeyDown(e), false);
+		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
+		this.shift_down = false;
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
@@ -472,6 +498,110 @@ class Scene {
 		return mat;
 	}
 
+	createProjectorScreens() {
+
+		let blankScreenVideo = document.createElement('video');
+		blankScreenVideo.setAttribute('id', 'default_screenshare');
+		document.body.appendChild(blankScreenVideo);
+		blankScreenVideo.src = "/images/old-television.mp4";
+		blankScreenVideo.loop = true;
+		blankScreenVideo.play();
+
+		let _id = "screenshare1"
+		let dims = { width: 1920, height: 1080 }
+		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
+
+		let screen = new THREE.Mesh(
+			new THREE.BoxGeometry(5, 5*9/16, 0.01),
+			videoMaterial
+		);
+
+		// this.screen.visible = true;
+
+		// set position of head before adding to parent object
+		// let classRoom1 = [2.8, 1.9, 24.586520];
+		let redSquare = [-23.5, 1.9, -14.675];
+		screen.position.set(redSquare[0], redSquare[1], redSquare[2]);
+		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
+		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
+		screen.rotateY(Math.PI/2);
+		this.scene.add(screen);
+
+		screen.userData = {
+			videoTexture: videoTexture,
+			activeUserId: "default",
+			screenId: _id
+		}
+
+		this.projectionScreens[_id] = screen;
+	}
+
+
+	projectToScreen(screenId){
+		console.log("I'm going to project to screen " + screenId);
+		this.emit("projectToScreen", screenId);
+		this.projectionScreens[screenId].userData.activeUserId = this.mySocketID;
+	}
+
+	updateProjectionScreen(config){
+		let screenId = config.screenId;
+		let activeUserId = config.activeUserId;
+		this.projectionScreens[screenId].userData.activeUserId  = activeUserId;
+		console.log("Updating Projection Screen: " + screenId + " with screenshare from user " + activeUserId);
+	}
+
+	/*
+	* updateProjectionScreens()
+	* This function will loop through all of the projection screens,
+	* and update them if there is an active user and that user
+	* is screensharing currently
+	*
+	*/
+	updateProjectionScreens(){
+		for (let screenId in this.projectionScreens){
+			let screen  = this.projectionScreens[screenId];
+			let activeUserId = screen.userData.activeUserId;
+			let videoTexture = screen.userData.videoTexture;
+
+			let canvasEl = document.getElementById(`${screenId}_canvas`);
+			let videoEl = document.getElementById(`${activeUserId}_screenshare`);
+
+			if (videoEl != null && canvasEl != null) {
+				this.redrawVideoCanvas(videoEl, canvasEl, videoTexture);
+			}
+		}
+	}
+
+	checkProjectorCollisions() {
+
+		var matrix = new THREE.Matrix4();
+		matrix.extractRotation(this.camera.matrix);
+		var backwardDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
+		var forwardDir = backwardDir.clone().negate();
+
+		// TODO more points around avatar so we can't be inside of walls
+		let pt = this.controls.getObject().position.clone();
+
+		let raycaster = new THREE.Raycaster();
+
+		raycaster.set( pt, forwardDir );
+
+		var intersects = raycaster.intersectObjects( Object.values(this.projectionScreens) );
+
+		// if we have intersections, highlight them
+		let thresholdDist = 7;
+		if (intersects.length > 0) {
+			if (intersects[0].distance < thresholdDist) {
+				// this.screenHoverImage.style = "visiblity: visible;"
+				let screen = intersects[0].object;
+				this.hightlightedScreen = screen;
+				// console.log(screen.material)
+			} else {
+				this.hightlightedScreen = null;
+			}
+		}
+
+	}
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Clients 👫
@@ -638,7 +768,7 @@ class Scene {
 	*
 	* Description:
 	* Returns an array of numPoints THREE.Vector3 objects evenly spaced between vecA and vecB, including vecA and vecB
-	* 
+	*
 	* based on:
 	* https://stackoverflow.com/questions/21249739/how-to-calculate-the-points-between-two-given-points-and-given-distance
 	*
@@ -657,21 +787,21 @@ class Scene {
 	/*
 	* detectCollisions()
 	*
-	* based on method shown here: 
+	* based on method shown here:
 	* https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Collision-Detection.html
 	*
 	* Description:
 	* 1. Creates THREE.Vector3 objects representing the current forward, left, right, backward direction of the character.
-	* 2. For each side of the cube, 
+	* 2. For each side of the cube,
 	* 		- uses the collision detection points created in this.setupCollisionDetection()
-	*		- sends a ray out from each point in the direction set up above 
+	*		- sends a ray out from each point in the direction set up above
 	* 		- if any one of the rays hits an object, set this.obstacles.SIDE (i.e. right or left) to true
 	* 3. Give this.obstacles object to this.controls
 	*
 	* To Do: setup helper function to avoid repetitive code
 	*/
 	detectCollisions() {
-		// reset obstacles: 
+		// reset obstacles:
 		this.obstacles = {
 			forward: false,
 			backward: false,
@@ -681,7 +811,7 @@ class Scene {
 
 
 		// TODO only use XZ components of forward DIR in case we are looking up or down while travelling forward
-		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)... 
+		// NOTE: THREE.PlayerControls seems to be backwards (i.e. the 'forward' controls go backwards)...
 		// Weird, but this function respects those directions for the sake of not having to make conversions
 		// https://github.com/mrdoob/three.js/issues/1606
 		var matrix = new THREE.Matrix4();
@@ -746,6 +876,7 @@ class Scene {
 		}
 		return false;
 	}
+
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	// Interactable Hyperlinks for Spring Show 💎
@@ -767,18 +898,25 @@ class Scene {
 		let curveSegments = 3;
 		let message, txt;
 
-		message = "Welcome to the";
+		message = "Welcome to";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-2, 2.75, 0.5);
+		txt.position.set(-2, 2.85, 0.0);
 		txt.rotateY(Math.PI / 2);
 		this.scene.add(txt);
 
 
-		message = "ITP / IMA Spring Show ";
+		message = "ITP  ";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-2, 1.5, 0.0);
+		txt = this.create3DText(message, 1.15, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2.25, 1.5, 0.0);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
+
+		message = "Interactive Telecommunications Program";
+		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2, 1.15, 0.0);
 		txt.rotateY(Math.PI / 2);
 		this.scene.add(txt);
 
@@ -798,7 +936,7 @@ class Scene {
 	}
 
 	/*
-	* updateProjects(projects) 
+	* updateProjects(projects)
 	*
 	* Description:
 	* 	- empties out the existing projects array and any existing hyperlink objects within it
@@ -830,14 +968,16 @@ class Scene {
 
 			for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
 				let proj = projects[projectIndex];
-				let project_id = proj.project_id;
+				if (proj){
+					let project_id = proj.project_id;
 
-				if (dupeCheck[project_id]) {
-					// console.log('Duplicate with ID: ', proj.project_id);
-				} else {
-					dupeCheck[project_id] = true;
-					numUniqueProjects++;
-					uniqueProjects.push(proj);
+					if (dupeCheck[project_id]) {
+						// console.log('Duplicate with ID: ', proj.project_id);
+					} else {
+						dupeCheck[project_id] = true;
+						numUniqueProjects++;
+						uniqueProjects.push(proj);
+					}
 				}
 			}
 			console.log("Number of total projects: ", this.projects.length);
@@ -1061,10 +1201,10 @@ class Scene {
 	}
 
 	/*
-	* createHyperlinkedMesh(x,y,z,_project) 
+	* createHyperlinkedMesh(x,y,z,_project)
 	*
 	* Description:
-	* 	- creates an object3D for each project at position x,y,z 
+	* 	- creates an object3D for each project at position x,y,z
 	*	- adds _project as userData to the object3D
 	*	- returns object3D
 	*/
@@ -1155,11 +1295,11 @@ class Scene {
 	}
 
 	/*
-	* generateProjectModal(project) 
-	* 
+	* generateProjectModal(project)
+	*
 	* Description:
-	* 	- generates a modal pop up for a given project object 
-	* 	- project objects look like this: 
+	* 	- generates a modal pop up for a given project object
+	* 	- project objects look like this:
 	*		{
 	*			"project_id": "1234",
 	*			"project_name": "Cats",
@@ -1167,7 +1307,7 @@ class Scene {
 	*			"description": "Cats is about building a sustainable online community for earth humans.",
 	*			"zoom_link": "http://example.com"
 	*		}
-	* 
+	*
 	*/
 	zoomStatusDecoder(status) {
 		if (status == "0") {
@@ -1296,12 +1436,12 @@ class Scene {
 	}
 
 	/*
-	* highlightHyperlinks() 
-	* 
+	* highlightHyperlinks()
+	*
 	* Description:
-	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array, 
+	* 	- checks distance between player and object3Ds in this.hyperlinkedObjects array,
 	* 	- calls this.generateProjectModal for any projects under a threshold distance
-	* 
+	*
 	*/
 	highlightHyperlinks() {
 
@@ -1334,7 +1474,7 @@ class Scene {
 				this.resetLinkMaterial(link);
 			}
 		} else {
-			// no change, so lets check for 
+			// no change, so lets check for
 			let link = this.scene.getObjectByName(this.hightlightedProjectId);
 			if (link != null) {
 				if (now - link.userData.lastVisitedTime > 500) {
@@ -1384,7 +1524,7 @@ class Scene {
 
 
 
-	// creates a text mesh and returns it, from: 
+	// creates a text mesh and returns it, from:
 	// https://threejs.org/examples/?q=text#webgl_geometry_text_shapes
 	createSimpleText(message, fontColor, fontSize) {
 		var xMid, yMid, text;
@@ -1725,6 +1865,7 @@ class Scene {
 				this.updateClientVolumes();
 				this.movementCallback();
 				this.highlightHyperlinks();
+				this.checkProjectorCollisions();
 			}
 			if (this.frameCount % 50 == 0) {
 				this.selectivelyPauseAndResumeConsumers();
@@ -1736,6 +1877,10 @@ class Scene {
 		this.updatePositions(); // other users
 		this.render();
 	}
+	// hey billy!
+	// can you read this??
+	// i'm writing javascript!
+	// function myfunc() = cool stuff;
 
 
 
@@ -1746,10 +1891,13 @@ class Scene {
 	render() {
 		// Update video canvases for each client
 		this.updateVideoTextures();
+		// update all projection screens:
+		this.updateProjectionScreens();
 		this.renderer.render(this.scene, this.camera);
 	}
 
 	updateVideoTextures() {
+		// update for the clients
 		for (let _id in this.clients) {
 			let remoteVideo = document.getElementById(_id + "_video");
 			let remoteVideoCanvas = document.getElementById(_id + "_canvas");
@@ -1774,14 +1922,19 @@ class Scene {
 	}
 
 	// Adapted from: https://github.com/zacharystenger/three-js-video-chat
-	makeVideoTextureAndMaterial(_id) {
+	makeVideoTextureAndMaterial(_id, dims=null) {
 		// create a canvas and add it to the body
 		let rvideoImageCanvas = document.createElement('canvas');
 		document.body.appendChild(rvideoImageCanvas);
 
 		rvideoImageCanvas.id = _id + "_canvas";
-		// rvideoImageCanvas.width = 2000;
-		// rvideoImageCanvas.height = 2000;
+
+		// Dims for projector screens.
+		if (dims) {
+			rvideoImageCanvas.width = dims.width;
+			rvideoImageCanvas.height = dims.height;
+		}
+
 		rvideoImageCanvas.style = "visibility: hidden;";
 
 		// get canvas drawing context
@@ -1801,6 +1954,7 @@ class Scene {
 
 		return [videoTexture, movieMaterial];
 	}
+
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -1846,7 +2000,7 @@ class Scene {
 		}
 	}
 
-	// At the moment, this just adds a .audioElement parameter to a client stored under _id 
+	// At the moment, this just adds a .audioElement parameter to a client stored under _id
 	// which will be updated above
 	createOrUpdatePositionalAudio(_id) {
 		let audioElement = document.getElementById(_id + "_audio");
@@ -1860,7 +2014,7 @@ class Scene {
 
 		// for the moment, positional audio using webAudio and THREE.PositionalAudio doesn't work...
 		// see the issues on github
-		// let audioSource;	
+		// let audioSource;
 		// if (this.clients[_id]) {
 		// 	if ("positionalAudioSource" in this.clients[_id]) {
 		// 		audioSource = this.clients[_id].positionalAudioSource;
@@ -1897,6 +2051,22 @@ class Scene {
 		// this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
 		// console.log("Click");
 		this.activateHighlightedProject();
+		//typo on line 2045****
+		if (this.hightlightedScreen && this.shift_down){
+			this.projectToScreen(this.hightlightedScreen.userData.screenId);
+		}
+	}
+
+	onKeyDown(e){
+		if (e.keyCode == 16) {
+			this.shift_down = true;
+		}
+	}
+
+	onKeyUp(e){
+		if (e.keyCode == 16) {
+			this.shift_down = false;
+		}
 	}
 
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//

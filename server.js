@@ -16,18 +16,17 @@
 const config = require("./config");
 require("dotenv").config();
 
-// if we are in production environment, copy over config from .env file:
-if (process.env.NODE_ENV == "production") {
-  config.sslCrt = process.env.PRODUCTION_CERT;
-  config.sslKey = process.env.PRODUCTION_KEY;
-  config.httpIp = process.env.PRODUCTION_IP;
-  config.httpPort = process.env.PRODUCTION_PORT;
 
-  config.mediasoup.webRtcTransport.listenIps = [
-    { ip: "127.0.0.1", announcedIp: null },
-    { ip: process.env.PRODUCTION_IP, announcedIp: null },
-  ];
-}
+// copy over config from .env file:
+
+config.httpIp = process.env.PRODUCTION_IP;
+config.httpPort = process.env.PRODUCTION_PORT;
+
+config.mediasoup.webRtcTransport.listenIps = [
+  { ip: "127.0.0.1", announcedIp: null },
+  { ip: process.env.PRODUCTION_IP, announcedIp: null },
+];
+
 
 console.log("Environment Variables:");
 console.log("~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -294,6 +293,11 @@ async function runSocketServer() {
         clients[socket.id].lastSeenTs = now;
       }
       // io.sockets.emit('userPositions', clients);
+    });
+
+    socket.on("projectToScreen", (data) => {
+      log('Received projection screen config: ',  data);
+      io.sockets.emit('projectToScreen', data);
     });
 
     // Handle the disconnection

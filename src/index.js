@@ -1,4 +1,4 @@
-/* 
+/*
 * YORB 2020
 *
 * Aidan Nelson, April 2020
@@ -26,6 +26,10 @@ const err = debugModule('demo-app:ERROR');
 
 // load p5 for self view
 const p5 = require('p5');
+
+const PRODUCTION = false;
+const WEB_SOCKET_SERVER = "wss://yorb.itp.io";
+const INSTANCE_PATH = ""; // leave blank unless running behind NGINX
 
 
 
@@ -73,7 +77,7 @@ window.lastPollSyncData = {};
 
 // adding constraints, VIDEO_CONSTRAINTS is video quality levels
 // localMediaCOnstraints is passed to the getUserMedia object to request a lower video quality than the maximum
-// I believe some webcam settings may override this request 
+// I believe some webcam settings may override this request
 
 const VIDEO_CONSTRAINTS =
 {
@@ -95,7 +99,7 @@ let localMediaConstraints = {
 // Start-Up Sequence:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-// start with user interaction with the DOM so we can auto-play audio/video from 
+// start with user interaction with the DOM so we can auto-play audio/video from
 // now on...
 window.onload = async () => {
 	console.log("Window loaded.");
@@ -117,6 +121,18 @@ window.onload = async () => {
 	}
 
 	await initSocketConnection();
+
+	yorbScene.on('projectToScreen', (screenId) => {
+		console.log("Starting screenshare to screen with ID ", screenId);
+
+		console.log(socket);
+		socket.emit('projectToScreen', {
+			screenId: screenId,
+			activeUserId: mySocketID
+		});
+
+		startScreenshare();
+	})
 
 	// use sendBeacon to tell the server we're disconnecting when
 	// the page unloads
@@ -157,7 +173,9 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket = io('wss://yorb.itp.io');
+		socket= io();
+
+		window.socket = socket;
 		socket.request = socketPromise(socket);
 
 		socket.on('connect', () => { });
@@ -173,6 +191,7 @@ function initSocketConnection() {
 			for (let i = 0; i < _ids.length; i++) {
 				if (_ids[i] != mySocketID) {
 					addClient(_ids[i]);
+
 				}
 			}
 			resolve();
@@ -192,7 +211,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			updateProjects(_projects);
+			// updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (_id, _ids) => {
@@ -213,6 +232,12 @@ function initSocketConnection() {
 		// Update when one of the users moves in space
 		socket.on('userPositions', _clientProps => {
 			yorbScene.updateClientPositions(_clientProps);
+		});
+
+		// listen for projection screen changes:
+		socket.on('projectToScreen', (config) => {
+			console.log('Received incoming projection screen config:', config);
+			yorbScene.updateProjectionScreen(config);
 		});
 
 	});
@@ -474,7 +499,7 @@ function removeClientDOMElements(_id) {
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-// Mediasoup Code: 
+// Mediasoup Code:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 
@@ -560,7 +585,6 @@ export async function sendCameraStreams() {
 
 export async function startScreenshare() {
 	log('start screen share');
-
 	// make sure we've joined the room and that we have a sending
 	// transport
 	await joinRoom();
@@ -571,8 +595,20 @@ export async function startScreenshare() {
 	// get a screen share track
 	localScreen = await navigator.mediaDevices.getDisplayMedia({
 		video: true,
-		audio: true
+		audio: false
 	});
+
+	// also make a local video Element to hold the stream
+	let videoEl = document.getElementById(mySocketID + "_screenshare");
+	if (!videoEl){
+		videoEl = document.createElement('video');
+		videoEl.setAttribute('id', mySocketID + "_screenshare");
+		videoEl.setAttribute('muted',true);
+		videoEl.setAttribute('autoplay',true);
+		videoEl.setAttribute('style', "visibility: hidden;");
+		document.body.appendChild(videoEl);
+	}
+	videoEl.srcObject = localScreen;
 
 	// create a producer for video
 	screenVideoProducer = await sendTransport.produce({
@@ -754,6 +790,7 @@ export async function leaveRoom() {
 
 export async function subscribeToTrack(peerId, mediaTag) {
 	log('subscribe to track', peerId, mediaTag);
+	log('mediaTag: ', mediaTag)
 
 	// create a receive transport if we don't already have one
 	if (!recvTransport) {
@@ -797,7 +834,7 @@ export async function subscribeToTrack(peerId, mediaTag) {
 	consumers.push(consumer);
 
 	// ui
-	await addVideoAudio(consumer, peerId);
+	await addVideoAudio(consumer, peerId, mediaTag);
 }
 
 export async function unsubscribeFromTrack(peerId, mediaTag) {
@@ -1037,12 +1074,14 @@ async function pollAndUpdate() {
 			if (closestPeers.includes(id)) { // and if it is close enough in the 3d space...
 				for (let [mediaTag, info] of Object.entries(peers[id].media)) { // for each of the peer's producers...
 					if (!findConsumerForTrack(id, mediaTag)) { // that we don't already have consumers for...
+
 						log(`auto subscribing to track that ${id} has added`);
 						await subscribeToTrack(id, mediaTag);
 					}
 				}
 			}
 		}
+
 	}
 
 
@@ -1145,11 +1184,18 @@ export async function toggleScreenshareAudioPauseState() {
 
 
 
-function addVideoAudio(consumer, peerId) {
+function addVideoAudio(consumer, peerId, mediaTag) {
 	if (!(consumer && consumer.track)) {
 		return;
 	}
+
+	const isScreenshare = (mediaTag == "screen-video");
+	console.log('MediaTag: ',mediaTag, " / isScreenshare: ",isScreenshare);
+
 	let elementID = `${peerId}_${consumer.kind}`;
+	if (isScreenshare){
+		elementID = `${peerId}_screenshare`;
+	}
 	let el = document.getElementById(elementID);
 
 	// set some attributes on our audio and video elements to make
@@ -1160,11 +1206,15 @@ function addVideoAudio(consumer, peerId) {
 			console.log("Creating video element for user with ID: " + peerId);
 			el = document.createElement('video');
 			el.id = `${peerId}_${consumer.kind}`;
+			if (isScreenshare){
+				el.id = `${peerId}_screenshare`;
+			}
 			el.autoplay = true;
-			el.muted = true; // necessary for 
+			el.muted = true; // necessary for
 			el.style = "visibility: hidden;";
 			document.body.appendChild(el);
 			el.setAttribute('playsinline', true);
+			document.body.appendChild(el);
 		}
 
 		// TODO: do i need to update video width and height? or is that based on stream...?
@@ -1259,8 +1309,15 @@ function camEncodings() {
 
 // how do we limit bandwidth for screen share streams?
 //
+const SCREEN_SIMULCAST_ENCODINGS =
+	[
+		// { maxBitrate: 36000, scaleResolutionDownBy: 2 },
+		// { maxBitrate: 96000, scaleResolutionDownBy: 2 },
+		{ maxBitrate: 680000, scaleResolutionDownBy: 1 },
+	];
+
 function screenshareEncodings() {
-	null;
+	return SCREEN_SIMULCAST_ENCODINGS;
 }
 
 //

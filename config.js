@@ -70,10 +70,7 @@ module.exports = {
     // to set these appropriately for your network for the demo to
     // run anywhere but on localhost
     webRtcTransport: {
-      listenIps: [
-       { ip: '127.0.0.1', announcedIp: null },
-       { ip: '192.168.1.145', announcedIp: null },
-      ],
+      listenIps: [],
       initialAvailableOutgoingBitrate: 800000,
     }
   }
