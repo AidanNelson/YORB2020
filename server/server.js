@@ -14,7 +14,7 @@
 // Set Debug level before we require 'debug' or 'mediasoup'!
 
 const config = require("./config");
-require("dotenv").config();
+require("dotenv").config({ path: './server/.env' });
 
 
 // if we are in production environment, copy over config from .env file:
@@ -53,7 +53,7 @@ var app = express();
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 
-app.use(express.static(__dirname + "/public"));
+app.use(express.static(__dirname + "../public"));
 
 server.listen(process.env.PRODUCTION_PORT);
 console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT);
