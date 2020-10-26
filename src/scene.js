@@ -892,18 +892,25 @@ class Scene extends EventEmitter {
 		let curveSegments = 3;
 		let message, txt;
 
-		message = "Welcome to the";
+		message = "Welcome to";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-2, 2.75, 0.5);
+		txt.position.set(-2, 2.85, 0.0);
 		txt.rotateY(Math.PI / 2);
 		this.scene.add(txt);
 
 
-		message = "Coding Lab Testing Facility ";
+		message = "ITP  ";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-2, 1.5, 0.0);
+		txt = this.create3DText(message, 1.15, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2.25, 1.5, 0.0);
+		txt.rotateY(Math.PI / 2);
+		this.scene.add(txt);
+
+		message = "Interactive Telecommunications Program";
+		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
+		txt = this.create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2, 1.15, 0.0);
 		txt.rotateY(Math.PI / 2);
 		this.scene.add(txt);
 
