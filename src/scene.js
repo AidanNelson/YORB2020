@@ -39,6 +39,7 @@ class Scene extends EventEmitter {
 		this.width = (window.innerWidth * 0.9);
 		this.height = (window.innerHeight * 0.7);
 		this.scene = new THREE.Scene();
+		this.gravity = 2.0;
 		this.raycaster = new THREE.Raycaster();
 		this.textParser = new DOMParser;
 		this.mouse = {
@@ -71,7 +72,8 @@ class Scene extends EventEmitter {
 		// For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
 		let randX = this.randomRange(-7.4, -13.05);
 		let randZ = this.randomRange(-16.8, -8.3);
-		this.camera.position.set(randX, this.cameraHeight, randZ);
+		// this.camera.position.set(randX, this.cameraHeight, randZ);
+		this.camera.position.set(randX, 500, randZ);
 
 		// let classRoom1 = {	x:9.495,
 		// 										y:0.5,
@@ -900,7 +902,7 @@ class Scene extends EventEmitter {
 		this.scene.add(txt);
 
 
-		message = "Empire State Maker Faire 2020 ";
+		message = "ITP/IMA Winter Show 2020 ";
 		// params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
 		txt = this.create3DText(message, 1, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-2, 1.5, 0.0);
@@ -909,13 +911,32 @@ class Scene extends EventEmitter {
 
 
 		// message = "The E.R.";
-		message = "YORB";
+		message = "The E.R.";
 		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-11.25, 1.75, -18.5);
 		txt.rotateY(0);
 		this.scene.add(txt);
 
-		message = "Your office here";
+		// message = "The E.R.";
+		message = "The E.R.";
+		txt = this.create3DText(message, 5, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-11.25, 9.0, -18.5);
+		txt.rotateX(-90);
+		this.scene.add(txt);
+
+		message = "Coding Lab";
+		txt = this.create3DText(message, 5, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-2.7, 9.0, 14.7);
+		txt.rotateX(-90);
+		this.scene.add(txt);
+
+		message = "Coding Lab";
+		txt = this.create3DText(message, 0.5, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-8.1, 1.75, 16);
+		txt.rotateY(135	);
+		this.scene.add(txt);
+
+		message = "Residunce Offices";
 		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-12.5, 1.75, -0.75);
 		txt.rotateY(-Math.PI / 2);
@@ -1783,7 +1804,18 @@ class Scene extends EventEmitter {
 			this.velocity.x -= this.velocity.x * 10.0 * delta;
 			this.velocity.z -= this.velocity.z * 10.0 * delta;
 
-			this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+			// Here we talkin bout gravity...
+			// this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+
+			// For double-jumping!
+			if (this.camera.position.y > 2.5) {
+				// less gravity like when we begin
+				this.gravity = 2.0;
+			} else {
+				// once we get below the ceiling, the original value
+				this.gravity = 8.0;
+			}
+			this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
 
 			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
 			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
