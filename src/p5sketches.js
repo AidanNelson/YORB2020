@@ -163,32 +163,38 @@ sketches.push({
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
 
 
-// myCoolSketch = (sketch) => {
-//     // add sketch 'definition' here
-// }
-// // where should the sketch end up in the scene:
-// location = {
-//     x: 0,
-//     y: 0,
-//     z: 0
-// }
-// size = {
-//   x: 1,
-//   y: 1,
-//   z: 1
-// }
-// rotation = {
-//   x: 0,
-//   y: 0,
-//   z: 0
-// }
+myCoolSketch = (sketch) => {
+    // add sketch 'definition' here
+    sketch.setup = ()=> {
+      sketch.createCanvas(300,300);
+    }
+    sketch.draw = () => {
+      sketch.background(255,0,0);
+    }
+}
+// where should the sketch end up in the scene:
+location = {
+    x: -7,
+    y: 1.5,
+    z: 38
+}
+size = {
+  x: 1,
+  y: 1,
+  z: 1
+}
+rotation = {
+  x: 0,
+  y: 0,
+  z: 0
+}
 // Add this sketch to the array:
-// sketches.push({
-//   sketch: myCoolSketch,
-//   location: location,
-//   size: size,
-//   rotation: rotation
-// });
+sketches.push({
+  sketch: myCoolSketch,
+  location: location,
+  size: size,
+  rotation: rotation
+});
 //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
 
 
