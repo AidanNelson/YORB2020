@@ -1019,18 +1019,6 @@ class Scene extends EventEmitter {
 		txt.rotateY(0);
 		this.scene.add(txt);
 
-		message = "The E.R.";
-		txt = this.create3DText(message, 5, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-11.25, 9.0, -18.5);
-		txt.rotateX(-90);
-		this.scene.add(txt);
-
-		message = "Coding Lab";
-		txt = this.create3DText(message, 5, textDepth, curveSegments, 0.01, 0.01, false, false);
-		txt.position.set(-2.7, 9.0, 14.7);
-		txt.rotateX(-90);
-		this.scene.add(txt);
-
 		message = "Coding Lab";
 		txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-8.1, 1.75, 16);
