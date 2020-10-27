@@ -42,6 +42,7 @@ class Scene extends EventEmitter {
 		this.width = (window.innerWidth * 0.9);
 		this.height = (window.innerHeight * 0.7);
 		this.scene = new THREE.Scene();
+		this.gravity = 2.0;
 		this.raycaster = new THREE.Raycaster();
 		this.textParser = new DOMParser;
 		this.mouse = {
@@ -68,19 +69,45 @@ class Scene extends EventEmitter {
 		this.cameraHeight = 1.75;
 		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
 
-		// starting position
-		// elevator bank range: x: 3 to 28, z: -2.5 to 1.5
+		/*
+		*
+		* STARTING POSITIONS
+		*
+		*/
 
-		// For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
+		// Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
+
+		// In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
 		let randX = this.randomRange(-7.4, -13.05);
 		let randZ = this.randomRange(-16.8, -8.3);
 		this.camera.position.set(randX, this.cameraHeight, randZ);
+
+		// Coding Lab
+
+		// let codingLab = { x: -12.7,
+		// 									y: 0.5,
+		// 									z: 10.57
+		// 								}
+		// this.camera.position.set(codingLab.x, this.cameraHeight, codingLab.z);
+
+		// Classrooms
 
 		// let classRoom1 = {	x:9.495,
 		// 										y:0.5,
 		// 										z:28.685
 		// 									}
-		// this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
+		// let classRoom2 = {	x:17.5,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// let classRoom3 = {	x:25.5,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// let classRoom4 = {	x:33.0000,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
 
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
@@ -500,40 +527,110 @@ class Scene extends EventEmitter {
 
 	createProjectorScreens() {
 
-		let blankScreenVideo = document.createElement('video');
-		blankScreenVideo.setAttribute('id', 'default_screenshare');
-		document.body.appendChild(blankScreenVideo);
-		blankScreenVideo.src = "/images/old-television.mp4";
-		blankScreenVideo.loop = true;
-		blankScreenVideo.play();
+		let locations = {
+			data: [
+				// {	room: "entranceWay",
+				// 	x: 3.3663431855797707,
+				// 	y: 1.9,
+				// 	z: -0.88,
+				// 	rot: Math.PI/2
+				// },
+				// { room: "classRoom1-center",
+				// 	x: 2.8,
+				// 	y: 1.9,
+				// 	z: 24.586520,
+				// 	rot: Math.PI/2
+				// },
+				{ room: "classRoom1-left",
+					x: 2.8,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom1-right",
+					x: 2.8,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom2-left",
+					x: 10.4,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom2-right",
+					x: 10.4,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom3-left",
+					x: 18.0000,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom3-right",
+					x: 18.000000,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom4-left",
+					x: 25.7000,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom4-right",
+					x: 25.700000,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{	room: "redSquare",
+					x: -23.5,
+					y: 1.9,
+					z: -14.675,
+					rot: Math.PI/2
+				}
+			]
+		};
 
-		let _id = "screenshare1"
-		let dims = { width: 1920, height: 1080 }
-		let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
+		let num = locations.data.length;
 
-		let screen = new THREE.Mesh(
-			new THREE.BoxGeometry(5, 5*9/16, 0.01),
-			videoMaterial
-		);
+		for(let i = 0; i < num; i++) {
 
-		// this.screen.visible = true;
+			let blankScreenVideo = document.createElement('video');
+			blankScreenVideo.setAttribute('id', 'default_screenshare');
+			document.body.appendChild(blankScreenVideo);
+			blankScreenVideo.src = "/images/old-television.mp4";
+			blankScreenVideo.loop = true;
+			blankScreenVideo.play();
 
-		// set position of head before adding to parent object
-		// let classRoom1 = [2.8, 1.9, 24.586520];
-		let redSquare = [-23.5, 1.9, -14.675];
-		screen.position.set(redSquare[0], redSquare[1], redSquare[2]);
-		// let entranceWay = [3.3663431855797707, 1.9, -0.88];
-		// screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
-		screen.rotateY(Math.PI/2);
-		this.scene.add(screen);
+			let _id = "screenshare" + i;
+			let dims = { width: 1920, height: 1080 }
+			let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
 
-		screen.userData = {
-			videoTexture: videoTexture,
-			activeUserId: "default",
-			screenId: _id
+			let screen = new THREE.Mesh(
+				new THREE.BoxGeometry(5, 5*9/16, 0.01),
+				videoMaterial
+			);
+
+			screen.position.set(locations.data[i].x, locations.data[i].y, locations.data[i].z);
+			screen.rotateY(locations.data[i].rot);
+			this.scene.add(screen);
+
+			screen.userData = {
+				videoTexture: videoTexture,
+				activeUserId: "default",
+				screenId: _id
+			}
+
+			this.projectionScreens[_id] = screen;
 		}
 
-		this.projectionScreens[_id] = screen;
 	}
 
 
@@ -921,10 +1018,17 @@ class Scene extends EventEmitter {
 		this.scene.add(txt);
 
 
+		// message = "The E.R.";
 		message = "The E.R.";
 		txt = this.create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false);
 		txt.position.set(-11.25, 1.75, -18.5);
 		txt.rotateY(0);
+		this.scene.add(txt);
+
+		message = "Coding Lab";
+		txt = this.create3DText(message, 0.4, textDepth, curveSegments, 0.01, 0.01, false, false);
+		txt.position.set(-8.1, 1.75, 16);
+		txt.rotateY(135	);
 		this.scene.add(txt);
 
 		message = "Resident's Residence";
@@ -1795,7 +1899,18 @@ class Scene extends EventEmitter {
 			this.velocity.x -= this.velocity.x * 10.0 * delta;
 			this.velocity.z -= this.velocity.z * 10.0 * delta;
 
-			this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+			// Here we talkin bout gravity...
+			// this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+
+			// For double-jumping!
+			if (this.camera.position.y > 2.5) {
+				// less gravity like when we begin
+				this.gravity = 2.0;
+			} else {
+				// once we get below the ceiling, the original value
+				this.gravity = 8.0;
+			}
+			this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
 
 			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
 			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
