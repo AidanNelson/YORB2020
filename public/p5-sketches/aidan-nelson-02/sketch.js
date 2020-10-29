@@ -1,15 +1,15 @@
 // where do you want your sketch to live in the space
 window.yorbConfig = {
-    type: "box", // other options are "box", "sphere", and 
+    type: "box", 
     position: {
-      x: 0,
-      y: 2,
-      z: 0
+      x: -8.5,
+      y: 2.5,
+      z: -36
     },
     rotation: {
-      x: 3,
-      y: 1,
-      z: 0
+      x: 30,
+      y: 10,
+      z: 50
     },
     scale: {
       x: 1,
@@ -18,14 +18,21 @@ window.yorbConfig = {
     }
   }
 
+  let cam;
 
-function setup(){
-    createCanvas(400,400);
-}
-
-function draw(){
-    background(200,100,200);
-}
-
-
-
+  function setup() {
+    createCanvas(100, 100, WEBGL);
+    normalMaterial();
+    cam = createCamera();
+    cam.move(0,0,-100);
+  
+  }
+  
+  function draw() {
+    background(255,100,250);
+  
+    rotateX(millis() / 2000);
+    rotateY(millis() / 1000);
+    box(50);
+  }
+  

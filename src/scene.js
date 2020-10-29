@@ -117,7 +117,9 @@ class Scene extends EventEmitter {
     this.setupSpringShow();
 
     this.updateableVideoTextures = [];
-    this.addSketches();
+    setTimeout(() => {
+      this.addSketches();
+    }, 5000); // a nice healthy timeout to ensure that the sketches iframes have loaded!
 
     //Push the canvas to the DOM
     domElement.append(this.renderer.domElement);
@@ -2260,9 +2262,7 @@ class Scene extends EventEmitter {
     console.log("Adding p5.js sketches to the scene!");
 
     let container = document.getElementById("p5-sketch-container");
-    // console.log("container:", container);
     let containerDocument = container.document || container.contentDocument;
-    // console.log("document:", containerDocument);
     let iframes = containerDocument.getElementsByTagName("iframe");
 
     for (let i = 0; i < iframes.length; i++) {
@@ -2272,7 +2272,8 @@ class Scene extends EventEmitter {
       let canvasEl = iframeDocument.getElementsByTagName("canvas")[0];
 
       let config = iframes[i].contentWindow.yorbConfig;
-      console.log(config);
+      iframes[i].contentWindow.frameRate(15);
+      // console.log(config);
       if (canvasEl) {
         // get canvas drawing context
         let rvideoImageContext = canvasEl.getContext("2d");
@@ -2302,6 +2303,14 @@ class Scene extends EventEmitter {
               geometry = new THREE.SphereGeometry(1, 24, 24);
               break;
 
+            case "ico":
+              geometry = new THREE.IcosahedronGeometry(1, 0);
+              break;
+
+            case "cylinder":
+              geometry = new THREE.CylinderGeometry(1, 1, 2, 8);
+              break;
+
             default:
               geometry = new THREE.BoxGeometry(1, 1, 1);
               break;
@@ -2311,6 +2320,7 @@ class Scene extends EventEmitter {
         }
 
         this.updateableVideoTextures.push(videoTexture);
+        console.log(this.updateableVideoTextures);
         let sketchMesh = new THREE.Mesh(geometry, videoMaterial);
 
         if (config) {
@@ -2320,15 +2330,11 @@ class Scene extends EventEmitter {
             config.position.z
           );
           sketchMesh.rotation.set(
-            config.rotation.x,
-            config.rotation.y,
-            config.rotation.z
+            THREE.MathUtils.degToRad(config.rotation.x),
+            THREE.MathUtils.degToRad(config.rotation.y),
+            THREE.MathUtils.degToRad(config.rotation.z)
           );
-          sketchMesh.scale.set(
-            config.scale.x,
-            config.scale.y,
-            config.scale.z
-          );
+          sketchMesh.scale.set(config.scale.x, config.scale.y, config.scale.z);
         }
         this.scene.add(sketchMesh);
       }
@@ -2384,6 +2390,7 @@ class Scene extends EventEmitter {
     });
 
     this.updateableVideoTextures.push(videoTexture);
+    console.log(this.updateableVideoTextures);
     let sketchBox = new THREE.Mesh(
       new THREE.BoxGeometry(size.x, size.y, size.z),
       // new THREE.SphereGeometry(1,12,12),

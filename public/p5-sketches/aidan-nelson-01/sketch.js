@@ -1,45 +1,62 @@
-
 // where do you want your sketch to live in the space
 window.yorbConfig = {
-  type: "box", // other options are "box", "sphere", and 
+  type: "cylinder", //  options are "box", "sphere", "ico", "cylinder"
   position: {
-    x: 0,
+    x: -22,
     y: 2,
-    z: 0
+    z: -3,
   },
   rotation: {
-    x: 3,
-    y: 1,
-    z: 0
+    x: 30,
+    y: 30,
+    z: 0,
   },
   scale: {
     x: 1,
     y: 1,
-    z: 1
-  }
-}
-
+    z: 1,
+  },
+};
 
 let grid;
 let balls = [];
 
+let selectorX = 100;
+let selectorY = 100;
+let velocityX = 0;
+let velocityY = 0;
+let buffer = 25;
+
 function setup() {
   createCanvas(500, 500);
   rectMode(CENTER);
+
+  velocityX = random(-5, 5);
+  velocityY = random(-5, 5);
   for (let i = 0; i < 300; i++) {
-    let b = new Ball(random(-width / 2, width / 2), random(-height / 2, height / 2));
+    let b = new Ball(
+      random(-width / 2, width / 2),
+      random(-height / 2, height / 2)
+    );
     balls.push(b);
   }
 }
 
-
-
 function draw() {
+  selectorX += velocityX;
+  selectorY += velocityY;
+  if (selectorX >= width - buffer || selectorX <= buffer) {
+    velocityX = -velocityX;
+  }
+  if (selectorY >= height - buffer || selectorY <= buffer) {
+    velocityY = -velocityY;
+  }
+
   let range = 50;
   background(0, 0, 200);
   noFill();
-  ellipse(mouseX,mouseY,range*2,range*2);
-  
+  ellipse(selectorX, selectorY, range * 2, range * 2);
+
   for (let i = 0; i < balls.length; i++) {
     balls[i].selected = false;
     balls[i].move();
@@ -55,12 +72,10 @@ function draw() {
   }
 
   grid.display();
-  let neighbors = grid.queryAtPoint(mouseX, mouseY);
+  let neighbors = grid.queryAtPoint(selectorX, selectorY);
   neighbors.forEach((ball) => {
     ball.selected = true;
-  })
-  
-  
+  });
 
   for (let i = 0; i < balls.length; i++) {
     balls[i].display();
@@ -69,34 +84,17 @@ function draw() {
   pop();
 }
 
-function mouseClicked() {
-  console.log(grid.queryAtPoint(mouseX, mouseY).length);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Grid {
   constructor(cellSize, halfGridSize) {
-
     this.cellSize = cellSize;
-    this.cellSizeSquared= cellSize*cellSize;
+    this.cellSizeSquared = cellSize * cellSize;
     this.halfGridSize = halfGridSize;
     this.grid = []; // our array of arrays of objects
 
     this.center = {
       x: 0,
-      y: 0
+      y: 0,
     };
 
     for (let i = -this.halfGridSize; i < this.halfGridSize; i++) {
@@ -125,11 +123,11 @@ class Grid {
         }
       }
     }
-    
+
     neighbors = neighbors.filter((neighbor) => {
-        let distSquared = getDistSquared(x,y,neighbor.x,neighbor.y)
-        return distSquared <= this.cellSizeSquared;
-    })
+      let distSquared = getDistSquared(x, y, neighbor.x, neighbor.y);
+      return distSquared <= this.cellSizeSquared;
+    });
     return neighbors;
   }
 
@@ -138,19 +136,23 @@ class Grid {
     let xIndex = this.halfGridSize + floor(x / this.cellSize);
     let yIndex = this.halfGridSize + floor(y / this.cellSize);
 
-    if (xIndex > 0 && xIndex < this.halfGridSize * 2 && yIndex >= 0 && yIndex < this.halfGridSize * 2) {
+    if (
+      xIndex > 0 &&
+      xIndex < this.halfGridSize * 2 &&
+      yIndex >= 0 &&
+      yIndex < this.halfGridSize * 2
+    ) {
       this.grid[xIndex][yIndex].push(obj);
     } else {
-      console.log('Out of bounds!');
+      console.log("Out of bounds!");
     }
   }
-
 
   display() {
     for (let i = -this.halfGridSize; i < this.halfGridSize; i++) {
       for (let j = -this.halfGridSize; j < this.halfGridSize; j++) {
-        let centerX = this.center.x + (i * this.cellSize) + this.cellSize / 2;
-        let centerY = this.center.y + (j * this.cellSize) + this.cellSize / 2;
+        let centerX = this.center.x + i * this.cellSize + this.cellSize / 2;
+        let centerY = this.center.y + j * this.cellSize + this.cellSize / 2;
 
         noFill();
         stroke(255);
@@ -158,16 +160,15 @@ class Grid {
         rect(centerX, centerY, this.cellSize, this.cellSize);
         fill(0);
         // ellipse(centerX, centerY, 2, 2);
-
       }
     }
   }
 }
 
-function getDistSquared(x1,y1,x2,y2){
-  let a = x2-x1;
-  let b = y2-y1;
-  return a*a + b*b;
+function getDistSquared(x1, y1, x2, y2) {
+  let a = x2 - x1;
+  let b = y2 - y1;
+  return a * a + b * b;
 }
 
 // Ball Class
@@ -175,8 +176,8 @@ class Ball {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.velocityX = random(-0.2,0.2);
-    this.velocityY = random(-0.2,0.2);
+    this.velocityX = random(-0.2, 0.2);
+    this.velocityY = random(-0.2, 0.2);
     this.color = color(0, 0, 0);
     this.selected = false;
   }
@@ -196,10 +197,10 @@ class Ball {
     this.x += this.velocityX;
     this.y += this.velocityY;
     let buffer = 20;
-    if (this.x > (width / 2) - buffer || this.x < (-width / 2) + buffer) {
+    if (this.x > width / 2 - buffer || this.x < -width / 2 + buffer) {
       this.velocityX *= -1;
     }
-    if (this.y > (height / 2) - buffer || this.y < (-height / 2) + buffer) {
+    if (this.y > height / 2 - buffer || this.y < -height / 2 + buffer) {
       this.velocityY *= -1;
     }
   }
