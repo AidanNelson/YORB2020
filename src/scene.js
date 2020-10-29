@@ -2260,9 +2260,9 @@ class Scene extends EventEmitter {
     console.log("Adding p5.js sketches to the scene!");
 
     let container = document.getElementById("p5-sketch-container");
-    console.log("container:", container);
+    // console.log("container:", container);
     let containerDocument = container.document || container.contentDocument;
-    console.log("document:", containerDocument);
+    // console.log("document:", containerDocument);
     let iframes = containerDocument.getElementsByTagName("iframe");
 
     for (let i = 0; i < iframes.length; i++) {
@@ -2270,6 +2270,9 @@ class Scene extends EventEmitter {
       let iframeDocument =
         iframes[i].contentDocument || iframes[i].contentWindow.document;
       let canvasEl = iframeDocument.getElementsByTagName("canvas")[0];
+
+      let config = iframes[i].contentWindow.yorbConfig;
+      console.log(config);
       if (canvasEl) {
         // get canvas drawing context
         let rvideoImageContext = canvasEl.getContext("2d");
@@ -2286,14 +2289,48 @@ class Scene extends EventEmitter {
           side: THREE.DoubleSide,
         });
 
-        this.updateableVideoTextures.push(videoTexture);
-        let sketchBox = new THREE.Mesh(
-          new THREE.BoxGeometry(1, 1, 1),
-          videoMaterial
-        );
+        let geometry;
 
-        sketchBox.position.set(0, 0, 0);
-        this.scene.add(sketchBox);
+        // if the user has defined a config:
+        if (config) {
+          switch (config.type) {
+            case "box":
+              geometry = new THREE.BoxGeometry(1, 1, 1);
+              break;
+
+            case "sphere":
+              geometry = new THREE.SphereGeometry(1, 24, 24);
+              break;
+
+            default:
+              geometry = new THREE.BoxGeometry(1, 1, 1);
+              break;
+          }
+        } else {
+          geometry = new THREE.BoxGeometry(1, 1, 1);
+        }
+
+        this.updateableVideoTextures.push(videoTexture);
+        let sketchMesh = new THREE.Mesh(geometry, videoMaterial);
+
+        if (config) {
+          sketchMesh.position.set(
+            config.position.x,
+            config.position.y,
+            config.position.z
+          );
+          sketchMesh.rotation.set(
+            config.rotation.x,
+            config.rotation.y,
+            config.rotation.z
+          );
+          sketchMesh.scale.set(
+            config.scale.x,
+            config.scale.y,
+            config.scale.z
+          );
+        }
+        this.scene.add(sketchMesh);
       }
     }
 
