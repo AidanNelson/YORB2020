@@ -2272,8 +2272,8 @@ class Scene extends EventEmitter {
       let canvasEl = iframeDocument.getElementsByTagName("canvas")[0];
 
       let config = iframes[i].contentWindow.yorbConfig;
-      iframes[i].contentWindow.frameRate(15);
-      // console.log(config);
+      // iframes[i].contentWindow.frameRate(15);
+
       if (canvasEl) {
         // get canvas drawing context
         let rvideoImageContext = canvasEl.getContext("2d");
