@@ -25,9 +25,9 @@ window.yorbConfig = {
   // and press the 'p' key.  A series of coordinates should appear in your console,
   // then plug those values in here:
   position: {
-    x: 5,
+    x: 6.16,
     y: 1.5,
-    z: 13,
+    z: 12.6,
   },
   // set the rotation of your sketch here:
   rotation: {
