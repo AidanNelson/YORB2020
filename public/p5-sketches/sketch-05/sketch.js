@@ -9,15 +9,15 @@
 
 window.yorbConfig = {
   // set this to true!
-  active: false,
+  active: true,
 
-  name: "Put your name here",
+  name: "Aidan Nelson",
   
-  description: "put a description of your project here!",
+  description: "Just testing out the new sketch feature!",
 
   // choose a shape on which to put your p5 sketch!
   // options are: box, sphere, cylinder, ico
-  shape: "box",
+  shape: "cylinder",
 
   // set the position of your sketch within the 3D YORB space here:
   // to find out what position makes sense, go to yorb.itp.io,
@@ -25,9 +25,9 @@ window.yorbConfig = {
   // and press the 'p' key.  A series of coordinates should appear in your console,
   // then plug those values in here:
   position: {
-    x: 0,
-    y: 0,
-    z: 0,
+    x: -2.7,
+    y: 2,
+    z: -42.6,
   },
   // set the rotation of your sketch here:
   rotation: {
@@ -54,5 +54,6 @@ function setup(){
 }
 
 function draw(){
-  ellipse(width/2,height/2,50,50);
+  background(200,100,100);
+  rect(10,10,50,50);
 }
