@@ -23,122 +23,154 @@ require("./libs/GLTFLoader.js")(THREE);
 require("./libs/pointerLockControls.js")(THREE);
 
 class Scene extends EventEmitter {
-  constructor(_movementCallback, _clients, mySocketID) {
-    super();
+  constructor(
+		_movementCallback,
+		_clients,
+		mySocketID) {
+			super();
 
-    // add this to window to allow javascript console debugging
-    window.scene = this;
+		// add this to window to allow javascript console debugging
+		window.scene = this;
 
-    // this pauses or restarts rendering and updating
-    this.paused = true;
-    let domElement = document.getElementById("scene-container");
-    this.frameCount = 0;
-    this.clients = _clients;
-    this.mySocketID = mySocketID;
-    this.hyperlinkedObjects = []; // array to store interactable hyperlinked meshes
-    this.DEBUG_MODE = false;
-    this.movementCallback = _movementCallback;
-    this.width = window.innerWidth * 0.9;
-    this.height = window.innerHeight * 0.7;
-    this.scene = new THREE.Scene();
-    this.raycaster = new THREE.Raycaster();
-    this.textParser = new DOMParser();
-    this.mouse = {
-      x: 0,
-      y: 0,
-    };
-    this.hightlightedProjectId = -1; // to start
-    this.textureLoader = new THREE.TextureLoader();
+		// this pauses or restarts rendering and updating
+		this.paused = true;
+		let domElement = document.getElementById('scene-container');
+		this.frameCount = 0;
+		this.clients = _clients;
+		this.mySocketID = mySocketID;
+		this.hyperlinkedObjects = []; // array to store interactable hyperlinked meshes
+		this.DEBUG_MODE = false;
+		this.movementCallback = _movementCallback;
+		this.width = (window.innerWidth * 0.9);
+		this.height = (window.innerHeight * 0.7);
+		this.scene = new THREE.Scene();
+		this.gravity = 2.0;
+		this.raycaster = new THREE.Raycaster();
+		this.textParser = new DOMParser;
+		this.mouse = {
+			x: 0,
+			y: 0
+		};
+		this.hightlightedProjectId = -1; // to start
+		this.textureLoader = new THREE.TextureLoader();
 
-    // audio variables:
-    this.distanceThresholdSquared = 500;
-    this.rolloffNumerator = 5;
 
-    // STATS for debugging:
-    this.stats = new Stats();
-    document.body.appendChild(this.stats.dom);
-    this.stats.dom.style = "visibility: hidden;";
+		// audio variables:
+		this.distanceThresholdSquared = 500;
+		this.rolloffNumerator = 5;
 
-    //THREE Camera
-    this.cameraHeight = 1.75;
-    this.camera = new THREE.PerspectiveCamera(
-      50,
-      this.width / this.height,
-      0.1,
-      5000
-    );
 
-    // starting position
-    // elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
-    // For Empire State Maker Faire: In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
-    let randX = this.randomRange(-7.4, -13.05);
-    let randZ = this.randomRange(-16.8, -8.3);
-    this.camera.position.set(randX, this.cameraHeight, randZ);
+		// STATS for debugging:
+		this.stats = new Stats();
+		document.body.appendChild(this.stats.dom);
+		this.stats.dom.style = "visibility: hidden;";
 
-    // let classRoom1 = {	x:9.495,
-    // 										y:0.5,
-    // 										z:28.685
-    // 									}
-    // this.camera.position.set(classRoom1.x, this.cameraHeight, classRoom1.z);
 
-    // create an AudioListener and add it to the camera
-    this.listener = new THREE.AudioListener();
-    this.camera.add(this.listener);
-    this.scene.add(this.camera);
+		//THREE Camera
+		this.cameraHeight = 1.75;
+		this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000);
 
-    // For Empire State Maker Faire: make the camera looking at the middle point betwen the two columns in Red Square
+		/*
+		*
+		* STARTING POSITIONS
+		*
+		*/
 
-    // this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
-    this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5));
+		// Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
-    window.camera = this.camera;
+		// In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
+		let randX = this.randomRange(-7.4, -13.05);
+		let randZ = this.randomRange(-16.8, -8.3);
+		this.camera.position.set(randX, this.cameraHeight, randZ);
 
-    //THREE WebGL renderer
-    this.renderer = new THREE.WebGLRenderer({
-      antialiasing: true,
-    });
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setClearColor(new THREE.Color("lightblue"));
-    this.renderer.setSize(this.width, this.height);
+		// Coding Lab
 
-    this.setupControls();
-    this.addLights();
-    this.setupCollisionDetection();
-    this.createMaterials();
-    this.loadBackground();
-    this.loadFloorModel();
+		// let codingLab = { x: -12.7,
+		// 									y: 0.5,
+		// 									z: 10.57
+		// 								}
+		// this.camera.position.set(codingLab.x, this.cameraHeight, codingLab.z);
 
-    this.projectionScreens = {}; // object to store projector screens
-    this.createProjectorScreens();
-    // Blank projector screen
+		// Classrooms
 
-    this.setupSpringShow();
+		// let classRoom1 = {	x:9.495,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// let classRoom2 = {	x:17.5,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// let classRoom3 = {	x:25.5,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+		// let classRoom4 = {	x:33.0000,
+		// 										y:0.5,
+		// 										z:28.685
+		// 									}
+
+		// create an AudioListener and add it to the camera
+		this.listener = new THREE.AudioListener();
+		this.camera.add(this.listener);
+		this.scene.add(this.camera);
+
+		// For Empire State Maker Faire: make the camera looking at the middle point betwen the two columns in Red Square
+
+		// this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
+		this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5));
+
+		window.camera = this.camera;
+
+		//THREE WebGL renderer
+		this.renderer = new THREE.WebGLRenderer({
+			antialiasing: true
+		});
+		this.renderer.shadowMap.enabled = true;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		this.renderer.setClearColor(new THREE.Color('lightblue'));
+		this.renderer.setSize(this.width, this.height);
+
+		this.setupControls();
+		this.addLights();
+		this.setupCollisionDetection();
+		this.createMaterials();
+		this.loadBackground();
+		this.loadFloorModel();
+
+		this.projectionScreens = {}; // object to store projector screens
+		this.createProjectorScreens();
+		// Blank projector screen
+
+
+
+
+		this.setupSpringShow();
 
     this.updateableVideoTextures = [];
     setTimeout(() => {
       this.addSketches();
-    }, 5000); // a nice healthy timeout to ensure that the sketches iframes have loaded!
+    }, 5000); // try to let the sketches finish loading
 
-    //Push the canvas to the DOM
-    domElement.append(this.renderer.domElement);
+		//Push the canvas to the DOM
+		domElement.append(this.renderer.domElement);
 
-    //Setup event listeners for events and handle the states
-    window.addEventListener("resize", (e) => this.onWindowResize(e), false);
-    domElement.addEventListener("click", (e) => this.onMouseClick(e), false);
-    window.addEventListener("keydown", (e) => this.onKeyDown(e), false);
-    window.addEventListener("keyup", (e) => this.onKeyUp(e), false);
+		//Setup event listeners for events and handle the states
+		window.addEventListener('resize', e => this.onWindowResize(e), false);
+		domElement.addEventListener('click', e => this.onMouseClick(e), false);
+		window.addEventListener('keydown', e => this.onKeyDown(e), false);
+		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
-    this.shift_down = false;
-    // Helpers
-    this.helperGrid = new THREE.GridHelper(500, 500);
-    this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
-    this.scene.add(this.helperGrid);
+		this.shift_down = false;
+		// Helpers
+		this.helperGrid = new THREE.GridHelper(500, 500);
+		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
+		this.scene.add(this.helperGrid);
 
-    this.update();
-    this.render();
-  }
+		this.update();
+		this.render();
+	}
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -566,44 +598,112 @@ class Scene extends EventEmitter {
   }
 
   createProjectorScreens() {
-    let blankScreenVideo = document.createElement("video");
-    blankScreenVideo.setAttribute("id", "default_screenshare");
-    document.body.appendChild(blankScreenVideo);
-    blankScreenVideo.src = "/images/old-television.mp4";
-    blankScreenVideo.loop = true;
-    blankScreenVideo.play();
 
-    let _id = "screenshare1";
-    let dims = { width: 1920, height: 1080 };
-    let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(
-      _id,
-      dims
-    );
+		let locations = {
+			data: [
+				// {	room: "entranceWay",
+				// 	x: 3.3663431855797707,
+				// 	y: 1.9,
+				// 	z: -0.88,
+				// 	rot: Math.PI/2
+				// },
+				// { room: "classRoom1-center",
+				// 	x: 2.8,
+				// 	y: 1.9,
+				// 	z: 24.586520,
+				// 	rot: Math.PI/2
+				// },
+				{ room: "classRoom1-left",
+					x: 2.8,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom1-right",
+					x: 2.8,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom2-left",
+					x: 10.4,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom2-right",
+					x: 10.4,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom3-left",
+					x: 18.0000,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom3-right",
+					x: 18.000000,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom4-left",
+					x: 25.7000,
+					y: 1.9,
+					z: 27.309458609,
+					rot: Math.PI/2
+				},
+				{ room: "classRoom4-right",
+					x: 25.700000,
+					y: 1.9,
+					z: 22.123456,
+					rot: Math.PI/2
+				},
+				{	room: "redSquare",
+					x: -23.5,
+					y: 1.9,
+					z: -14.675,
+					rot: Math.PI/2
+				}
+			]
+		};
 
-    let screen = new THREE.Mesh(
-      new THREE.BoxGeometry(5, (5 * 9) / 16, 0.01),
-      videoMaterial
-    );
+		let num = locations.data.length;
 
-    // this.screen.visible = true;
+		for(let i = 0; i < num; i++) {
 
-    // set position of head before adding to parent object
-    // let classRoom1 = [2.8, 1.9, 24.586520];
-    let redSquare = [-23.5, 1.9, -14.675];
-    screen.position.set(redSquare[0], redSquare[1], redSquare[2]);
-    // let entranceWay = [3.3663431855797707, 1.9, -0.88];
-    // screen.position.set(entranceWay[0], entranceWay[1], entranceWay[2]);
-    screen.rotateY(Math.PI / 2);
-    this.scene.add(screen);
+			let blankScreenVideo = document.createElement('video');
+			blankScreenVideo.setAttribute('id', 'default_screenshare');
+			document.body.appendChild(blankScreenVideo);
+			blankScreenVideo.src = "/images/old-television.mp4";
+			blankScreenVideo.loop = true;
+			blankScreenVideo.play();
 
-    screen.userData = {
-      videoTexture: videoTexture,
-      activeUserId: "default",
-      screenId: _id,
-    };
+			let _id = "screenshare" + i;
+			let dims = { width: 1920, height: 1080 }
+			let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
 
-    this.projectionScreens[_id] = screen;
-  }
+			let screen = new THREE.Mesh(
+				new THREE.BoxGeometry(5, 5*9/16, 0.01),
+				videoMaterial
+			);
+
+			screen.position.set(locations.data[i].x, locations.data[i].y, locations.data[i].z);
+			screen.rotateY(locations.data[i].rot);
+			this.scene.add(screen);
+
+			screen.userData = {
+				videoTexture: videoTexture,
+				activeUserId: "default",
+				screenId: _id
+			}
+
+			this.projectionScreens[_id] = screen;
+		}
+
+	}
 
   projectToScreen(screenId) {
     console.log("I'm going to project to screen " + screenId);
@@ -1920,70 +2020,76 @@ class Scene extends EventEmitter {
   // update for these controls, which are unfortunately not included in the controls directly...
   // see: https://github.com/mrdoob/three.js/issues/5566
   updateControls() {
-    let speed = 50;
-    if (this.controls.isLocked === true) {
-      var origin = this.controls.getObject().position.clone();
-      origin.y -= this.cameraHeight; // origin is at floor level
+		let speed = 50;
+		if (this.controls.isLocked === true) {
+			var origin = this.controls.getObject().position.clone();
+			origin.y -= this.cameraHeight; // origin is at floor level
 
-      this.raycaster.set(origin, new THREE.Vector3(0, -this.cameraHeight, 0));
+			this.raycaster.set(origin, new THREE.Vector3(0, - this.cameraHeight, 0));
 
-      var intersectionsDown = this.raycaster.intersectObjects(
-        this.collidableMeshList
-      );
-      var onObject =
-        intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1;
+			var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList);
+			var onObject = (intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1);
 
-      var time = performance.now();
-      var rawDelta = (time - this.prevTime) / 1000;
-      // clamp delta so lower frame rate clients don't end up way far away
-      let delta = Math.min(rawDelta, 0.1);
 
-      this.velocity.x -= this.velocity.x * 10.0 * delta;
-      this.velocity.z -= this.velocity.z * 10.0 * delta;
+			var time = performance.now();
+			var rawDelta = (time - this.prevTime) / 1000;
+			// clamp delta so lower frame rate clients don't end up way far away
+			let delta = Math.min(rawDelta, 0.1);
 
-      this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+			this.velocity.x -= this.velocity.x * 10.0 * delta;
+			this.velocity.z -= this.velocity.z * 10.0 * delta;
 
-      this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-      this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-      this.direction.normalize(); // this ensures consistent this.movements in all this.directions
+			// Here we talkin bout gravity...
+			// this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
 
-      if (this.moveForward || this.moveBackward) {
-        this.velocity.z -= this.direction.z * speed * delta;
-      }
+			// For double-jumping!
+			if (this.camera.position.y > 2.5) {
+				// less gravity like when we begin
+				this.gravity = 2.0;
+			} else {
+				// once we get below the ceiling, the original value
+				this.gravity = 8.0;
+			}
+			this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
 
-      if (this.moveLeft || this.moveRight) {
-        this.velocity.x -= this.direction.x * speed * delta;
-      }
+			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+			this.direction.normalize(); // this ensures consistent this.movements in all this.directions
 
-      if (onObject === true) {
-        this.velocity.y = Math.max(0, this.velocity.y);
-        this.canJump = true;
-      }
 
-      if (
-        (this.velocity.x > 0 && !this.obstacles.left) ||
-        (this.velocity.x < 0 && !this.obstacles.right)
-      ) {
-        this.controls.moveRight(-this.velocity.x * delta);
-      }
-      if (
-        (this.velocity.z > 0 && !this.obstacles.backward) ||
-        (this.velocity.z < 0 && !this.obstacles.forward)
-      ) {
-        this.controls.moveForward(-this.velocity.z * delta);
-      }
+			if (this.moveForward || this.moveBackward) {
+				this.velocity.z -= this.direction.z * speed * delta;
+			}
 
-      this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+			if (this.moveLeft || this.moveRight) {
+				this.velocity.x -= this.direction.x * speed * delta;
+			}
 
-      if (this.controls.getObject().position.y < this.cameraHeight) {
-        this.velocity.y = 0;
-        this.controls.getObject().position.y = this.cameraHeight;
-        this.canJump = true;
-      }
+			if (onObject === true) {
+				this.velocity.y = Math.max(0, this.velocity.y);
+				this.canJump = true;
+			}
 
-      this.prevTime = time;
-    }
-  }
+
+			if ((this.velocity.x > 0 && !this.obstacles.left) || (this.velocity.x < 0 && !this.obstacles.right)) {
+				this.controls.moveRight(- this.velocity.x * delta);
+			}
+			if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
+				this.controls.moveForward(- this.velocity.z * delta);
+			}
+
+			this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
+
+
+			if (this.controls.getObject().position.y < this.cameraHeight) {
+				this.velocity.y = 0;
+				this.controls.getObject().position.y = this.cameraHeight;
+				this.canJump = true;
+			}
+
+			this.prevTime = time;
+		}
+	}
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
