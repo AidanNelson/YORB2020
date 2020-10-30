@@ -2272,12 +2272,8 @@ class Scene extends EventEmitter {
       let canvasEl = iframeDocument.getElementsByTagName("canvas")[0];
 
       let config = iframes[i].contentWindow.yorbConfig;
-      // iframes[i].contentWindow.frameRate(15);
 
-      if (canvasEl) {
-        // get canvas drawing context
-        let rvideoImageContext = canvasEl.getContext("2d");
-
+      if (canvasEl && config && config.active) {
         // make texture
         let videoTexture = new THREE.Texture(canvasEl);
         videoTexture.minFilter = THREE.LinearFilter;
@@ -2294,7 +2290,7 @@ class Scene extends EventEmitter {
 
         // if the user has defined a config:
         if (config) {
-          switch (config.type) {
+          switch (config.shape) {
             case "box":
               geometry = new THREE.BoxGeometry(1, 1, 1);
               break;

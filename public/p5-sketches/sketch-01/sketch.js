@@ -1,6 +1,9 @@
 // where do you want your sketch to live in the space
 window.yorbConfig = {
-  type: "cylinder", //  options are "box", "sphere", "ico", "cylinder"
+  active:true,
+  name: "Aidan Nelson",
+  description: "This is a demo of a 2d grid selection algorithm!",
+  shape: "box", //  options are "box", "sphere", "ico", "cylinder"
   position: {
     x: -22,
     y: 2,
@@ -12,9 +15,9 @@ window.yorbConfig = {
     z: 0,
   },
   scale: {
-    x: 1,
-    y: 1,
-    z: 1,
+    x: 2.5,
+    y: 2.5,
+    z: 2.5,
   },
 };
 

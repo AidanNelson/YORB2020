@@ -1,6 +1,9 @@
 // where do you want your sketch to live in the space
 window.yorbConfig = {
-  type: "box", 
+  active:true,
+  name: "Billy Bennett",
+  description: "Cool Sketch",
+  shape: "box", 
   position: {
     x: -10,
     y: 1.5,
