@@ -2260,80 +2260,87 @@ class Scene extends EventEmitter {
 
   addSketches() {
     console.log("Adding p5.js sketches to the scene!");
+    try {
+      let container = document.getElementById("p5-sketch-container");
+      let containerDocument = container.document || container.contentDocument;
+      let iframes = containerDocument.getElementsByTagName("iframe");
 
-    let container = document.getElementById("p5-sketch-container");
-    let containerDocument = container.document || container.contentDocument;
-    let iframes = containerDocument.getElementsByTagName("iframe");
+      for (let i = 0; i < iframes.length; i++) {
+        // https://stackoverflow.com/questions/926916/how-to-get-the-bodys-content-of-an-iframe-in-java
+        let iframeDocument =
+          iframes[i].contentDocument || iframes[i].contentWindow.document;
+        let canvasEl = iframeDocument.getElementsByTagName("canvas")[0];
 
-    for (let i = 0; i < iframes.length; i++) {
-      // https://stackoverflow.com/questions/926916/how-to-get-the-bodys-content-of-an-iframe-in-java
-      let iframeDocument =
-        iframes[i].contentDocument || iframes[i].contentWindow.document;
-      let canvasEl = iframeDocument.getElementsByTagName("canvas")[0];
+        let config = iframes[i].contentWindow.yorbConfig;
 
-      let config = iframes[i].contentWindow.yorbConfig;
+        if (canvasEl && config && config.active) {
+          // make texture
+          let videoTexture = new THREE.Texture(canvasEl);
+          videoTexture.minFilter = THREE.LinearFilter;
+          videoTexture.magFilter = THREE.LinearFilter;
 
-      if (canvasEl && config && config.active) {
-        // make texture
-        let videoTexture = new THREE.Texture(canvasEl);
-        videoTexture.minFilter = THREE.LinearFilter;
-        videoTexture.magFilter = THREE.LinearFilter;
+          // make material from texture
+          var videoMaterial = new THREE.MeshBasicMaterial({
+            map: videoTexture,
+            overdraw: true,
+            side: THREE.DoubleSide,
+          });
 
-        // make material from texture
-        var videoMaterial = new THREE.MeshBasicMaterial({
-          map: videoTexture,
-          overdraw: true,
-          side: THREE.DoubleSide,
-        });
+          let geometry;
 
-        let geometry;
+          // if the user has defined a config:
+          if (config) {
+            switch (config.shape) {
+              case "box":
+                geometry = new THREE.BoxGeometry(1, 1, 1);
+                break;
 
-        // if the user has defined a config:
-        if (config) {
-          switch (config.shape) {
-            case "box":
-              geometry = new THREE.BoxGeometry(1, 1, 1);
-              break;
+              case "sphere":
+                geometry = new THREE.SphereGeometry(1, 24, 24);
+                break;
 
-            case "sphere":
-              geometry = new THREE.SphereGeometry(1, 24, 24);
-              break;
+              case "ico":
+                geometry = new THREE.IcosahedronGeometry(1, 0);
+                break;
 
-            case "ico":
-              geometry = new THREE.IcosahedronGeometry(1, 0);
-              break;
+              case "cylinder":
+                geometry = new THREE.CylinderGeometry(1, 1, 2, 8);
+                break;
 
-            case "cylinder":
-              geometry = new THREE.CylinderGeometry(1, 1, 2, 8);
-              break;
-
-            default:
-              geometry = new THREE.BoxGeometry(1, 1, 1);
-              break;
+              default:
+                geometry = new THREE.BoxGeometry(1, 1, 1);
+                break;
+            }
+          } else {
+            geometry = new THREE.BoxGeometry(1, 1, 1);
           }
-        } else {
-          geometry = new THREE.BoxGeometry(1, 1, 1);
-        }
 
-        this.updateableVideoTextures.push(videoTexture);
-        console.log(this.updateableVideoTextures);
-        let sketchMesh = new THREE.Mesh(geometry, videoMaterial);
+          this.updateableVideoTextures.push(videoTexture);
+          console.log(this.updateableVideoTextures);
+          let sketchMesh = new THREE.Mesh(geometry, videoMaterial);
 
-        if (config) {
-          sketchMesh.position.set(
-            config.position.x,
-            config.position.y,
-            config.position.z
-          );
-          sketchMesh.rotation.set(
-            THREE.MathUtils.degToRad(config.rotation.x),
-            THREE.MathUtils.degToRad(config.rotation.y),
-            THREE.MathUtils.degToRad(config.rotation.z)
-          );
-          sketchMesh.scale.set(config.scale.x, config.scale.y, config.scale.z);
+          if (config) {
+            sketchMesh.position.set(
+              config.position.x,
+              config.position.y,
+              config.position.z
+            );
+            sketchMesh.rotation.set(
+              THREE.MathUtils.degToRad(config.rotation.x),
+              THREE.MathUtils.degToRad(config.rotation.y),
+              THREE.MathUtils.degToRad(config.rotation.z)
+            );
+            sketchMesh.scale.set(
+              config.scale.x,
+              config.scale.y,
+              config.scale.z
+            );
+          }
+          this.scene.add(sketchMesh);
         }
-        this.scene.add(sketchMesh);
       }
+    } catch (err) {
+      console.log(err);
     }
 
     // let sketchFrame = document.getElementById('sketchFrame');
