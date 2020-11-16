@@ -211,7 +211,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			// updateProjects(_projects);
+			updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (_id, _ids) => {
