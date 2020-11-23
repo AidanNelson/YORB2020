@@ -10,7 +10,7 @@
 // IMPORTS
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-import YORB from './scene';
+import YORB from './YORB';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
@@ -162,6 +162,18 @@ async function init() {
 	}
 }
 
+
+export function shareScreen(screenId) {
+	console.log("Starting screenshare to screen with ID ", screenId);
+
+	console.log(socket);
+	socket.emit('projectToScreen', {
+		screenId: screenId,
+		activeUserId: mySocketID
+	});
+
+	startScreenshare();
+}
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Socket.io
@@ -1114,7 +1126,7 @@ async function pollAndUpdate() {
 	// push through the paused state to new sync list
 	lastPollSyncData = peers;
 
-	setTimeout(pollAndUpdate, 1000);
+	setTimeout(pollAndUpdate, 1500);
 }
 
 

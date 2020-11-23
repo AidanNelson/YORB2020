@@ -173,6 +173,8 @@ export class ITPModel {
             child.castShadow = _castShadow;
             child.receiveShadow = _receiveShadow;
             if (_collidable) {
+              child.layers.enable( 3 );
+
               this.collidableMeshList.push(child);
             }
           }

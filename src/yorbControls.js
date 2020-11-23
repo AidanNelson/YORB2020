@@ -2,26 +2,27 @@ const THREE = require("./libs/three.min.js");
 require("./libs/pointerLockControls.js")(THREE);
 
 export class YORBControls {
-    constructor(scene, camera, renderer) {
-        this.scene = scene;
-        this.camera = camera;
-        this.renderer = renderer;
+  constructor(scene, camera, renderer) {
+    this.scene = scene;
+    this.camera = camera;
+    this.renderer = renderer;
 
-        this.raycaster = new THREE.Raycaster();
+    this.raycaster = new THREE.Raycaster();
 
-        this.setupControls();
-        this.setupCollisionDetection();
-    }
+    this.collidableMeshList = [];
+    this.setupControls();
+    this.setupCollisionDetection();
+  }
 
-    lock(){
-        this.controls.lock();
-    }
+  lock() {
+    this.controls.lock();
+  }
 
-    unlock(){
-        this.controls.unlock();
-    }
+  unlock() {
+    this.controls.unlock();
+  }
 
-     // Set up pointer lock controls and corresponding event listeners
+  // Set up pointer lock controls and corresponding event listeners
   setupControls() {
     let jumpSpeed = 12;
     this.controls = new THREE.PointerLockControls(
@@ -65,7 +66,6 @@ export class YORBControls {
         switch (event.keyCode) {
           case 38: // up
           case 87: // w
-          console.log('ffff');
             this.moveForward = true;
             break;
 
@@ -136,89 +136,105 @@ export class YORBControls {
     this.velocity.y = 0;
   }
 
-  update(){
-      this.detectCollisions();
-      this.updateControls();
+  update() {
+    this.detectCollisions();
+    this.updateControls();
+  }
+
+  getCollidables(){
+    let collidableMeshList = [];
+      this.scene.traverse( function( object ) {
+
+        if ( object.isMesh ) {
+          collidableMeshList.push(object);
+        }
+      } );
+      return collidableMeshList;
   }
 
   // update for these controls, which are unfortunately not included in the controls directly...
   // see: https://github.com/mrdoob/three.js/issues/5566
   updateControls() {
-		let speed = 50;
-		if (this.controls.isLocked === true) {
-			var origin = this.controls.getObject().position.clone();
-			origin.y -= this.cameraHeight; // origin is at floor level
+    let speed = 50;
+    if (this.controls.isLocked === true) {
 
-			this.raycaster.set(origin, new THREE.Vector3(0, - this.cameraHeight, 0));
+      
+      var origin = this.controls.getObject().position.clone();
+      origin.y -= this.cameraHeight; // origin is at floor level
 
-			var intersectionsDown = this.raycaster.intersectObjects(this.collidableMeshList);
-			var onObject = (intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1);
-
-
-			var time = performance.now();
-			var rawDelta = (time - this.prevTime) / 1000;
-			// clamp delta so lower frame rate clients don't end up way far away
-			let delta = Math.min(rawDelta, 0.1);
-
-			this.velocity.x -= this.velocity.x * 10.0 * delta;
-			this.velocity.z -= this.velocity.z * 10.0 * delta;
-
-			// Here we talkin bout gravity...
-			// this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
-
-			// For double-jumping!
-			if (this.camera.position.y > 2.5) {
-				// less gravity like when we begin
-				this.gravity = 2.0;
-			} else {
-				// once we get below the ceiling, the original value
-				this.gravity = 8.0;
-			}
-			this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
-
-			this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-			this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-			this.direction.normalize(); // this ensures consistent this.movements in all this.directions
+      this.raycaster.set(origin, new THREE.Vector3(0, -this.cameraHeight, 0));
 
 
-			if (this.moveForward || this.moveBackward) {
-				this.velocity.z -= this.direction.z * speed * delta;
-			}
+      var intersectionsDown = this.raycaster.intersectObjects(
+        this.getCollidables()
+      );
+      var onObject =
+        intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1;
 
-			if (this.moveLeft || this.moveRight) {
-				this.velocity.x -= this.direction.x * speed * delta;
-			}
+      var time = performance.now();
+      var rawDelta = (time - this.prevTime) / 1000;
+      // clamp delta so lower frame rate clients don't end up way far away
+      let delta = Math.min(rawDelta, 0.1);
 
-			if (onObject === true) {
-				this.velocity.y = Math.max(0, this.velocity.y);
-				this.canJump = true;
-			}
+      this.velocity.x -= this.velocity.x * 10.0 * delta;
+      this.velocity.z -= this.velocity.z * 10.0 * delta;
 
+      // Here we talkin bout gravity...
+      // this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
 
-			if ((this.velocity.x > 0 && !this.obstacles.left) || (this.velocity.x < 0 && !this.obstacles.right)) {
-				this.controls.moveRight(- this.velocity.x * delta);
-			}
-			if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
-				this.controls.moveForward(- this.velocity.z * delta);
-			}
+      // For double-jumping!
+      if (this.camera.position.y > 2.5) {
+        // less gravity like when we begin
+        this.gravity = 2.0;
+      } else {
+        // once we get below the ceiling, the original value
+        this.gravity = 8.0;
+      }
+      this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
 
-			this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
+      this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+      this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+      this.direction.normalize(); // this ensures consistent this.movements in all this.directions
 
+      if (this.moveForward || this.moveBackward) {
+        this.velocity.z -= this.direction.z * speed * delta;
+      }
 
-			if (this.controls.getObject().position.y < this.cameraHeight) {
-				this.velocity.y = 0;
-				this.controls.getObject().position.y = this.cameraHeight;
-				this.canJump = true;
-			}
+      if (this.moveLeft || this.moveRight) {
+        this.velocity.x -= this.direction.x * speed * delta;
+      }
 
-			this.prevTime = time;
-		} else {
-            console.log('controls not locked');
-        }
+      if (onObject === true || true) {
+        this.velocity.y = Math.max(0, this.velocity.y);
+        this.canJump = true;
+      }
+
+      if (
+        (this.velocity.x > 0 && !this.obstacles.left) ||
+        (this.velocity.x < 0 && !this.obstacles.right)
+      ) {
+        this.controls.moveRight(-this.velocity.x * delta);
+      }
+      if (
+        (this.velocity.z > 0 && !this.obstacles.backward) ||
+        (this.velocity.z < 0 && !this.obstacles.forward)
+      ) {
+        this.controls.moveForward(-this.velocity.z * delta);
+      }
+
+      this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+
+      if (this.controls.getObject().position.y < this.cameraHeight) {
+        this.velocity.y = 0;
+        this.controls.getObject().position.y = this.cameraHeight;
+        this.canJump = true;
+      }
+
+      this.prevTime = time;
     }
-    
+  }
 
-    //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+  //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   // Collision Detection 🤾‍♀️
 
@@ -233,8 +249,6 @@ export class YORBControls {
    *
    */
   setupCollisionDetection() {
-
-
     this.obstacles = {
       forward: false,
       backward: false,
@@ -275,7 +289,6 @@ export class YORBControls {
       }
     }
   }
-
 
   /*
    * detectCollisions()
@@ -359,16 +372,14 @@ export class YORBControls {
     // distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
     var detectCollisionDistance = 1;
 
-    // let collidables = this.itpModel.getCollidableMeshList();
-
-    let collidables = [];
     for (var i = 0; i < pts.length; i++) {
       var pt = pts[i].clone();
       // pt.applyMatrix4(this.playerGroup.matrix);
       // pt.y += 1.0; // bias upward to head area of player
 
       this.raycaster.set(pt, dir);
-      var collisions = this.raycaster.intersectObjects(collidables);
+      this.raycaster.layers.set(3);
+      var collisions = this.raycaster.intersectObjects(this.getCollidables());
 
       // arrow helpers for debugging
       if (this.DEBUG_MODE) {

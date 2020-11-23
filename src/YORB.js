@@ -11,10 +11,15 @@ import {
   hackToRemovePlayerTemporarily,
 } from "./index.js";
 
+import {
+  redrawVideoCanvas, makeVideoTextureAndMaterial
+} from "./utils";
+
 import { SpringShow } from "./springShow2020";
 import {ITPModel } from "./ITPModel";
 import {Sketches} from "./Sketches";
 import {YORBControls} from "./yorbControls";
+import {ProjectionScreens} from "./projectionScreens";
 
 const THREE = require("./libs/three.min.js");
 const Stats = require("./libs/stats.min.js");
@@ -62,10 +67,6 @@ class YORB extends EventEmitter {
 		// audio variables:
 		this.distanceThresholdSquared = 500;
 		this.rolloffNumerator = 5;
-
-
-        // collision detection setup:
-        this.collidableMeshList = [];
 
 		// STATS for debugging:
 		this.stats = new Stats();
@@ -139,26 +140,17 @@ class YORB extends EventEmitter {
 		this.renderer.setSize(this.width, this.height);
 
     // this.setupControls();
-    this.controls = new YORBControls(this.scene, this.camera, this.renderer);
+    
 		this.addLights();
 		// this.setupCollisionDetection();
 
 		this.loadBackground();
 
 
-		this.projectionScreens = {}; // object to store projector screens
-		this.createProjectorScreens();
-		// Blank projector screen
+    this.addYORBParts();
+        
 
-        this.itpModel = new ITPModel(this.scene);
-
-        this.show = new SpringShow(this.scene, this.camera, this.controls);
-		this.show.setup();
-
-    this.sketches = new Sketches(this.scene);
-    setTimeout(() => {
-      this.sketches.addSketches();
-    }, 5000); // try to let the sketches finish loading
+    
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
@@ -166,10 +158,8 @@ class YORB extends EventEmitter {
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
 		domElement.addEventListener('click', e => this.onMouseClick(e), false);
-		window.addEventListener('keydown', e => this.onKeyDown(e), false);
-		window.addEventListener('keyup', e => this.onKeyUp(e), false);
 
-		this.shift_down = false;
+		
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
@@ -178,6 +168,34 @@ class YORB extends EventEmitter {
 		this.update();
 		this.render();
 	}
+
+  //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+  //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+  // add YORB parts  
+  addYORBParts(){
+    this.controls = new YORBControls(this.scene, this.camera, this.renderer);
+
+    this.projectionScreens = new ProjectionScreens(this.scene, this.camera);
+    this.itpModel = new ITPModel(this.scene);
+
+    this.show = new SpringShow(this.scene, this.camera, this.controls);
+    this.show.setup();
+    
+    this.sketches = new Sketches(this.scene);
+    setTimeout(() => {
+      this.sketches.addSketches();
+    }, 5000); // try to let the sketches finish loading
+  }
+
+
+
+
+
+
+
+
+
+
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -241,184 +259,7 @@ class YORB extends EventEmitter {
   }
 
 
-  createProjectorScreens() {
-
-		let locations = {
-			data: [
-				// {	room: "entranceWay",
-				// 	x: 3.3663431855797707,
-				// 	y: 1.9,
-				// 	z: -0.88,
-				// 	rot: Math.PI/2
-				// },
-				// { room: "classRoom1-center",
-				// 	x: 2.8,
-				// 	y: 1.9,
-				// 	z: 24.586520,
-				// 	rot: Math.PI/2
-				// },
-				{ room: "classRoom1-left",
-					x: 2.8,
-					y: 1.9,
-					z: 27.309458609,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom1-right",
-					x: 2.8,
-					y: 1.9,
-					z: 22.123456,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom2-left",
-					x: 10.4,
-					y: 1.9,
-					z: 27.309458609,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom2-right",
-					x: 10.4,
-					y: 1.9,
-					z: 22.123456,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom3-left",
-					x: 18.0000,
-					y: 1.9,
-					z: 27.309458609,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom3-right",
-					x: 18.000000,
-					y: 1.9,
-					z: 22.123456,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom4-left",
-					x: 25.7000,
-					y: 1.9,
-					z: 27.309458609,
-					rot: Math.PI/2
-				},
-				{ room: "classRoom4-right",
-					x: 25.700000,
-					y: 1.9,
-					z: 22.123456,
-					rot: Math.PI/2
-				},
-				{	room: "redSquare",
-					x: -23.5,
-					y: 1.9,
-					z: -14.675,
-					rot: Math.PI/2
-				}
-			]
-		};
-
-		let num = locations.data.length;
-
-		for(let i = 0; i < num; i++) {
-
-			let blankScreenVideo = document.createElement('video');
-			blankScreenVideo.setAttribute('id', 'default_screenshare');
-			document.body.appendChild(blankScreenVideo);
-			blankScreenVideo.src = "/images/old-television.mp4";
-			blankScreenVideo.loop = true;
-			blankScreenVideo.play();
-
-			let _id = "screenshare" + i;
-			let dims = { width: 1920, height: 1080 }
-			let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id, dims);
-
-			let screen = new THREE.Mesh(
-				new THREE.BoxGeometry(5, 5*9/16, 0.01),
-				videoMaterial
-			);
-
-			screen.position.set(locations.data[i].x, locations.data[i].y, locations.data[i].z);
-			screen.rotateY(locations.data[i].rot);
-			this.scene.add(screen);
-
-			screen.userData = {
-				videoTexture: videoTexture,
-				activeUserId: "default",
-				screenId: _id
-			}
-
-			this.projectionScreens[_id] = screen;
-		}
-
-	}
-
-  projectToScreen(screenId) {
-    console.log("I'm going to project to screen " + screenId);
-    this.emit("projectToScreen", screenId);
-    this.projectionScreens[screenId].userData.activeUserId = this.mySocketID;
-  }
-
-  updateProjectionScreen(config) {
-    let screenId = config.screenId;
-    let activeUserId = config.activeUserId;
-    this.projectionScreens[screenId].userData.activeUserId = activeUserId;
-    console.log(
-      "Updating Projection Screen: " +
-        screenId +
-        " with screenshare from user " +
-        activeUserId
-    );
-  }
-
-  /*
-   * updateProjectionScreens()
-   * This function will loop through all of the projection screens,
-   * and update them if there is an active user and that user
-   * is screensharing currently
-   *
-   */
-  updateProjectionScreens() {
-    for (let screenId in this.projectionScreens) {
-      let screen = this.projectionScreens[screenId];
-      let activeUserId = screen.userData.activeUserId;
-      let videoTexture = screen.userData.videoTexture;
-
-      let canvasEl = document.getElementById(`${screenId}_canvas`);
-      let videoEl = document.getElementById(`${activeUserId}_screenshare`);
-
-      if (videoEl != null && canvasEl != null) {
-        this.redrawVideoCanvas(videoEl, canvasEl, videoTexture);
-      }
-    }
-  }
-
-  checkProjectorCollisions() {
-    var matrix = new THREE.Matrix4();
-    matrix.extractRotation(this.camera.matrix);
-    var backwardDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix);
-    var forwardDir = backwardDir.clone().negate();
-
-    // TODO more points around avatar so we can't be inside of walls
-    let pt = this.controls.getObject().position.clone();
-
-    let raycaster = new THREE.Raycaster();
-
-    raycaster.set(pt, forwardDir);
-
-    var intersects = raycaster.intersectObjects(
-      Object.values(this.projectionScreens)
-    );
-
-    // if we have intersections, highlight them
-    let thresholdDist = 7;
-    if (intersects.length > 0) {
-      if (intersects[0].distance < thresholdDist) {
-        // this.screenHoverImage.style = "visiblity: visible;"
-        let screen = intersects[0].object;
-        this.hightlightedScreen = screen;
-        // console.log(screen.material)
-      } else {
-        this.hightlightedScreen = null;
-      }
-    }
-  }
+ 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   // Clients 👫
@@ -429,7 +270,7 @@ class YORB extends EventEmitter {
       new THREE.MeshNormalMaterial()
     );
 
-    let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(
+    let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(
       "local"
     );
 
@@ -459,7 +300,7 @@ class YORB extends EventEmitter {
       new THREE.MeshNormalMaterial()
     );
 
-    let [videoTexture, videoMaterial] = this.makeVideoTextureAndMaterial(_id);
+    let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id);
 
     let _head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), videoMaterial);
 
@@ -694,9 +535,11 @@ class YORB extends EventEmitter {
 
 
     if (!this.controls.paused) {
-      this.controls.update();
-
       this.frameCount++;
+
+      // things to update 50 times per seconds:
+      this.controls.update();
+      this.projectionScreens.update();
 
       // things to update 5 x per second
       if (this.frameCount % 10 === 0){
@@ -707,13 +550,11 @@ class YORB extends EventEmitter {
         this.updateClientVolumes();
         this.movementCallback();
         this.show.update();
-        this.checkProjectorCollisions();
+        this.projectionScreens.checkProjectionScreenCollisions();
       }
       if (this.frameCount % 50 == 0) {
         this.selectivelyPauseAndResumeConsumers();
       }
-    } else {
-      console.log('scene paused');
     }
 
     this.stats.update();
@@ -733,7 +574,7 @@ class YORB extends EventEmitter {
     // Update video canvases for each client
     this.updateVideoTextures();
     // update all projection screens:
-    this.updateProjectionScreens();
+    // this.updateProjectionScreens();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -743,7 +584,7 @@ class YORB extends EventEmitter {
       let remoteVideo = document.getElementById(_id + "_video");
       let remoteVideoCanvas = document.getElementById(_id + "_canvas");
       if (remoteVideo != null && remoteVideoCanvas != null) {
-        this.redrawVideoCanvas(
+        redrawVideoCanvas(
           remoteVideo,
           remoteVideoCanvas,
           this.clients[_id].texture
@@ -752,69 +593,12 @@ class YORB extends EventEmitter {
     }
   }
 
-  // this function redraws on a 2D <canvas> from a <video> and indicates to three.js
-  // that the _videoTex should be updated
-  redrawVideoCanvas(_videoEl, _canvasEl, _videoTex) {
-    let _canvasDrawingContext = _canvasEl.getContext("2d");
-
-    // check that we have enough data on the video element to redraw the canvas
-    if (_videoEl.readyState === _videoEl.HAVE_ENOUGH_DATA) {
-      // if so, redraw the canvas from the video element
-      _canvasDrawingContext.drawImage(
-        _videoEl,
-        0,
-        0,
-        _canvasEl.width,
-        _canvasEl.height
-      );
-      // and indicate to three.js that the texture needs to be redrawn from the canvas
-      _videoTex.needsUpdate = true;
-    }
+  updateProjectionScreen(config){
+    this.projectionScreens.updateProjectionScreen(config);
   }
 
-  // Adapted from: https://github.com/zacharystenger/three-js-video-chat
-  makeVideoTextureAndMaterial(_id, dims = null) {
-    // create a canvas and add it to the body
-    let rvideoImageCanvas = document.createElement("canvas");
-    document.body.appendChild(rvideoImageCanvas);
 
-    rvideoImageCanvas.id = _id + "_canvas";
-
-    // Dims for projector screens.
-    if (dims) {
-      rvideoImageCanvas.width = dims.width;
-      rvideoImageCanvas.height = dims.height;
-    }
-
-    rvideoImageCanvas.style = "visibility: hidden;";
-
-    // get canvas drawing context
-    let rvideoImageContext = rvideoImageCanvas.getContext("2d");
-
-    // background color if no video present
-    rvideoImageContext.fillStyle = "#000000";
-    rvideoImageContext.fillRect(
-      0,
-      0,
-      rvideoImageCanvas.width,
-      rvideoImageCanvas.height
-    );
-
-    // make texture
-    let videoTexture = new THREE.Texture(rvideoImageCanvas);
-    videoTexture.minFilter = THREE.LinearFilter;
-    videoTexture.magFilter = THREE.LinearFilter;
-
-    // make material from texture
-    var movieMaterial = new THREE.MeshBasicMaterial({
-      map: videoTexture,
-      overdraw: true,
-      side: THREE.DoubleSide,
-    });
-
-    return [videoTexture, movieMaterial];
-  }
-
+ 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   // Audio 📣
@@ -917,23 +701,9 @@ class YORB extends EventEmitter {
     // this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
     // console.log("Click");
     this.show.activateHighlightedProject();
-    //typo on line 2045****
-    if (this.hightlightedScreen && this.shift_down) {
-      this.projectToScreen(this.hightlightedScreen.userData.screenId);
-    }
+    //typo on line 2045****    
   }
 
-  onKeyDown(e) {
-    if (e.keyCode == 16) {
-      this.shift_down = true;
-    }
-  }
-
-  onKeyUp(e) {
-    if (e.keyCode == 16) {
-      this.shift_down = false;
-    }
-  }
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
