@@ -27,6 +27,10 @@ export class SpringShow {
       this.projects = [];
       this.hyperlinkedObjects = [];
       this.linkMaterials = {};
+
+
+    let domElement = document.getElementById('scene-container');
+    domElement.addEventListener('click', (e) => this.onMouseClick(e), false);
   }
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -269,18 +273,6 @@ export class SpringShow {
 
         console.log("We've placed ", endIndex, " projects so far.");
       }
-
-      // startIndex = endIndex;
-      // endIndex = 200;
-      // for (let i = startIndex; i < endIndex; i++) {
-      // 	let proj = uniqueProjects[i];
-      // 	let locX = -23.55;
-      // 	let offset = (i - startIndex * 1);
-      // 	let locZ = -80 + offset;
-      // 	let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-      // 	this.hyperlinkedObjects.push(hyperlink);
-      // 	this.scene.add(hyperlink);
-      // }
     }
   }
 
@@ -631,6 +623,11 @@ export class SpringShow {
 
   update(){
       this.highlightHyperlinks();
+  }
+
+
+  onMouseClick(e) {
+    this.activateHighlightedProject();
   }
 
 }

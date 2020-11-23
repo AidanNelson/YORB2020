@@ -219,9 +219,6 @@ export class ProjectionScreens {
   }
 
   onMouseClick(e){
-      console.log('click');
-      console.log(this.hightlightedScreen);
-      console.log(this.shift_down);
     if (this.hightlightedScreen && this.shift_down) {
         this.projectToScreen(this.hightlightedScreen.userData.screenId);
       }

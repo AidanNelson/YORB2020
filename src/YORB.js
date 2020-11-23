@@ -8,7 +8,6 @@
 import {
   pauseAllConsumersForPeer,
   resumeAllConsumersForPeer,
-  hackToRemovePlayerTemporarily,
 } from "./index.js";
 
 import {
@@ -91,41 +90,11 @@ class YORB extends EventEmitter {
 		let randZ = this.randomRange(-16.8, -8.3);
 		this.camera.position.set(randX, this.cameraHeight, randZ);
 
-		// Coding Lab
-
-		// let codingLab = { x: -12.7,
-		// 									y: 0.5,
-		// 									z: 10.57
-		// 								}
-		// this.camera.position.set(codingLab.x, this.cameraHeight, codingLab.z);
-
-		// Classrooms
-
-		// let classRoom1 = {	x:9.495,
-		// 										y:0.5,
-		// 										z:28.685
-		// 									}
-		// let classRoom2 = {	x:17.5,
-		// 										y:0.5,
-		// 										z:28.685
-		// 									}
-		// let classRoom3 = {	x:25.5,
-		// 										y:0.5,
-		// 										z:28.685
-		// 									}
-		// let classRoom4 = {	x:33.0000,
-		// 										y:0.5,
-		// 										z:28.685
-		// 									}
-
 		// create an AudioListener and add it to the camera
 		this.listener = new THREE.AudioListener();
 		this.camera.add(this.listener);
 		this.scene.add(this.camera);
 
-		// For Empire State Maker Faire: make the camera looking at the middle point betwen the two columns in Red Square
-
-		// this.camera.lookAt(new THREE.Vector3(0, this.cameraHeight, 0));
 		this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5));
 
 		window.camera = this.camera;
@@ -139,27 +108,17 @@ class YORB extends EventEmitter {
 		this.renderer.setClearColor(new THREE.Color('lightblue'));
 		this.renderer.setSize(this.width, this.height);
 
-    // this.setupControls();
-    
 		this.addLights();
-		// this.setupCollisionDetection();
-
 		this.loadBackground();
 
-
     this.addYORBParts();
-        
-
-    
 
 		//Push the canvas to the DOM
 		domElement.append(this.renderer.domElement);
 
 		//Setup event listeners for events and handle the states
 		window.addEventListener('resize', e => this.onWindowResize(e), false);
-		domElement.addEventListener('click', e => this.onMouseClick(e), false);
 
-		
 		// Helpers
 		this.helperGrid = new THREE.GridHelper(500, 500);
 		this.helperGrid.position.y = -0.1; // offset the grid down to avoid z fighting with floor
@@ -186,15 +145,6 @@ class YORB extends EventEmitter {
       this.sketches.addSketches();
     }, 5000); // try to let the sketches finish loading
   }
-
-
-
-
-
-
-
-
-
 
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -375,139 +325,9 @@ class YORB extends EventEmitter {
             this.clients[_id].desiredPosition.z
           );
         }
-
-        // this.clients[_id].group.quaternion.slerp(this.clients[_id].desiredRotation, 0.2);
-        // if (this.clients[_id].group.quaternion.angleTo(this.clients[_id].desiredRotation) < snapAngle) {
-        // 	this.clients[_id].group.quaternion.set(this.clients[_id].desiredRotation.x, this.clients[_id].desiredRotation.y, this.clients[_id].desiredRotation.z, this.clients[_id].desiredRotation.w);
-        // }
       }
     }
   }
-
-  
-
-  /*
-   * getPointsBetweenPoints()
-   *
-   * Description:
-   * Returns an array of numPoints THREE.Vector3 objects evenly spaced between vecA and vecB, including vecA and vecB
-   *
-   * based on:
-   * https://stackoverflow.com/questions/21249739/how-to-calculate-the-points-between-two-given-points-and-given-distance
-   *
-   */
-  getPointsBetweenPoints(vecA, vecB, numPoints) {
-    var points = [];
-    var dirVec = vecB.clone().sub(vecA);
-    for (let i = 0; i < numPoints; i++) {
-      var pt = vecA
-        .clone()
-        .add(dirVec.clone().multiplyScalar(i / (numPoints - 1)));
-      points.push(pt);
-    }
-    return points;
-  }
-
-
-
-
-  createSignage() {
-    let textDepth = 0.1;
-    let curveSegments = 3;
-    let message, txt;
-
-    message = "Welcome to";
-    // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-    txt = this.create3DText(
-      message,
-      0.25,
-      textDepth,
-      curveSegments,
-      0.01,
-      0.01,
-      false,
-      false
-    );
-    txt.position.set(-2, 2.85, 0.0);
-    txt.rotateY(Math.PI / 2);
-    this.scene.add(txt);
-
-    message = "ITP  ";
-    // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-    txt = this.create3DText(
-      message,
-      1.15,
-      textDepth,
-      curveSegments,
-      0.01,
-      0.01,
-      false,
-      false
-    );
-    txt.position.set(-2.25, 1.5, 0.0);
-    txt.rotateY(Math.PI / 2);
-    this.scene.add(txt);
-
-    message = "Interactive Telecommunications Program";
-    // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror
-    txt = this.create3DText(
-      message,
-      0.25,
-      textDepth,
-      curveSegments,
-      0.01,
-      0.01,
-      false,
-      false
-    );
-    txt.position.set(-2, 1.15, 0.0);
-    txt.rotateY(Math.PI / 2);
-    this.scene.add(txt);
-
-    message = "The E.R.";
-    txt = this.create3DText(
-      message,
-      0.6,
-      textDepth,
-      curveSegments,
-      0.01,
-      0.01,
-      false,
-      false
-    );
-    txt.position.set(-11.25, 1.75, -18.5);
-    txt.rotateY(0);
-    this.scene.add(txt);
-
-    message = "Resident's Residence";
-    txt = this.create3DText(
-      message,
-      0.6,
-      textDepth,
-      curveSegments,
-      0.01,
-      0.01,
-      false,
-      false
-    );
-    txt.position.set(-12.5, 1.75, -0.75);
-    txt.rotateY(-Math.PI / 2);
-    this.scene.add(txt);
-  }
-
-  
-
- 
-
-  
-
-  
-
-  //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-  //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-  // Player Controls:
-
- 
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -561,10 +381,6 @@ class YORB extends EventEmitter {
     this.updatePositions(); // other users
     this.render();
   }
-  // hey billy!
-  // can you read this??
-  // i'm writing javascript!
-  // function myfunc() = cool stuff;
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -573,8 +389,6 @@ class YORB extends EventEmitter {
   render() {
     // Update video canvases for each client
     this.updateVideoTextures();
-    // update all projection screens:
-    // this.updateProjectionScreens();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -656,31 +470,6 @@ class YORB extends EventEmitter {
       return;
     }
     this.clients[_id].audioElement = audioElement;
-    console.log(
-      "The following audio element attached to client with ID " + _id + ":"
-    );
-    console.log(this.clients[_id].audioElement);
-
-    // for the moment, positional audio using webAudio and THREE.PositionalAudio doesn't work...
-    // see the issues on github
-    // let audioSource;
-    // if (this.clients[_id]) {
-    // 	if ("positionalAudioSource" in this.clients[_id]) {
-    // 		audioSource = this.clients[_id].positionalAudioSource;
-    // 		this.scene.remove(audioSource);
-    // 	}
-
-    // 	audioSource = new THREE.PositionalAudio(this.listener);
-    // 	audioSource.setRefDistance(10);
-    // 	audioSource.setRolloffFactor(10);
-    // 	audioSource.setVolume(1);
-    // 	this.clients[_id].positionalAudioSource = audioSource;
-    // 	this.clients[_id].group.add(audioSource);
-
-    // 	// audioSource.setMediaStreamSource(_audioStream);
-    // 	audioSource.setMediaElementSource(audioElement);
-    // 	console.log(audioSource);
-    // }
   }
 
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -693,15 +482,6 @@ class YORB extends EventEmitter {
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.width, this.height);
-  }
-
-  onMouseClick(e) {
-    // not used currently
-    // this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    // this.mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
-    // console.log("Click");
-    this.show.activateHighlightedProject();
-    //typo on line 2045****    
   }
 
 
