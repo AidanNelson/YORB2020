@@ -214,34 +214,6 @@ class YORB extends EventEmitter {
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   // Clients 👫
 
-  addSelf() {
-    let _body = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshNormalMaterial()
-    );
-
-    let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(
-      "local"
-    );
-
-    let _head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), videoMaterial);
-
-    _head.visible = false; // for first person
-
-    // set position of head before adding to parent object
-    _body.position.set(0, 0, 0);
-    _head.position.set(0, 1, 0);
-
-    // https://threejs.org/docs/index.html#api/en/objects/Group
-    this.playerGroup = new THREE.Group();
-    this.playerGroup.position.set(0, 0.5, 0);
-    this.playerGroup.add(_body);
-    this.playerGroup.add(_head);
-    this.playerVideoTexture = videoTexture;
-
-    // add group to scene
-    this.scene.add(this.playerGroup);
-  }
 
   // add a client meshes, a video element and  canvas for three.js video texture
   addClient(_id) {
@@ -280,8 +252,6 @@ class YORB extends EventEmitter {
 
   // overloaded function can deal with new info or not
   updateClientPositions(_clientProps) {
-    let halfClientHeight = 1;
-
     for (let _id in _clientProps) {
       // we'll update ourselves separately to avoid lag...
       if (_id in this.clients) {
