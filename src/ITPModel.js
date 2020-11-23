@@ -1,4 +1,6 @@
 const THREE = require("./libs/three.min.js");
+require("./libs/GLTFLoader.js")(THREE);
+
 
 export class ITPModel {
   constructor(scene) {
