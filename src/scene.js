@@ -27,7 +27,7 @@ const p5sketches = require("./p5sketches");
 require("./libs/GLTFLoader.js")(THREE);
 
 
-class Scene extends EventEmitter {
+class YORB extends EventEmitter {
   constructor(
 		_movementCallback,
 		_clients,
@@ -950,4 +950,4 @@ class Scene extends EventEmitter {
   //==//==//==//==//==//==//==//==// fin //==//==//==//==//==//==//==//==//==//
 }
 
-export default Scene;
+export default YORB;
