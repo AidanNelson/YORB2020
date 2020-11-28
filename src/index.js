@@ -10,7 +10,7 @@
 // IMPORTS
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-import YORB from './YORB';
+import {Yorb} from './Yorb';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
@@ -302,7 +302,7 @@ function createScene() {
 	// initialize three.js scene
 	console.log("Creating three.js scene...")
 
-	yorbScene = new YORB(
+	yorbScene = new Yorb(
 		onPlayerMove,
 		clients,
 		mySocketID);

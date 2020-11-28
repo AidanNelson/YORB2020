@@ -14,24 +14,18 @@ import {
   redrawVideoCanvas, makeVideoTextureAndMaterial
 } from "./utils";
 
-import { SpringShow } from "./springShow2020";
+import { SpringShow } from "./SpringShow2020";
 import {ITPModel } from "./ITPModel";
 import {Sketches} from "./Sketches";
-import {YORBControls} from "./yorbControls";
-import {ProjectionScreens} from "./projectionScreens";
+import {YorbControls} from "./YorbControls";
+import {ProjectionScreens} from "./ProjectionScreens";
 
 const THREE = require("./libs/three.min.js");
 const Stats = require("./libs/stats.min.js");
 const EventEmitter = require("events");
 
-const p5 = require("p5");
-const p5sketches = require("./p5sketches");
 
-// slightly awkward syntax, but these statements add these functions to THREE
-require("./libs/GLTFLoader.js")(THREE);
-
-
-class YORB extends EventEmitter {
+export class Yorb extends EventEmitter {
   constructor(
 		_movementCallback,
 		_clients,
@@ -132,7 +126,7 @@ class YORB extends EventEmitter {
   //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
   // add YORB parts  
   addYORBParts(){
-    this.controls = new YORBControls(this.scene, this.camera, this.renderer);
+    this.controls = new YorbControls(this.scene, this.camera, this.renderer);
 
     this.projectionScreens = new ProjectionScreens(this.scene, this.camera);
     this.itpModel = new ITPModel(this.scene);
@@ -499,5 +493,3 @@ class YORB extends EventEmitter {
 
   //==//==//==//==//==//==//==//==// fin //==//==//==//==//==//==//==//==//==//
 }
-
-export default YORB;

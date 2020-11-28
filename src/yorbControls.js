@@ -1,7 +1,7 @@
 const THREE = require("./libs/three.min.js");
 require("./libs/pointerLockControls.js")(THREE);
 
-export class YORBControls {
+export class YorbControls {
   constructor(scene, camera, renderer) {
     this.scene = scene;
     this.camera = camera;
