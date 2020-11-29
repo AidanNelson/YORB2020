@@ -7,6 +7,8 @@ export class YorbControls {
     this.camera = camera;
     this.renderer = renderer;
 
+    this.cameraHeight = 1.5;
+
     this.raycaster = new THREE.Raycaster();
 
     this.collidableMeshList = [];
@@ -158,19 +160,6 @@ export class YorbControls {
     let speed = 50;
     if (this.controls.isLocked === true) {
 
-      
-      var origin = this.controls.getObject().position.clone();
-      origin.y -= this.cameraHeight; // origin is at floor level
-
-      this.raycaster.set(origin, new THREE.Vector3(0, -this.cameraHeight, 0));
-
-
-      var intersectionsDown = this.raycaster.intersectObjects(
-        this.getCollidables()
-      );
-      var onObject =
-        intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.1;
-
       var time = performance.now();
       var rawDelta = (time - this.prevTime) / 1000;
       // clamp delta so lower frame rate clients don't end up way far away
@@ -178,19 +167,6 @@ export class YorbControls {
 
       this.velocity.x -= this.velocity.x * 10.0 * delta;
       this.velocity.z -= this.velocity.z * 10.0 * delta;
-
-      // Here we talkin bout gravity...
-      // this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
-
-      // For double-jumping!
-      if (this.camera.position.y > 2.5) {
-        // less gravity like when we begin
-        this.gravity = 2.0;
-      } else {
-        // once we get below the ceiling, the original value
-        this.gravity = 8.0;
-      }
-      this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
 
       this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
       this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
@@ -204,17 +180,15 @@ export class YorbControls {
         this.velocity.x -= this.direction.x * speed * delta;
       }
 
-      if (onObject === true || true) {
-        this.velocity.y = Math.max(0, this.velocity.y);
-        this.canJump = true;
-      }
-
+      // left-right movement
       if (
         (this.velocity.x > 0 && !this.obstacles.left) ||
         (this.velocity.x < 0 && !this.obstacles.right)
       ) {
         this.controls.moveRight(-this.velocity.x * delta);
       }
+
+      // front-back movement
       if (
         (this.velocity.z > 0 && !this.obstacles.backward) ||
         (this.velocity.z < 0 && !this.obstacles.forward)
@@ -222,11 +196,42 @@ export class YorbControls {
         this.controls.moveForward(-this.velocity.z * delta);
       }
 
-      this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+      // up-down movement
+      // origin point from which we cast a ray downwards
+      var origin = this.controls.getObject().position.clone();
+      origin.set(origin.x,  origin.y-this.cameraHeight,  origin.z); // set origin to floor level
 
-      if (this.controls.getObject().position.y < this.cameraHeight) {
+      // set the raycaster to check downward from this point
+      this.raycaster.set(origin, new THREE.Vector3(0, -1, 0));
+
+      var intersectionsDown = this.raycaster.intersectObjects(
+        this.getCollidables()
+      );
+      var onObject =
+        intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.25;
+      // Here we talkin bout gravity...
+      // this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+
+      // For double-jumping!
+      if (this.camera.position.y > 2.5) {
+        // less gravity like when we begin
+        this.gravity = 2.0;
+      } else {
+        // once we get below the ceiling, the original value
+        this.gravity = 8.0;
+      }
+      this.velocity.y -= 9.8 * this.gravity * delta; // 100.0 = mass
+
+      if (onObject === true) {
+        this.velocity.y = Math.max(0, this.velocity.y);
+        this.canJump = true;
+      }
+      
+      this.camera.position.y += this.velocity.y * delta; // new behavior
+
+      if (this.camera.position.y < this.cameraHeight) {
         this.velocity.y = 0;
-        this.controls.getObject().position.y = this.cameraHeight;
+        this.camera.position.y = this.cameraHeight;
         this.canJump = true;
       }
 
@@ -255,39 +260,6 @@ export class YorbControls {
       right: false,
       left: false,
     };
-
-    // var numCollisionDetectionPointsPerSide = 3;
-    // var numTotalCollisionDetectionPoints = numCollisionDetectionPointsPerSide * 4;
-
-    // get the headMesh vertices
-    // var headMeshVertices = this.playerGroup.children[1].geometry.vertices;
-
-    // these are the four vertices of each side:
-    // figured out which ones were which with pen and paper...
-    // var forwardVertices = [headMeshVertices[1], headMeshVertices[3], headMeshVertices[4], headMeshVertices[6]];
-    // var backwardVertices = [headMeshVertices[0], headMeshVertices[2], headMeshVertices[5], headMeshVertices[7]];
-    // var rightVertices = [headMeshVertices[0], headMeshVertices[1], headMeshVertices[2], headMeshVertices[3]];
-    // var leftVertices = [headMeshVertices[4], headMeshVertices[5], headMeshVertices[6], headMeshVertices[7]]
-
-    // this.forwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[6], headMeshVertices[3], numCollisionDetectionPointsPerSide);
-    // this.backwardCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[2], headMeshVertices[7], numCollisionDetectionPointsPerSide);
-    // this.rightCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[3], headMeshVertices[2], numCollisionDetectionPointsPerSide);
-    // this.leftCollisionDetectionPoints = this.getPointsBetweenPoints(headMeshVertices[7], headMeshVertices[6], numCollisionDetectionPointsPerSide);
-
-    // for use debugging collision detection
-    if (this.DEBUG_MODE) {
-      this.collisionDetectionDebugArrows = [];
-      for (let i = 0; i < numTotalCollisionDetectionPoints; i++) {
-        var arrow = new THREE.ArrowHelper(
-          new THREE.Vector3(),
-          new THREE.Vector3(),
-          1,
-          0x000000
-        );
-        this.collisionDetectionDebugArrows.push(arrow);
-        this.scene.add(arrow);
-      }
-    }
   }
 
   /*
@@ -329,12 +301,6 @@ export class YorbControls {
       .normalize();
     var leftDir = rightDir.clone().negate();
 
-    // let forwardDir = new THREE.Vector3();
-    // this.controls.getDirection(forwardDir);
-    // var backwardDir = forwardDir.clone().negate();
-    // var rightDir = forwardDir.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
-    // var leftDir = rightDir.clone().negate();
-
     // TODO more points around avatar so we can't be inside of walls
     let pt = this.controls.getObject().position.clone();
 
@@ -364,8 +330,6 @@ export class YorbControls {
       rightDir,
       12
     );
-
-    // this.controls.obstacles = this.obstacles;
   }
 
   checkCollisions(pts, dir, arrowHelperOffset) {
@@ -380,17 +344,6 @@ export class YorbControls {
       this.raycaster.set(pt, dir);
       this.raycaster.layers.set(3);
       var collisions = this.raycaster.intersectObjects(this.getCollidables());
-
-      // arrow helpers for debugging
-      if (this.DEBUG_MODE) {
-        var a = this.collisionDetectionDebugArrows[i + arrowHelperOffset];
-        a.setLength(detectCollisionDistance);
-        a.setColor(new THREE.Color("rgb(0, 0, 255)"));
-        a.position.x = pt.x;
-        a.position.y = pt.y;
-        a.position.z = pt.z;
-        a.setDirection(dir);
-      }
 
       if (
         collisions.length > 0 &&

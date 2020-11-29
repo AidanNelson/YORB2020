@@ -4,6 +4,8 @@ require("./libs/GLTFLoader.js")(THREE);
 
 export class ITPModel {
   constructor(scene) {
+    this.GLTFLoader = new THREE.GLTFLoader();
+
     this.scene = scene;
     this.createMaterials();
     this.loadFloorModel();
@@ -69,90 +71,6 @@ export class ITPModel {
     this.graniteBarMaterial = new THREE.MeshLambertMaterial({
       color: 0x000000,
     });
-    // this.testMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
-
-    // this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
-    // this.linkVisitedMaterial = new THREE.MeshLambertMaterial({ color: 0x6699ff });
-
-    // let paintedRoughnessTexture = new THREE.TextureLoader().load("textures/roughness.jpg");
-    // paintedRoughnessTexture.wrapS = THREE.RepeatWrapping;
-    // paintedRoughnessTexture.wrapT = THREE.RepeatWrapping;
-    // paintedRoughnessTexture.repeat.set(5, 5);
-
-    // // wall material:
-    // this.wallMaterial = new THREE.MeshPhongMaterial({
-    // 	color: 0xffffe6,
-    // 	bumpMap: paintedRoughnessTexture,
-    // 	bumpScale: 0.25,
-    // 	specular: 0xfffff5,
-    // 	reflectivity: 0.01,
-    // 	shininess: 0.1,
-    // 	envMap: null
-    // });
-
-    // // ceiling material
-    // this.ceilingMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
-
-    // // floor material
-    // // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
-    // let floorTexture = new THREE.TextureLoader().load("textures/floor.jpg");
-    // floorTexture.wrapS = THREE.RepeatWrapping;
-    // floorTexture.wrapT = THREE.RepeatWrapping;
-    // floorTexture.repeat.set(1, 1);
-
-    // this.floorMaterial = new THREE.MeshPhongMaterial({
-    // 	color: 0xffffff,
-    // 	map: floorTexture,
-    // 	bumpMap: floorTexture,
-    // 	bumpScale: 0.005,
-    // 	specular: 0xffffff,
-    // 	reflectivity: 0.5,
-    // 	shininess: 4,
-    // 	envMap: null
-    // });
-
-    // this.paintedMetalMaterial = new THREE.MeshPhongMaterial({
-    // 	color: 0x1a1a1a,
-    // 	bumpMap: paintedRoughnessTexture,
-    // 	bumpScale: 0.2,
-    // 	specular: 0xffffff,
-    // 	reflectivity: 0.01,
-    // 	shininess: 1,
-    // 	envMap: null
-    // });
-
-    // this.windowShelfMaterial = new THREE.MeshPhongMaterial({
-    // 	color: 0xdddddd
-    // });
-
-    // // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_physical_transparency.html
-    // this.glassMaterial = new THREE.MeshPhysicalMaterial({
-    // 	color: 0xD9ECFF,
-    // 	metalness: 0.05,
-    // 	roughness: 0,
-    // 	alphaTest: 0.5,
-    // 	depthWrite: false,
-    // 	envMap: this.envMap,
-    // 	envMapIntensity: 1,
-    // 	transparency: 1, // use material.transparency for glass materials
-    // 	opacity: 1,                        // set material.opacity to 1 when material.transparency is non-zero
-    // 	transparent: true
-    // });
-
-    // this.lightHousingMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
-
-    // this.lightDiffuserMaterial = new THREE.MeshPhongMaterial({
-    // 	color: 0xcccccc,
-    // 	emissive: 0xffffff,
-    // 	emissiveIntensity: 10,
-    // 	specular: 0xffffff,
-    // 	reflectivity: 0.01,
-    // 	shininess: 1,
-    // 	envMap: null
-    // });
-
-    // this.glassFixturingMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-    // this.graniteBarMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
   }
 
   loadModel(
@@ -194,7 +112,6 @@ export class ITPModel {
   }
 
   loadFloorModel() {
-    this.GLTFLoader = new THREE.GLTFLoader();
     let scaleFactor = 1.25;
     this.floorModelParts = [];
     this.matMode = 0;
