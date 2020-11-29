@@ -14,6 +14,7 @@ import { ITPModel } from './ITPModel'
 import { Sketches } from './Sketches'
 import { YorbControls } from './YorbControls'
 import { ProjectionScreens } from './ProjectionScreens'
+import { Yorblet } from './Yorblets.js'
 
 const THREE = require('./libs/three.min.js')
 const Stats = require('./libs/stats.min.js')
@@ -69,8 +70,8 @@ export class Yorb extends EventEmitter {
         // Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
         // In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
-        let randX = this.randomRange(-7.4, -13.05)
-        let randZ = this.randomRange(-16.8, -8.3)
+        let randX = this.randomRange(-2,2)
+        let randZ = this.randomRange(-2,2)
         this.camera.position.set(randX, this.cameraHeight, randZ)
 
         // create an AudioListener and add it to the camera
@@ -118,15 +119,17 @@ export class Yorb extends EventEmitter {
         this.controls = new YorbControls(this.scene, this.camera, this.renderer)
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera)
-        this.itpModel = new ITPModel(this.scene)
+        // this.itpModel = new ITPModel(this.scene)
 
-        this.show = new SpringShow(this.scene, this.camera, this.controls)
-        this.show.setup()
+        this.yorblet = new Yorblet(this.scene, this.projectionScreens);
 
-        this.sketches = new Sketches(this.scene)
-        setTimeout(() => {
-            this.sketches.addSketches()
-        }, 5000) // try to let the sketches finish loading
+        // this.show = new SpringShow(this.scene, this.camera, this.controls)
+        // this.show.setup()
+
+        // this.sketches = new Sketches(this.scene)
+        // setTimeout(() => {
+        //     this.sketches.addSketches()
+        // }, 5000) // try to let the sketches finish loading
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -169,7 +172,7 @@ export class Yorb extends EventEmitter {
     //
     // update projects:
     updateProjects(projects) {
-        this.show.updateProjects(projects)
+        // this.show.updateProjects(projects)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -309,13 +312,13 @@ export class Yorb extends EventEmitter {
 
             // things to update 5 x per second
             if (this.frameCount % 10 === 0) {
-                this.sketches.update()
+                // this.sketches.update()
             }
 
             if (this.frameCount % 20 == 0) {
                 this.updateClientVolumes()
                 this.movementCallback()
-                this.show.update()
+                // this.show.update()
                 this.projectionScreens.checkProjectionScreenCollisions()
             }
             if (this.frameCount % 50 == 0) {

@@ -7,10 +7,14 @@ export class ProjectionScreens {
         this.scene = scene
         this.camera = camera
 
+        this.screenIdIndex = 0;
+
         this.projectionScreens = {} // object to store projection screens
         this.shift_down = false
         this.createBlankScreenVideo()
-        this.createProjectionScreens()
+        // this.createProjectionScreens()
+
+   
 
         // so that we can 'listen' for a shift-down
         let domElement = document.getElementById('scene-container')
@@ -18,6 +22,7 @@ export class ProjectionScreens {
         window.addEventListener('keydown', (e) => this.onKeyDown(e), false)
         window.addEventListener('keyup', (e) => this.onKeyUp(e), false)
     }
+
 
     createBlankScreenVideo() {
         let blankScreenVideo = document.createElement('video')
@@ -107,7 +112,7 @@ export class ProjectionScreens {
         let num = locations.data.length
 
         for (let i = 0; i < num; i++) {
-            let _id = 'screenshare' + i
+            let _id = 'screenshare' + this.screenIdIndex.toString();
             let dims = { width: 1920, height: 1080 }
             let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
 
@@ -124,7 +129,30 @@ export class ProjectionScreens {
             }
 
             this.projectionScreens[_id] = screen
+            this.screenIdIndex++;
         }
+    }
+
+    addScreen(centerX,centerY,centerZ, lookAtX,lookAtY,lookAtZ, scaleFactor){
+        let _id = 'screenshare' + this.screenIdIndex.toString();
+
+        let dims = { width: 1920, height: 1080 }
+        let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
+        console.log(scaleFactor);
+        let screen = new THREE.Mesh(new THREE.BoxGeometry(5 * scaleFactor, (5 *  scaleFactor * 9) / 16, 0.01), videoMaterial)
+
+        screen.position.set(centerX, centerY, centerZ)
+        screen.lookAt(lookAtX,lookAtY, lookAtZ)
+        this.scene.add(screen)
+
+        screen.userData = {
+            videoTexture: videoTexture,
+            activeUserId: 'default',
+            screenId: _id,
+        }
+
+        this.projectionScreens[_id] = screen
+        this.screenIdIndex++;
     }
 
     projectToScreen(screenId) {
