@@ -14,6 +14,7 @@ import { ITPModel } from './ITPModel'
 import { Sketches } from './Sketches'
 import { YorbControls } from './YorbControls'
 import { ProjectionScreens } from './ProjectionScreens'
+import { YorbControls2 } from './yorbControls2.js'
 
 const THREE = require('./libs/three.min.js')
 const Stats = require('./libs/stats.min.js')
@@ -115,7 +116,9 @@ export class Yorb extends EventEmitter {
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // add YORB parts
     addYORBParts() {
-        this.controls = new YorbControls(this.scene, this.camera, this.renderer)
+        // this.controls = new YorbControls(this.scene, this.camera, this.renderer)
+        this.controls = new YorbControls2(this.scene, this.camera, this.renderer)
+
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera)
         this.itpModel = new ITPModel(this.scene)
