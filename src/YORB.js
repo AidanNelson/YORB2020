@@ -61,6 +61,8 @@ export class Yorb extends EventEmitter {
         this.cameraHeight = 1.75
         this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000)
 
+        this.mouse = new THREE.Vector2()
+
         /*
          *
          * STARTING POSITIONS
@@ -102,6 +104,7 @@ export class Yorb extends EventEmitter {
 
         //Setup event listeners for events and handle the states
         window.addEventListener('resize', (e) => this.onWindowResize(e), false)
+        window.addEventListener('mousemove', (e) => this.onMouseMove(e), false)
 
         // Helpers
         this.helperGrid = new THREE.GridHelper(500, 500)
@@ -116,14 +119,12 @@ export class Yorb extends EventEmitter {
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // add YORB parts
     addYORBParts() {
-        // this.controls = new YorbControls(this.scene, this.camera, this.renderer)
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer)
-
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera)
         this.itpModel = new ITPModel(this.scene)
 
-        this.show = new SpringShow(this.scene, this.camera, this.controls)
+        this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
         this.show.setup()
 
         this.sketches = new Sketches(this.scene)
@@ -312,7 +313,7 @@ export class Yorb extends EventEmitter {
 
             // things to update 5 x per second
             if (this.frameCount % 10 === 0) {
-                this.sketches.update()
+                // this.sketches.update()
             }
 
             if (this.frameCount % 20 == 0) {
@@ -421,6 +422,13 @@ export class Yorb extends EventEmitter {
         this.renderer.setSize(this.width, this.height)
     }
 
+    onMouseMove(event) {
+        // calculate mouse position in normalized device coordinates
+        // (-1 to +1) for both components
+
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+    }
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // Utilities:

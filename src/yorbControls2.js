@@ -12,33 +12,20 @@ export class YorbControls2 {
 
         this.raycaster = new THREE.Raycaster()
 
-        this.collidableMeshList = []
         this.setupControls()
         this.setupCollisionDetection()
 
         this.velocity.y = 0
 
         // variables for drag controls
-        // this.onMouseDownMouseX = 0
-        // this.onMouseDownMouseY = 0
         this.onPointerDownPointerX = 0
         this.onPointerDownPointerY = 0
         this.lon = 0
-        // this.onMouseDownLon = 0
         this.lat = 0
-        // this.onMouseDownLat = 0
         this.phi = 0
         this.theta = 0
         this.isUserInteracting = false
         this.camera.target = new THREE.Vector3(0,0,0);
-    }
-
-    lock() {
-        // this.controls.lock()
-    }
-
-    unlock() {
-        // this.controls.unlock()
     }
 
     // Set up pointer lock controls and corresponding event listeners
@@ -60,20 +47,6 @@ export class YorbControls2 {
 
         var overlay = document.getElementById('overlay')
         overlay.style.visibility = 'hidden'
-
-        // this.controls.addEventListener('lock', () => {
-        //     this.clearControls()
-        //     this.paused = false
-        //     overlay.style.visibility = 'hidden'
-        //     document.getElementById('instructions-overlay').style.visibility = 'visible'
-        // })
-
-        // this.controls.addEventListener('unlock', () => {
-        //     overlay.style.visibility = 'visible'
-        //     this.clearControls()
-        //     this.paused = true
-        //     document.getElementById('instructions-overlay').style.visibility = 'hidden'
-        // })
 
         document.addEventListener(
             'keydown',
@@ -172,7 +145,7 @@ export class YorbControls2 {
     // see: https://github.com/mrdoob/three.js/issues/5566
     updateControls() {
         let speed = 50
-        // if (this.controls.isLocked === true) {
+
         var time = performance.now()
         var rawDelta = (time - this.prevTime) / 1000
         // clamp delta so lower frame rate clients don't end up way far away
@@ -195,14 +168,12 @@ export class YorbControls2 {
 
         // left-right movement
         if ((this.velocity.x > 0 && !this.obstacles.left) || (this.velocity.x < 0 && !this.obstacles.right)) {
-            // this.controls.moveRight(-this.velocity.x * delta)
             this.camera.translateX(-this.velocity.x * delta)
         }
 
         // front-back movement
         if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
-            // this.controls.moveForward(-this.velocity.z * delta)
-            this.camera.translateZ(this.velocity.z * delta)
+            this.camera.position.add(this.getCameraForwardDirAlongXZPlane().multiplyScalar(-this.velocity.z * delta));
         }
 
         // up-down movement
@@ -243,7 +214,17 @@ export class YorbControls2 {
         }
 
         this.prevTime = time
-        // }
+    }
+
+    getCameraForwardDirAlongXZPlane(){
+        let forwardDir = new THREE.Vector3(0, 0, -1);
+        // apply the camera's current rotation to that direction vector:
+        forwardDir.applyQuaternion(this.camera.quaternion);
+        
+        let forwardAlongXZPlane = new THREE.Vector3(forwardDir.x, 0, forwardDir.z)
+        forwardAlongXZPlane.normalize();
+
+        return forwardAlongXZPlane;
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -315,20 +296,18 @@ export class YorbControls2 {
         this.leftCollisionDetectionPoints = [pt]
 
         // check forward
-        this.obstacles.forward = this.checkCollisions(this.forwardCollisionDetectionPoints, forwardDir, 0)
-        this.obstacles.backward = this.checkCollisions(this.backwardCollisionDetectionPoints, backwardDir, 4)
-        this.obstacles.left = this.checkCollisions(this.leftCollisionDetectionPoints, leftDir, 8)
-        this.obstacles.right = this.checkCollisions(this.rightCollisionDetectionPoints, rightDir, 12)
+        this.obstacles.forward = this.checkCollisions(this.forwardCollisionDetectionPoints, forwardDir)
+        this.obstacles.backward = this.checkCollisions(this.backwardCollisionDetectionPoints, backwardDir)
+        this.obstacles.left = this.checkCollisions(this.leftCollisionDetectionPoints, leftDir)
+        this.obstacles.right = this.checkCollisions(this.rightCollisionDetectionPoints, rightDir)
     }
 
-    checkCollisions(pts, dir, arrowHelperOffset) {
+    checkCollisions(pts, dir) {
         // distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
         var detectCollisionDistance = 1
 
         for (var i = 0; i < pts.length; i++) {
             var pt = pts[i].clone()
-            // pt.applyMatrix4(this.playerGroup.matrix);
-            // pt.y += 1.0; // bias upward to head area of player
 
             this.raycaster.set(pt, dir)
             this.raycaster.layers.set(3)
@@ -351,15 +330,14 @@ export class YorbControls2 {
 
     onDocumentMouseMove(event) {
         if (this.isUserInteracting) {
-            this.lon = (this.onPointerDownPointerX - event.clientX) * 0.1 + this.onPointerDownLon;
-            this.lat = (event.clientY - this.onPointerDownPointerY) * 0.1 + this.onPointerDownLat;
+            this.lon = (this.onPointerDownPointerX - event.clientX) * -0.3 + this.onPointerDownLon;
+            this.lat = (event.clientY - this.onPointerDownPointerY) * -0.3 + this.onPointerDownLat;
             this.computeCameraOrientation()
         }
     }
 
     onDocumentMouseUp(event) {
         this.isUserInteracting = false
-        //saveCamera();
     }
 
     computeCameraOrientation() {
@@ -370,20 +348,5 @@ export class YorbControls2 {
         this.camera.target.y = 500 * Math.cos(this.phi)
         this.camera.target.z = 500 * Math.sin(this.phi) * Math.sin(this.theta)
         this.camera.lookAt(this.camera.target)
-        /*
-        // distortion
-        camera3D.position.copy( camera3D.target ).negate();
-        */
     }
-
-    // onWindowResize() {
-    //     this.camera.aspect = window.innerWidth / window.innerHeight;
-    //     this.camera.updateProjectionMatrix();
-    //     renderer.setSize( window.innerWidth, window.innerHeight );
-    //     console.log('Resized');
-    //   }
-    // function onDocumentMouseWheel( event ) {
-    //     this.camera.fov += event.deltaY * 0.05;
-    //     this.camera.updateProjectionMatrix();
-    //   }
 }

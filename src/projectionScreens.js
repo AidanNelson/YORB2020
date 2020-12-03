@@ -13,8 +13,8 @@ export class ProjectionScreens {
         this.createProjectionScreens()
 
         // so that we can 'listen' for a shift-down
-        let domElement = document.getElementById('scene-container')
-        domElement.addEventListener('click', (e) => this.onMouseClick(e), false)
+        // let domElement = document.getElementById('scene-container')
+        window.addEventListener('click', (e) => this.onMouseClick(e), false)
         window.addEventListener('keydown', (e) => this.onKeyDown(e), false)
         window.addEventListener('keyup', (e) => this.onKeyUp(e), false)
     }
@@ -32,18 +32,6 @@ export class ProjectionScreens {
     createProjectionScreens() {
         let locations = {
             data: [
-                // {	room: "entranceWay",
-                // 	x: 3.3663431855797707,
-                // 	y: 1.9,
-                // 	z: -0.88,
-                // 	rot: Math.PI/2
-                // },
-                // { room: "classRoom1-center",
-                // 	x: 2.8,
-                // 	y: 1.9,
-                // 	z: 24.586520,
-                // 	rot: Math.PI/2
-                // },
                 {
                     room: 'classRoom1-left',
                     x: 2.8,
@@ -129,7 +117,6 @@ export class ProjectionScreens {
 
     projectToScreen(screenId) {
         console.log("I'm going to project to screen " + screenId)
-        // this.emit("projectToScreen", screenId);
         shareScreen(screenId)
         this.projectionScreens[screenId].userData.activeUserId = this.mySocketID
     }
@@ -189,7 +176,6 @@ export class ProjectionScreens {
                 // this.screenHoverImage.style = "visiblity: visible;"
                 let screen = intersects[0].object
                 this.hightlightedScreen = screen
-                // console.log(screen.material)
             } else {
                 this.hightlightedScreen = null
             }
@@ -197,13 +183,16 @@ export class ProjectionScreens {
     }
 
     onMouseClick(e) {
+        console.log('click');
         if (this.hightlightedScreen && this.shift_down) {
+            console.log('click');
             this.projectToScreen(this.hightlightedScreen.userData.screenId)
         }
     }
 
     onKeyDown(e) {
         if (e.keyCode == 16) {
+            console.log('shiftdown');
             this.shift_down = true
         }
     }

@@ -4,10 +4,11 @@ import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
 
 export class SpringShow {
-    constructor(scene, camera, controls) {
+    constructor(scene, camera, controls, mouse) {
         this.scene = scene
         this.camera = camera
         this.controls = controls
+        this.mouse = mouse
 
         // we need some stuff to operate:
         this.raycaster = new THREE.Raycaster()
@@ -25,8 +26,8 @@ export class SpringShow {
         this.hyperlinkedObjects = []
         this.linkMaterials = {}
 
-        let domElement = document.getElementById('scene-container')
-        domElement.addEventListener('click', (e) => this.onMouseClick(e), false)
+        // let domElement = document.getElementById('scene-container')
+        window.addEventListener('click', (e) => this.onMouseClick(e), false)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -433,7 +434,6 @@ export class SpringShow {
             let closeButton = document.createElement('button')
             closeButton.addEventListener('click', () => {
                 modalEl.remove()
-                this.controls.lock()
                 // https://stackoverflow.com/questions/19426559/three-js-access-scene-objects-by-name-or-id
                 let now = Date.now()
                 let link = this.scene.getObjectByName(id)
@@ -532,7 +532,8 @@ export class SpringShow {
         let lastHighlightedProjectId = this.hightlightedProjectId
 
         // cast ray out from camera
-        this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera)
+        this.raycaster.setFromCamera(this.mouse, this.camera)
+
         var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects)
 
         // if we have intersections, highlight them
@@ -592,7 +593,6 @@ export class SpringShow {
         if (this.hightlightedProjectId != -1) {
             let link = this.scene.getObjectByName(this.hightlightedProjectId)
             if (link != null) {
-                this.controls.unlock()
                 this.generateProjectModal(link.userData.project)
                 hackToRemovePlayerTemporarily()
             }

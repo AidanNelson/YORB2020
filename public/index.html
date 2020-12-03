@@ -15,39 +15,6 @@
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 	<link rel="shortcut icon" type="image/gif" href="images/favicon.png" />
 
-	<script>
-		const audioSwitch = () => {
-			let player = document.getElementById("playAudio")
-			if (player.paused) {
-				audioSwitchOn(player)
-			} else {
-				audioSwitchOff(player)
-			};
-
-		}
-		const audioSwitchOn = (audioElement) => {
-			let musicButton = document.getElementsByClassName("btn-audio")
-			musicButton[0].className = musicButton[0].className.replace(/is-inactive/g, "")
-
-			musicButton[0].className = musicButton[0].className + " is-active"
-
-
-			audioElement.volume = 0.25;
-			audioElement.play()
-		}
-
-		const audioSwitchOff = audioElement => {
-			let musicButton = document.getElementsByClassName("btn-audio")
-			musicButton[0].className = musicButton[0].className.replace(/is-active/g, "")
-
-			musicButton[0].className = musicButton[0].className + " is-inactive"
-
-			audioElement.pause()
-		}
-
-
-	</script>
-
 </head>
 
 <body>
@@ -95,13 +62,6 @@
 					<div class="box-content">
 						Sunday, May 17th, 2 - 4 p.m. <br />
 						Monday, May 18th, 5 - 7 p.m. <br /><br /> -->
-					<div class="box-title">MUSIC:</div><br>
-					<div class="audio-container">
-						<div class="btn-audio is-inactive" onclick="audioSwitch()"></div>
-						<audio loop id="playAudio">
-							<source src="assets/slap-happy.mp3"  type="audio/mpeg">
-						</audio>
-					</div>
 				<!-- </div> -->
 			</div>
 
