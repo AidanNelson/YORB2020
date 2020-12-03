@@ -13,8 +13,8 @@ export class ProjectionScreens {
         this.createProjectionScreens()
 
         // so that we can 'listen' for a shift-down
-        // let domElement = document.getElementById('scene-container')
-        window.addEventListener('click', (e) => this.onMouseClick(e), false)
+        let domElement = document.getElementById('scene-container')
+        domElement.addEventListener('click', (e) => this.onMouseClick(e), false)
         window.addEventListener('keydown', (e) => this.onKeyDown(e), false)
         window.addEventListener('keyup', (e) => this.onKeyUp(e), false)
     }
