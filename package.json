@@ -21,46 +21,7 @@
     "mediasoup-client": "^3.6.5",
     "p5": "^1.0.0",
     "prettier": "^2.2.1",
-    "simple-peer": "^9.6.2",
     "socket.io": "^2.3.0",
-    "three": "^0.115.0",
-    "twilio": "^3.40.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.9.0",
-    "@babel/plugin-transform-runtime": "^7.9.0",
-    "@babel/preset-env": "^7.9.5",
-    "babel-core": "^6.26.3",
-    "babel-polyfill": "^6.26.0",
-    "babelify": "^10.0.0",
-    "browserify": "^15.2.0",
-    "concurrently": "^3.5.1",
-    "nodemon": "^1.14.12",
-    "uglify-js": "^3.3.9",
-    "watchify": "^3.10.0"
-  },
-  "browserify": {
-    "transform": [
-      [
-        "babelify",
-        {
-          "only": [
-            "./src/*.js",
-            "./node_modules/three/build/three.module.js",
-            "./node_modules/three/examples/jsm/*"
-          ],
-          "global": true,
-          "sourceType": "unambiguous",
-          "presets": [
-            "@babel/preset-env"
-          ],
-          "plugins": [
-            "@babel/plugin-transform-modules-commonjs",
-            "@babel/plugin-transform-runtime"
-          ]
-        }
-      ]
-    ]
+    "three": "^0.115.0"
   }
 }

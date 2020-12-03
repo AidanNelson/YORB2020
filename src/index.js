@@ -9,6 +9,8 @@
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // IMPORTS
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+import 'regenerator-runtime/runtime'
+
 
 import {Yorb} from './Yorb';
 
@@ -183,8 +185,9 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket= io();
-
+		socket = io('localhost:3000', {
+			path: "/socket.io"
+		});
 		window.socket = socket;
 		socket.request = socketPromise(socket);
 
