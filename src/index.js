@@ -138,7 +138,6 @@ window.onload = async () => {
 	// the page unloads
 	window.addEventListener('unload', () => {
 		socket.request('leave', {});
-		// sig('leave', {}, true)
 	});
 
 	alert("Allow YORB to access your webcam for the full experience");
@@ -150,7 +149,7 @@ window.onload = async () => {
 
 
 async function init() {
-	document.getElementById("instructions-overlay").style.visibility = "visible";
+	document.getElementById("overlay").style.visibility = "hidden";
 
 	// only join room after we user has interacted with DOM (to ensure that media elements play)
 	if (!initialized) {

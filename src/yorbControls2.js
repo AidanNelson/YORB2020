@@ -25,7 +25,7 @@ export class YorbControls2 {
         this.phi = 0
         this.theta = 0
         this.isUserInteracting = false
-        this.camera.target = new THREE.Vector3(0,0,0);
+        this.camera.target = new THREE.Vector3(0, 0, 0)
     }
 
     // Set up pointer lock controls and corresponding event listeners
@@ -44,9 +44,6 @@ export class YorbControls2 {
         this.direction = new THREE.Vector3()
         this.vertex = new THREE.Vector3()
         this.color = new THREE.Color()
-
-        var overlay = document.getElementById('overlay')
-        overlay.style.visibility = 'hidden'
 
         document.addEventListener(
             'keydown',
@@ -109,9 +106,29 @@ export class YorbControls2 {
             false
         )
 
-        document.addEventListener('mousedown', (e) => { this.onDocumentMouseDown(e)}, false)
-        document.addEventListener('mousemove', (e) => {this.onDocumentMouseMove(e)}, false)
-        document.addEventListener('mouseup', (e) => { this.onDocumentMouseUp(e)}, false)
+        let domElement = document.getElementById('scene-container')
+
+        domElement.addEventListener(
+            'mousedown',
+            (e) => {
+                this.onDocumentMouseDown(e)
+            },
+            false
+        )
+        domElement.addEventListener(
+            'mousemove',
+            (e) => {
+                this.onDocumentMouseMove(e)
+            },
+            false
+        )
+        domElement.addEventListener(
+            'mouseup',
+            (e) => {
+                this.onDocumentMouseUp(e)
+            },
+            false
+        )
     }
 
     // clear control state every time we reenter the game
@@ -173,7 +190,7 @@ export class YorbControls2 {
 
         // front-back movement
         if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
-            this.camera.position.add(this.getCameraForwardDirAlongXZPlane().multiplyScalar(-this.velocity.z * delta));
+            this.camera.position.add(this.getCameraForwardDirAlongXZPlane().multiplyScalar(-this.velocity.z * delta))
         }
 
         // up-down movement
@@ -216,15 +233,15 @@ export class YorbControls2 {
         this.prevTime = time
     }
 
-    getCameraForwardDirAlongXZPlane(){
-        let forwardDir = new THREE.Vector3(0, 0, -1);
+    getCameraForwardDirAlongXZPlane() {
+        let forwardDir = new THREE.Vector3(0, 0, -1)
         // apply the camera's current rotation to that direction vector:
-        forwardDir.applyQuaternion(this.camera.quaternion);
-        
-        let forwardAlongXZPlane = new THREE.Vector3(forwardDir.x, 0, forwardDir.z)
-        forwardAlongXZPlane.normalize();
+        forwardDir.applyQuaternion(this.camera.quaternion)
 
-        return forwardAlongXZPlane;
+        let forwardAlongXZPlane = new THREE.Vector3(forwardDir.x, 0, forwardDir.z)
+        forwardAlongXZPlane.normalize()
+
+        return forwardAlongXZPlane
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -330,8 +347,8 @@ export class YorbControls2 {
 
     onDocumentMouseMove(event) {
         if (this.isUserInteracting) {
-            this.lon = (this.onPointerDownPointerX - event.clientX) * -0.3 + this.onPointerDownLon;
-            this.lat = (event.clientY - this.onPointerDownPointerY) * -0.3 + this.onPointerDownLat;
+            this.lon = (this.onPointerDownPointerX - event.clientX) * -0.3 + this.onPointerDownLon
+            this.lat = (event.clientY - this.onPointerDownPointerY) * -0.3 + this.onPointerDownLat
             this.computeCameraOrientation()
         }
     }

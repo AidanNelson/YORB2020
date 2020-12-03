@@ -62,29 +62,6 @@ body {
     color: white;
 }
 
-#instructions-overlay {
-    /* positioning */
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: 9;
-    visibility: hidden;
-}
-#instructions-to-exit {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
-    width: 200px;
-    height: 50px;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-}
-
 #overlay > div {
     display: flex;
     justify-content: center;
@@ -119,6 +96,7 @@ body {
 
 .webcam-status-overlay {
     /* positioning */
+    pointer-events: none;
     position: absolute;
     width: 100%;
     height: 100%;
