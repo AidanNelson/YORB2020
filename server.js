@@ -26,16 +26,15 @@ config.mediasoup.webRtcTransport.listenIps = [
     { ip: process.env.PRODUCTION_IP, announcedIp: null },
 ]
 
-console.log('Environment Variables:')
-console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
-console.log(process.env)
-console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
+// console.log('Environment Variables:')
+// console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
+// console.log(process.env)
+// console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 // IMPORTS
 
 const debugModule = require('debug')
 const mediasoup = require('mediasoup')
-const fs = require('fs')
 const https = require('https')
 
 // HTTP Server setup:
@@ -214,10 +213,10 @@ async function updateProjects() {
                 })
 
                 res.on('end', function () {
-                    // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
                     var json = JSON.parse(body)
                     projects = json
                     log('Updated projects from database.')
+                    console.log(json.length);
                     io.sockets.emit('projects', projects)
                 })
             })
@@ -225,7 +224,7 @@ async function updateProjects() {
                 log('Got an error: ', e)
             })
     } catch (err) {
-        console.error('update projects error: ' + err)
+        console.error('Update projects error: ' + err)
     }
 }
 
@@ -994,3 +993,8 @@ async function createWebRtcTransport({ peerId, direction }) {
 
     return transport
 }
+
+
+
+process.on('uncaughtException', () => server.close());
+process.on('SIGTERM', () => server.close());

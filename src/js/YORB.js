@@ -173,6 +173,7 @@ export class Yorb extends EventEmitter {
     //
     // update projects:
     updateProjects(projects) {
+        console.log('received projects:',projects.length);
         this.show.updateProjects(projects)
     }
 

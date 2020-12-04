@@ -16,7 +16,6 @@ import {Yorb} from './yorb';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
-const hostname = window.location.hostname;
 
 import * as config from '../../config';
 import * as mediasoup from 'mediasoup-client';
@@ -29,9 +28,8 @@ const err = debugModule('YORB:ERROR');
 // load p5 for self view
 const p5 = require('p5');
 
-const PRODUCTION = false;
-const WEB_SOCKET_SERVER = "wss://yorb.itp.io";
-const INSTANCE_PATH = ""; // leave blank unless running behind NGINX
+const WEB_SOCKET_SERVER = 'http://localhost:3000';
+const INSTANCE_PATH = "/socket.io"; // leave blank unless running behind NGINX
 
 
 
@@ -109,7 +107,6 @@ window.onload = async () => {
 	createScene();
 	createMiniMap();
 
-
 	// create mediasoup Device
 	try {
 		device = new mediasoup.Device();
@@ -185,8 +182,8 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket = io('localhost:3000', {
-			path: "/socket.io"
+		socket = io(WEB_SOCKET_SERVER, {
+			path: INSTANCE_PATH
 		});
 		window.socket = socket;
 		socket.request = socketPromise(socket);

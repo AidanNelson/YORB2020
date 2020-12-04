@@ -6,6 +6,7 @@ import { hackToRemovePlayerTemporarily } from './index.js'
 
 export class SpringShow {
     constructor(scene, camera, controls, mouse) {
+        console.log('Adding Spring Show!');
         this.scene = scene
         this.camera = camera
         this.controls = controls
@@ -36,9 +37,11 @@ export class SpringShow {
     // Interactable Hyperlinks for Spring Show 💎
 
     setup() {
+        console.log('Setting up Spring Show!');
         var loader = new THREE.FontLoader()
         // https://gero3.github.io/facetype.js/
-        loader.load(require('../assets/fonts/helvetiker_bold.typeface.json'), (response) => {
+        let fontFile = require("../assets/fonts/helvetiker_bold.typeface.json");
+        loader.load(fontFile, (response) => {
             // loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
             this.font = response
             //   this.createSignage();
@@ -62,6 +65,8 @@ export class SpringShow {
     }
 
     _updateProjects() {
+        console.log('updating projects');
+        console.log('font: ', this.font);
         if (this.font) {
             let projects = this.projects
 
@@ -320,9 +325,9 @@ export class SpringShow {
             textBoxMat = this.linkMaterial
         }
 
-        let filename = 'images/project_thumbnails/' + _project.project_id + '.png'
+        let filename = '../assets/images/project_thumbnails/' + _project.project_id + '.png'
 
-        let tex = this.textureLoader.load(filename)
+        let tex = this.textureLoader.load(require(filename))
         tex.wrapS = THREE.RepeatWrapping
         tex.wrapT = THREE.RepeatWrapping
         tex.repeat.set(1, 1)
