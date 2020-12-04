@@ -17,7 +17,6 @@ import {Yorb} from './yorb';
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
 
-import * as config from '../../config';
 import * as mediasoup from 'mediasoup-client';
 import debugModule from 'debug';
 
@@ -32,13 +31,9 @@ const WEB_SOCKET_SERVER = 'http://localhost:3000';
 const INSTANCE_PATH = "/socket.io"; // leave blank unless running behind NGINX
 
 
-
-
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
-
-// TODO: https://www.mattburkedev.com/export-a-global-to-the-window-object-with-browserify/
 
 //
 // export all the references we use internally to manage call state,
@@ -58,7 +53,6 @@ export let mySocketID,
 	camAudioProducer,
 	screenVideoProducer,
 	screenAudioProducer,
-	// currentActiveSpeaker = {},
 	consumers = [],
 	pollingInterval,
 	webcamVideoPaused = false,
