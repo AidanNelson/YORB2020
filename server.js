@@ -51,9 +51,9 @@ app.use(express.static(__dirname + '/public'))
 server.listen(process.env.PRODUCTION_PORT)
 console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT)
 
-const log = debugModule('demo-app')
-const warn = debugModule('demo-app:WARN')
-const err = debugModule('demo-app:ERROR')
+const log = debugModule('YORBSERVER')
+const warn = debugModule('YORBSERVER:WARN')
+const err = debugModule('YORBSERVER:ERROR')
 
 // one mediasoup worker and router
 //
