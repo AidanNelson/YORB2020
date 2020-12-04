@@ -38,7 +38,7 @@ export class SpringShow {
     setup() {
         var loader = new THREE.FontLoader()
         // https://gero3.github.io/facetype.js/
-        loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
+        loader.load(require('../assets/fonts/helvetiker_bold.typeface.json'), (response) => {
             // loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
             this.font = response
             //   this.createSignage();
