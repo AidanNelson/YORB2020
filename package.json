@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify src/index.js -o ./public/js/bundle.js",
-    "watch": "watchify --debug src/index.js -o public/js/bundle.js -v",
+    "watch": "parcel public/index.html",
     "start": "concurrently \"nodemon server.js\" \"watchify src/*.js -o public/js/bundle.js -v\"",
     "production": "export NODE_ENV=production && browserify src/index.js -o ./public/js/bundle.js && forever start server.js"
   },
