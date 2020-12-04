@@ -30,7 +30,7 @@ export class ITPModel {
 
         // floor material
         // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
-        let floorTexture = new THREE.TextureLoader().load(require('../assets/textures/floor.jpg'))
+        let floorTexture = new THREE.TextureLoader().load(require('../assets/images/textures/floor.jpg'))
         floorTexture.wrapS = THREE.RepeatWrapping
         floorTexture.wrapT = THREE.RepeatWrapping
         floorTexture.repeat.set(1, 1)

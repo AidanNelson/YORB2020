@@ -182,17 +182,15 @@ export class Yorb extends EventEmitter {
     // Model 🏗
 
     loadBackground() {
-        var path = 'models/Park2/'
-        var format = '.jpg'
-        // this.envMap = new THREE.CubeTextureLoader().load([
-        //     require(path + 'posx' + format),
-        //     require(path + 'negx' + format),
-        //     require(path + 'posy' + format),
-        //     require(path + 'negy' + format),
-        //     require(path + 'posz' + format),
-        //     require(path + 'negz' + format),
-        // ])
-        // this.scene.background = this.envMap
+        this.envMap = new THREE.CubeTextureLoader().load([
+            require("../assets/images/Park2/posx.jpg"),
+            require("../assets/images/Park2/negx.jpg"),
+            require("../assets/images/Park2/posy.jpg"),
+            require("../assets/images/Park2/negy.jpg"),
+            require("../assets/images/Park2/posz.jpg"),
+            require("../assets/images/Park2/negz.jpg"),
+        ])
+        this.scene.background = this.envMap
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//

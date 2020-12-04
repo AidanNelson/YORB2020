@@ -4,7 +4,6 @@
   "description": "Repo for YORB2020, a virtual version of the fourth floor of 370 Jay Street.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify src/index.js -o ./public/js/bundle.js",
     "watch": "parcel src/index.html",
     "start": "concurrently \"nodemon server.js\" \"watchify src/*.js -o public/js/bundle.js -v\"",
