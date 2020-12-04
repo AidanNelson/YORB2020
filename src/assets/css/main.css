@@ -342,26 +342,3 @@ body {
     text-decoration: none;
     cursor: pointer;
 }
-
-/* Audio Button */
-.audio-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.btn-audio {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    background-image: url(../images/musicswitch.png);
-    background-size: 40px;
-}
-
-.btn-audio.is-active {
-    background-position: 0 0;
-}
-
-.btn-audio.is-inactive {
-    background-position: 0 -40px;
-}
