@@ -12,7 +12,6 @@ import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 import { SpringShow } from './SpringShow2020'
 import { ITPModel } from './ITPModel'
 import { Sketches } from './Sketches'
-import { YorbControls } from './YorbControls'
 import { ProjectionScreens } from './ProjectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
 
