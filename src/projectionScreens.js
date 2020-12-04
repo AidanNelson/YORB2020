@@ -23,7 +23,7 @@ export class ProjectionScreens {
         let blankScreenVideo = document.createElement('video')
         blankScreenVideo.setAttribute('id', 'default_screenshare')
         document.body.appendChild(blankScreenVideo)
-        blankScreenVideo.src = '/images/old-television.mp4'
+        blankScreenVideo.src = require('../public/images/old-television.mp4');
         blankScreenVideo.loop = true
         blankScreenVideo.muted = true // this is necessary so it is able to auto play
         blankScreenVideo.play()

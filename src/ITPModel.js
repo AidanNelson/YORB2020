@@ -1,9 +1,11 @@
-const THREE = require('./libs/three.min.js')
-require('./libs/GLTFLoader.js')(THREE)
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+// import FloorModel from "../public/models/itp/floor.glb";
+// let floorModel = require("../public/models/itp/floor.glb");
 export class ITPModel {
     constructor(scene) {
-        this.GLTFLoader = new THREE.GLTFLoader()
+        this.GLTFLoader = new GLTFLoader()
 
         this.scene = scene
         this.createMaterials()
@@ -30,7 +32,7 @@ export class ITPModel {
 
         // floor material
         // https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_variations_phong.html
-        let floorTexture = new THREE.TextureLoader().load('textures/floor.jpg')
+        let floorTexture = new THREE.TextureLoader().load(require('../public/textures/floor.jpg'))
         floorTexture.wrapS = THREE.RepeatWrapping
         floorTexture.wrapT = THREE.RepeatWrapping
         floorTexture.repeat.set(1, 1)
@@ -98,6 +100,7 @@ export class ITPModel {
             },
             undefined,
             function (e) {
+                console.log('trying to load',_file);
                 console.error(e)
             }
         )
@@ -108,18 +111,18 @@ export class ITPModel {
         this.floorModelParts = []
         this.matMode = 0
 
-        this.loadModel('models/itp/ceiling.glb', this.ceilingMaterial, scaleFactor, true, false)
-        this.loadModel('models/itp/floor.glb', this.floorMaterial, scaleFactor, false, true, true)
-        this.loadModel('models/itp/glass-fixturing.glb', this.glassFixturingMaterial, scaleFactor, true, false)
-        this.loadModel('models/itp/glass.glb', this.glassMaterial, scaleFactor, false, false, true)
-        this.loadModel('models/itp/granite-bar.glb', this.graniteBarMaterial, scaleFactor, true, false, true)
-        this.loadModel('models/itp/ibeam.glb', this.paintedMetalMaterial, scaleFactor, true, false, true)
-        // this.loadModel('models/itp/light-diffuser.glb', this.lightDiffuserMaterial, scaleFactor, false, false);
-        // this.loadModel('models/itp/light-housing.glb', this.lightHousingMaterial, scaleFactor, false, false);
-        // this.loadModel('models/itp/lighting-grid.glb', this.wallMaterial, scaleFactor, false, false);
-        this.loadModel('models/itp/walls.glb', this.wallMaterial, scaleFactor, true, false, true)
-        this.loadModel('models/itp/window-shelf.glb', this.windowShelfMaterial, scaleFactor, true, false)
-        this.loadModel('models/itp/wooden-bar.glb', this.floorMaterial, scaleFactor, true, true, true)
+        this.loadModel(require('../public/models/itp/ceiling.glb'), this.ceilingMaterial, scaleFactor, true, false)
+        this.loadModel(require('../public/models/itp/floor.glb'), this.floorMaterial, scaleFactor, false, true, true)
+        this.loadModel(require('../public/models/itp/glass-fixturing.glb'), this.glassFixturingMaterial, scaleFactor, true, false)
+        this.loadModel(require('../public/models/itp/glass.glb'), this.glassMaterial, scaleFactor, false, false, true)
+        this.loadModel(require('../public/models/itp/granite-bar.glb'), this.graniteBarMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../public/models/itp/ibeam.glb'), this.paintedMetalMaterial, scaleFactor, true, false, true)
+        // this.loadModel(require('../public/models/itp/light-diffuser.glb'), this.lightDiffuserMaterial, scaleFactor, false, false);
+        // this.loadModel(require('../public/models/itp/light-housing.glb'), this.lightHousingMaterial, scaleFactor, false, false);
+        // this.loadModel(require('../public/models/itp/lighting-grid.glb'), this.wallMaterial, scaleFactor, false, false);
+        this.loadModel(require('../public/models/itp/walls.glb'), this.wallMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../public/models/itp/window-shelf.glb'), this.windowShelfMaterial, scaleFactor, true, false)
+        this.loadModel(require('../public/models/itp/wooden-bar.glb'), this.floorMaterial, scaleFactor, true, true, true)
     }
 
     swapMaterials() {
