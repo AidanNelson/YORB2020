@@ -12,7 +12,7 @@
 import 'regenerator-runtime/runtime'
 
 
-import {Yorb} from './Yorb';
+import {Yorb} from './yorb';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
