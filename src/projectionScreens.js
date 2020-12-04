@@ -1,4 +1,4 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
 import { makeVideoTextureAndMaterial, redrawVideoCanvas } from './utils'
 import { shareScreen } from './index'
 

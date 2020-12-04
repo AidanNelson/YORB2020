@@ -1,4 +1,5 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
+
 
 import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'

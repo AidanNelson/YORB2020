@@ -16,7 +16,8 @@ import { YorbControls } from './YorbControls'
 import { ProjectionScreens } from './ProjectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
 
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
+
 const Stats = require('./libs/stats.min.js')
 const EventEmitter = require('events')
 
