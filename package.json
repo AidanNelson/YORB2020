@@ -7,8 +7,7 @@
     "build": "parcel build src/index.js",
     "watch": "parcel src/index.html",
     "start-server": "node server/server.js",
-    "start": "concurrently \"nodemon server/server.js\" \"watchify src/*.js -o public/js/bundle.js -v\"",
-    "production": "export NODE_ENV=production && browserify src/index.js -o ./public/js/bundle.js && forever start server.js"
+    "production": "parcel build src/index.js && forever start server/server.js"
   },
   "author": "",
   "license": "ISC",
