@@ -215,8 +215,7 @@ async function updateProjects() {
                 res.on('end', function () {
                     var json = JSON.parse(body)
                     projects = json
-                    log('Updated projects from database.')
-                    console.log(json.length);
+                    log('Received',json.length,'projects from database.')
                     io.sockets.emit('projects', projects)
                 })
             })
@@ -232,6 +231,7 @@ async function updateProjects() {
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function runSocketServer() {
+    log("Listening for socket connections.")
     // update all sockets at regular intervals
     setInterval(() => {
         io.sockets.emit('userPositions', clients)
