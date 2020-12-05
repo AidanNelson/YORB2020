@@ -15,9 +15,14 @@
 
 // Set these for your particular IP / Port
 PROJECT_DATABASE_URL="https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=157"
+
+// For working locally
 PRODUCTION_IP = "192.168.0.107"
 PRODUCTION_PORT = "3000";
 
+// For deploying on YORB.itp.io
+// PRODUCTION_IP="142.93.6.195"
+// PRODUCTION_PORT="3040"
 
 
 
