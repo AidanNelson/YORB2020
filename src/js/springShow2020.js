@@ -3,6 +3,8 @@ import * as THREE from 'three'
 import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
 
+const project_thumbnails = require('../assets/images/project_thumbnails/*.png')
+
 export class SpringShow {
     constructor(scene, camera, controls, mouse) {
         this.scene = scene
@@ -37,8 +39,8 @@ export class SpringShow {
     setup() {
         var loader = new THREE.FontLoader()
         let fontJSON = require('../assets/fonts/helvetiker_bold.json')
-        this.font = loader.parse(fontJSON);
-        this._updateProjects();
+        this.font = loader.parse(fontJSON)
+        this._updateProjects()
     }
 
     /*
@@ -315,12 +317,16 @@ export class SpringShow {
             textBoxMat = this.linkMaterial
         }
 
-        let filename = 'images/project_thumbnails/' + _project.project_id + '.png'
-
-        let tex = this.textureLoader.load(filename)
+        let tex;
+        if (project_thumbnails[_project.project_id]) {
+            tex = this.textureLoader.load(project_thumbnails[_project.project_id])
+        } else {
+            tex = this.textureLoader.load(project_thumbnails["0000"]); // default texture
+        }
         tex.wrapS = THREE.RepeatWrapping
-        tex.wrapT = THREE.RepeatWrapping
-        tex.repeat.set(1, 1)
+            tex.wrapT = THREE.RepeatWrapping
+            tex.repeat.set(1, 1)
+
         let imageMat = new THREE.MeshLambertMaterial({
             color: 0xffffff,
             map: tex,
