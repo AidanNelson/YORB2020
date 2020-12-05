@@ -9,10 +9,10 @@ import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 
-import { SpringShow } from './SpringShow2020'
-import { ITPModel } from './ITPModel'
-import { Sketches } from './sketches'
-import { ProjectionScreens } from './ProjectionScreens'
+import { SpringShow } from './springShow2020'
+import { ITPModel } from './itpModel'
+import { Sketches } from './p5Sketches'
+import { ProjectionScreens } from './projectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
 
 import * as THREE from "three";
