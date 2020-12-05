@@ -421,6 +421,8 @@ export class SpringShow {
         // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
         if (!document.getElementsByClassName('project-modal')[0]) {
+
+            this.controls.pause();
             localStorage.setItem(project.project_id, 'visited')
 
             let id = project.project_id
@@ -444,6 +446,7 @@ export class SpringShow {
                 let now = Date.now()
                 let link = this.scene.getObjectByName(id)
                 link.userData.lastVisitedTime = now
+                this.controls.resume();
                 setTimeout(() => {
                     this.activeProjectId = -1;
                 }, 100); // this helps reset without reopening the modal

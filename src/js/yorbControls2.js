@@ -1,5 +1,4 @@
-import * as THREE from "three";
-
+import * as THREE from 'three'
 
 export class YorbControls2 {
     constructor(scene, camera, renderer) {
@@ -29,10 +28,16 @@ export class YorbControls2 {
         this.camera.target = new THREE.Vector3(0, 0, 0)
     }
 
+    pause() {
+        this.paused = true
+    }
+    resume() {
+        this.paused = false
+    }
+
     // Set up pointer lock controls and corresponding event listeners
     setupControls() {
         let jumpSpeed = 12
-        // this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement)
 
         this.moveForward = false
         this.moveBackward = false
