@@ -41,10 +41,6 @@ export class Yorb extends EventEmitter {
         this.gravity = 2.0
         this.raycaster = new THREE.Raycaster()
         this.textParser = new DOMParser()
-        this.mouse = {
-            x: 0,
-            y: 0,
-        }
         this.hightlightedProjectId = -1 // to start
         this.textureLoader = new THREE.TextureLoader()
 
@@ -121,7 +117,7 @@ export class Yorb extends EventEmitter {
     addYORBParts() {
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer)
 
-        this.projectionScreens = new ProjectionScreens(this.scene, this.camera)
+        this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
         this.itpModel = new ITPModel(this.scene)
 
         this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
