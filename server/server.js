@@ -33,6 +33,9 @@ console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 // IMPORTS
 
+// set debug name
+process.env.DEBUG = 'YORBSERVER*'
+
 const debugModule = require('debug')
 const mediasoup = require('mediasoup')
 const fs = require('fs')
@@ -44,16 +47,24 @@ var express = require('express'),
     http = require('http')
 var app = express()
 var server = http.createServer(app)
-var io = require('socket.io').listen(server)
+// var io = require('socket.io').listen(server)
+let io = require('socket.io')()
+io.listen(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
+})
 
 app.use(express.static(__dirname + '/public'))
 
 server.listen(process.env.PRODUCTION_PORT)
-console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT)
+console.log('Server listening on port', process.env.PRODUCTION_PORT)
 
-const log = debugModule('demo-app')
-const warn = debugModule('demo-app:WARN')
-const err = debugModule('demo-app:ERROR')
+const log = debugModule('YORBSERVER')
+const warn = debugModule('YORBSERVER:WARN')
+const err = debugModule('YORBSERVER:ERROR')
 
 // one mediasoup worker and router
 //

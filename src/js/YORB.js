@@ -11,12 +11,12 @@ import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 
 import { SpringShow } from './SpringShow2020'
 import { ITPModel } from './ITPModel'
-import { Sketches } from './Sketches'
-import { YorbControls } from './YorbControls'
+import { Sketches } from './sketches'
 import { ProjectionScreens } from './ProjectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
 
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
+
 const Stats = require('./libs/stats.min.js')
 const EventEmitter = require('events')
 
@@ -173,6 +173,7 @@ export class Yorb extends EventEmitter {
     //
     // update projects:
     updateProjects(projects) {
+        console.log('yorb received',projects.length,'show projects');
         this.show.updateProjects(projects)
     }
 
@@ -181,15 +182,13 @@ export class Yorb extends EventEmitter {
     // Model 🏗
 
     loadBackground() {
-        var path = 'models/Park2/'
-        var format = '.jpg'
         this.envMap = new THREE.CubeTextureLoader().load([
-            path + 'posx' + format,
-            path + 'negx' + format,
-            path + 'posy' + format,
-            path + 'negy' + format,
-            path + 'posz' + format,
-            path + 'negz' + format,
+            require("../assets/images/Park2/posx.jpg"),
+            require("../assets/images/Park2/negx.jpg"),
+            require("../assets/images/Park2/posy.jpg"),
+            require("../assets/images/Park2/negy.jpg"),
+            require("../assets/images/Park2/posz.jpg"),
+            require("../assets/images/Park2/negz.jpg"),
         ])
         this.scene.background = this.envMap
     }

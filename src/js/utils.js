@@ -1,4 +1,5 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
+
 
 // creates a text mesh and returns it, from:
 // https://threejs.org/examples/?q=text#webgl_geometry_text_shapes
