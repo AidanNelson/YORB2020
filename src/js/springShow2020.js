@@ -12,6 +12,9 @@ export class SpringShow {
         this.controls = controls
         this.mouse = mouse
 
+        this.hightlightedProjectId = -1;
+        this.activeProjectId = -1; // will change to project ID if a project is active
+
         // we need some stuff to operate:
         this.raycaster = new THREE.Raycaster()
         this.textureLoader = new THREE.TextureLoader()
@@ -193,6 +196,7 @@ export class SpringShow {
                     this.hyperlinkedObjects.push(hyperlink)
                     this.scene.add(hyperlink)
                 }
+
 
                 startIndex = endIndex
                 endIndex = endIndex + 11
@@ -440,6 +444,10 @@ export class SpringShow {
                 let now = Date.now()
                 let link = this.scene.getObjectByName(id)
                 link.userData.lastVisitedTime = now
+                setTimeout(() => {
+                    this.activeProjectId = -1;
+                }, 100); // this helps reset without reopening the modal
+                
             })
             closeButton.innerHTML = 'X'
 
@@ -592,17 +600,22 @@ export class SpringShow {
     }
 
     activateHighlightedProject() {
-        if (this.hightlightedProjectId != -1) {
+        if (this.hightlightedProjectId != -1 && this.activeProjectId === -1) {
             let link = this.scene.getObjectByName(this.hightlightedProjectId)
             if (link != null) {
                 this.generateProjectModal(link.userData.project)
                 hackToRemovePlayerTemporarily()
+
+                // reset markers
+                this.activeProjectId = link.userData.project.project_id;
             }
         }
     }
 
     update() {
-        this.highlightHyperlinks()
+        if (this.activeProjectId == -1){
+            this.highlightHyperlinks()
+        }
     }
 
     onMouseClick(e) {
