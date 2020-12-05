@@ -22,9 +22,9 @@ import * as config from '../../config';
 import * as mediasoup from 'mediasoup-client';
 import debugModule from 'debug';
 
-const log = debugModule('demo-app');
-const warn = debugModule('demo-app:WARN');
-const err = debugModule('demo-app:ERROR');
+const log = debugModule('YORB');
+const warn = debugModule('YORB:WARN');
+const err = debugModule('YORB:ERROR');
 
 // load p5 for self view
 const p5 = require('p5');
