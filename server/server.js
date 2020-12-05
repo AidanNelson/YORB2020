@@ -13,7 +13,7 @@
 // Set environment variables
 // Set Debug level before we require 'debug' or 'mediasoup'!
 
-const config = require('./config')
+const config = require('../config')
 require('dotenv').config()
 
 // copy over config from .env file:

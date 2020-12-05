@@ -11,7 +11,6 @@
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 import 'regenerator-runtime/runtime'
 
-
 import {Yorb} from './yorb';
 
 const io = require('socket.io-client');
