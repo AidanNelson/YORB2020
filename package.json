@@ -7,7 +7,7 @@
     "build": "parcel build src/index.js",
     "watch": "parcel src/index.html",
     "start-server": "node server/server.js",
-    "production": "parcel build src/index.js && forever start server/server.js"
+    "production": "parcel build src/index.html && forever start server/server.js"
   },
   "author": "",
   "license": "ISC",
