@@ -30,9 +30,13 @@ const p5 = require('p5');
 
 
 
-// Set these:
-const WEB_SOCKET_SERVER = "localhost:3000";
-const INSTANCE_PATH = "/socket.io"; // leave blank unless running behind NGINX
+// For running against local server
+// const WEB_SOCKET_SERVER = "localhost:3000";
+// const INSTANCE_PATH = "/socket.io";
+
+// For running against ITP server
+const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+const INSTANCE_PATH = "/experimental/socket.io";
 
 
 
