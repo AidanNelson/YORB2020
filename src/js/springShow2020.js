@@ -1,5 +1,4 @@
-import * as THREE from "three";
-
+import * as THREE from 'three'
 
 import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
@@ -37,13 +36,9 @@ export class SpringShow {
 
     setup() {
         var loader = new THREE.FontLoader()
-        // https://gero3.github.io/facetype.js/
-        loader.load(require('../assets/fonts/helvetiker_bold.typeface.json'), (response) => {
-            // loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
-            this.font = response
-            //   this.createSignage();
-            this._updateProjects()
-        })
+        let fontJSON = require('../assets/fonts/helvetiker_bold.json')
+        this.font = loader.parse(fontJSON);
+        this._updateProjects();
     }
 
     /*
