@@ -26,15 +26,16 @@ config.mediasoup.webRtcTransport.listenIps = [
     { ip: process.env.PRODUCTION_IP, announcedIp: null },
 ]
 
-// console.log('Environment Variables:')
-// console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
-// console.log(process.env)
-// console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
+console.log('Environment Variables:')
+console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
+console.log(process.env)
+console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
 
 // IMPORTS
 
 const debugModule = require('debug')
 const mediasoup = require('mediasoup')
+const fs = require('fs')
 const https = require('https')
 
 // HTTP Server setup:
@@ -50,9 +51,9 @@ app.use(express.static(__dirname + '/public'))
 server.listen(process.env.PRODUCTION_PORT)
 console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT)
 
-const log = debugModule('YORBSERVER')
-const warn = debugModule('YORBSERVER:WARN')
-const err = debugModule('YORBSERVER:ERROR')
+const log = debugModule('demo-app')
+const warn = debugModule('demo-app:WARN')
+const err = debugModule('demo-app:ERROR')
 
 // one mediasoup worker and router
 //
@@ -213,9 +214,10 @@ async function updateProjects() {
                 })
 
                 res.on('end', function () {
+                    // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
                     var json = JSON.parse(body)
                     projects = json
-                    log('Received',json.length,'projects from database.')
+                    log('Updated projects from database.')
                     io.sockets.emit('projects', projects)
                 })
             })
@@ -223,7 +225,7 @@ async function updateProjects() {
                 log('Got an error: ', e)
             })
     } catch (err) {
-        console.error('Update projects error: ' + err)
+        console.error('update projects error: ' + err)
     }
 }
 
@@ -231,7 +233,6 @@ async function updateProjects() {
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function runSocketServer() {
-    log("Listening for socket connections.")
     // update all sockets at regular intervals
     setInterval(() => {
         io.sockets.emit('userPositions', clients)
@@ -993,8 +994,3 @@ async function createWebRtcTransport({ peerId, direction }) {
 
     return transport
 }
-
-
-
-process.on('uncaughtException', () => server.close());
-process.on('SIGTERM', () => server.close());

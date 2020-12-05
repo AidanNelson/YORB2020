@@ -124,8 +124,8 @@ export class Yorb extends EventEmitter {
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera)
         this.itpModel = new ITPModel(this.scene)
 
-        // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
-        // this.show.setup()
+        this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
+        this.show.setup()
 
         this.sketches = new Sketches(this.scene)
         setTimeout(() => {
@@ -173,8 +173,7 @@ export class Yorb extends EventEmitter {
     //
     // update projects:
     updateProjects(projects) {
-        console.log('received projects:',projects.length);
-        // this.show.updateProjects(projects)
+        this.show.updateProjects(projects)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -318,7 +317,7 @@ export class Yorb extends EventEmitter {
             if (this.frameCount % 20 == 0) {
                 this.updateClientVolumes()
                 this.movementCallback()
-                // this.show.update()
+                this.show.update()
                 this.projectionScreens.checkProjectionScreenCollisions()
             }
             if (this.frameCount % 50 == 0) {
