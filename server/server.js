@@ -13,7 +13,7 @@
 // Set environment variables
 // Set Debug level before we require 'debug' or 'mediasoup'!
 
-const config = require('../config')
+const config = require('./config')
 require('dotenv').config()
 
 // copy over config from .env file:
@@ -34,8 +34,7 @@ console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
 // IMPORTS
 
 // set debug name
-process.env.DEBUG = "YORBSERVER*";
-
+process.env.DEBUG = 'YORBSERVER*'
 
 const debugModule = require('debug')
 const mediasoup = require('mediasoup')
@@ -48,12 +47,20 @@ var express = require('express'),
     http = require('http')
 var app = express()
 var server = http.createServer(app)
-var io = require('socket.io').listen(server)
+// var io = require('socket.io').listen(server)
+let io = require('socket.io')()
+io.listen(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
+})
 
 app.use(express.static(__dirname + '/public'))
 
 server.listen(process.env.PRODUCTION_PORT)
-console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT)
+console.log('Server listening on port', process.env.PRODUCTION_PORT)
 
 const log = debugModule('YORBSERVER')
 const warn = debugModule('YORBSERVER:WARN')
