@@ -9,14 +9,16 @@ import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 
-import { SpringShow } from './SpringShow2020'
-import { ITPModel } from './ITPModel'
-import { Sketches } from './Sketches'
-import { YorbControls } from './YorbControls'
-import { ProjectionScreens } from './ProjectionScreens'
+import { SpringShow } from './springShow2020'
+import { ITPModel } from './itpModel'
+import { Sketches } from './p5Sketches'
+import { ProjectionScreens } from './projectionScreens'
+import { YorbControls2 } from './yorbControls2.js'
 import { Yorblet } from './Yorblets.js'
 
-const THREE = require('./libs/three.min.js')
+
+import * as THREE from "three";
+
 const Stats = require('./libs/stats.min.js')
 const EventEmitter = require('events')
 
@@ -41,10 +43,6 @@ export class Yorb extends EventEmitter {
         this.gravity = 2.0
         this.raycaster = new THREE.Raycaster()
         this.textParser = new DOMParser()
-        this.mouse = {
-            x: 0,
-            y: 0,
-        }
         this.hightlightedProjectId = -1 // to start
         this.textureLoader = new THREE.TextureLoader()
 
@@ -60,6 +58,8 @@ export class Yorb extends EventEmitter {
         //THREE Camera
         this.cameraHeight = 1.75
         this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.1, 5000)
+
+        this.mouse = new THREE.Vector2()
 
         /*
          *
@@ -102,6 +102,7 @@ export class Yorb extends EventEmitter {
 
         //Setup event listeners for events and handle the states
         window.addEventListener('resize', (e) => this.onWindowResize(e), false)
+        window.addEventListener('mousemove', (e) => this.onMouseMove(e), false)
 
         // Helpers
         this.helperGrid = new THREE.GridHelper(500, 500)
@@ -116,12 +117,16 @@ export class Yorb extends EventEmitter {
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // add YORB parts
     addYORBParts() {
-        this.controls = new YorbControls(this.scene, this.camera, this.renderer)
+        this.controls = new YorbControls2(this.scene, this.camera, this.renderer)
 
-        this.projectionScreens = new ProjectionScreens(this.scene, this.camera)
-        // this.itpModel = new ITPModel(this.scene)
+        this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
+        this.itpModel = new ITPModel(this.scene)
 
         this.yorblet = new Yorblet(this.scene, this.projectionScreens);
+
+
+        this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
+        this.show.setup()
 
         // this.show = new SpringShow(this.scene, this.camera, this.controls)
         // this.show.setup()
@@ -172,7 +177,8 @@ export class Yorb extends EventEmitter {
     //
     // update projects:
     updateProjects(projects) {
-        // this.show.updateProjects(projects)
+        console.log('yorb received',projects.length,'show projects');
+        this.show.updateProjects(projects)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -180,15 +186,13 @@ export class Yorb extends EventEmitter {
     // Model 🏗
 
     loadBackground() {
-        var path = 'models/Park2/'
-        var format = '.jpg'
         this.envMap = new THREE.CubeTextureLoader().load([
-            path + 'posx' + format,
-            path + 'negx' + format,
-            path + 'posy' + format,
-            path + 'negy' + format,
-            path + 'posz' + format,
-            path + 'negz' + format,
+            require("../assets/images/Park2/posx.jpg"),
+            require("../assets/images/Park2/negx.jpg"),
+            require("../assets/images/Park2/posy.jpg"),
+            require("../assets/images/Park2/negy.jpg"),
+            require("../assets/images/Park2/posz.jpg"),
+            require("../assets/images/Park2/negz.jpg"),
         ])
         this.scene.background = this.envMap
     }
@@ -421,6 +425,13 @@ export class Yorb extends EventEmitter {
         this.renderer.setSize(this.width, this.height)
     }
 
+    onMouseMove(event) {
+        // calculate mouse position in normalized device coordinates
+        // (-1 to +1) for both components
+
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+    }
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // Utilities:

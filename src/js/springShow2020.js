@@ -1,13 +1,19 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from 'three'
 
 import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
 
+const project_thumbnails = require('../assets/images/project_thumbnails/*.png')
+
 export class SpringShow {
-    constructor(scene, camera, controls) {
+    constructor(scene, camera, controls, mouse) {
         this.scene = scene
         this.camera = camera
         this.controls = controls
+        this.mouse = mouse
+
+        this.hightlightedProjectId = -1;
+        this.activeProjectId = -1; // will change to project ID if a project is active
 
         // we need some stuff to operate:
         this.raycaster = new THREE.Raycaster()
@@ -25,8 +31,8 @@ export class SpringShow {
         this.hyperlinkedObjects = []
         this.linkMaterials = {}
 
-        let domElement = document.getElementById('scene-container')
-        domElement.addEventListener('click', (e) => this.onMouseClick(e), false)
+        // let domElement = document.getElementById('scene-container')
+        window.addEventListener('click', (e) => this.onMouseClick(e), false)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -35,13 +41,9 @@ export class SpringShow {
 
     setup() {
         var loader = new THREE.FontLoader()
-        // https://gero3.github.io/facetype.js/
-        loader.load('fonts/helvetiker_bold.typeface.json', (response) => {
-            // loader.load('fonts/VCR_OSD_Mono_Regular.json', (response) => {
-            this.font = response
-            //   this.createSignage();
-            this._updateProjects()
-        })
+        let fontJSON = require('../assets/fonts/helvetiker_bold.json')
+        this.font = loader.parse(fontJSON)
+        this._updateProjects()
     }
 
     /*
@@ -195,6 +197,7 @@ export class SpringShow {
                     this.scene.add(hyperlink)
                 }
 
+
                 startIndex = endIndex
                 endIndex = endIndex + 11
                 for (let i = startIndex; i < endIndex; i++) {
@@ -318,12 +321,16 @@ export class SpringShow {
             textBoxMat = this.linkMaterial
         }
 
-        let filename = 'images/project_thumbnails/' + _project.project_id + '.png'
-
-        let tex = this.textureLoader.load(filename)
+        let tex;
+        if (project_thumbnails[_project.project_id]) {
+            tex = this.textureLoader.load(project_thumbnails[_project.project_id])
+        } else {
+            tex = this.textureLoader.load(project_thumbnails["0000"]); // default texture
+        }
         tex.wrapS = THREE.RepeatWrapping
-        tex.wrapT = THREE.RepeatWrapping
-        tex.repeat.set(1, 1)
+            tex.wrapT = THREE.RepeatWrapping
+            tex.repeat.set(1, 1)
+
         let imageMat = new THREE.MeshLambertMaterial({
             color: 0xffffff,
             map: tex,
@@ -414,6 +421,8 @@ export class SpringShow {
         // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
         if (!document.getElementsByClassName('project-modal')[0]) {
+
+            this.controls.pause();
             localStorage.setItem(project.project_id, 'visited')
 
             let id = project.project_id
@@ -433,11 +442,15 @@ export class SpringShow {
             let closeButton = document.createElement('button')
             closeButton.addEventListener('click', () => {
                 modalEl.remove()
-                this.controls.lock()
                 // https://stackoverflow.com/questions/19426559/three-js-access-scene-objects-by-name-or-id
                 let now = Date.now()
                 let link = this.scene.getObjectByName(id)
                 link.userData.lastVisitedTime = now
+                this.controls.resume();
+                setTimeout(() => {
+                    this.activeProjectId = -1;
+                }, 100); // this helps reset without reopening the modal
+                
             })
             closeButton.innerHTML = 'X'
 
@@ -532,7 +545,8 @@ export class SpringShow {
         let lastHighlightedProjectId = this.hightlightedProjectId
 
         // cast ray out from camera
-        this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera)
+        this.raycaster.setFromCamera(this.mouse, this.camera)
+
         var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects)
 
         // if we have intersections, highlight them
@@ -589,18 +603,22 @@ export class SpringShow {
     }
 
     activateHighlightedProject() {
-        if (this.hightlightedProjectId != -1) {
+        if (this.hightlightedProjectId != -1 && this.activeProjectId === -1) {
             let link = this.scene.getObjectByName(this.hightlightedProjectId)
             if (link != null) {
-                this.controls.unlock()
                 this.generateProjectModal(link.userData.project)
                 hackToRemovePlayerTemporarily()
+
+                // reset markers
+                this.activeProjectId = link.userData.project.project_id;
             }
         }
     }
 
     update() {
-        this.highlightHyperlinks()
+        if (this.activeProjectId == -1){
+            this.highlightHyperlinks()
+        }
     }
 
     onMouseClick(e) {

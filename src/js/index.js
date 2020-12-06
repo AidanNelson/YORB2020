@@ -9,27 +9,34 @@
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // IMPORTS
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
+import 'regenerator-runtime/runtime'
 
-import {Yorb} from './Yorb';
+import {Yorb} from './yorb';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
-const hostname = window.location.hostname;
+// const hostname = window.location.hostname;
 
-import * as config from '../config';
+// import * as config from '../../server/config';
 import * as mediasoup from 'mediasoup-client';
 import debugModule from 'debug';
 
-const log = debugModule('demo-app');
-const warn = debugModule('demo-app:WARN');
-const err = debugModule('demo-app:ERROR');
+const log = debugModule('YORB');
+const warn = debugModule('YORB:WARN');
+const err = debugModule('YORB:ERROR');
 
 // load p5 for self view
 const p5 = require('p5');
 
-const PRODUCTION = false;
-const WEB_SOCKET_SERVER = "wss://yorb.itp.io";
-const INSTANCE_PATH = ""; // leave blank unless running behind NGINX
+
+
+// For running against local server
+// const WEB_SOCKET_SERVER = "localhost:3000";
+// const INSTANCE_PATH = "/socket.io";
+
+// For running against ITP server
+const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+const INSTANCE_PATH = "/experimental/socket.io";
 
 
 
@@ -138,7 +145,6 @@ window.onload = async () => {
 	// the page unloads
 	window.addEventListener('unload', () => {
 		socket.request('leave', {});
-		// sig('leave', {}, true)
 	});
 
 	alert("Allow YORB to access your webcam for the full experience");
@@ -150,8 +156,7 @@ window.onload = async () => {
 
 
 async function init() {
-	yorbScene.controls.lock();
-	document.getElementById("instructions-overlay").style.visibility = "visible";
+	document.getElementById("overlay").style.visibility = "hidden";
 
 	// only join room after we user has interacted with DOM (to ensure that media elements play)
 	if (!initialized) {
@@ -185,8 +190,9 @@ function initSocketConnection() {
 	return new Promise(resolve => {
 
 		console.log("Initializing socket.io...");
-		socket= io();
-
+		socket = io(WEB_SOCKET_SERVER, {
+			path: INSTANCE_PATH
+		});
 		window.socket = socket;
 		socket.request = socketPromise(socket);
 
@@ -437,7 +443,7 @@ async function createMiniMap() {
 		let mapImg = false;
 
 		sketch.setup = () => {
-			mapImg = sketch.loadImage("images/map.png");
+			mapImg = sketch.loadImage(require("../assets/images/map.png"));
 			sketch.createCanvas(300, 300);
 			sketch.pixelDensity(1);
 			sketch.frameRate(5);

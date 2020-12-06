@@ -1,33 +1,43 @@
-const THREE = require('./libs/three.min.js')
-require('./libs/pointerLockControls.js')(THREE)
+import * as THREE from 'three'
 
-export class YorbControls {
+export class YorbControls2 {
     constructor(scene, camera, renderer) {
         this.scene = scene
         this.camera = camera
         this.renderer = renderer
 
+        this.paused = false
+
         this.cameraHeight = 1.5
 
         this.raycaster = new THREE.Raycaster()
 
-        this.collidableMeshList = []
         this.setupControls()
         this.setupCollisionDetection()
+
+        this.velocity.y = 0
+
+        // variables for drag controls
+        this.onPointerDownPointerX = 0
+        this.onPointerDownPointerY = 0
+        this.lon = 0
+        this.lat = 0
+        this.phi = 0
+        this.theta = 0
+        this.isUserInteracting = false
+        this.camera.target = new THREE.Vector3(0, 0, 0)
     }
 
-    lock() {
-        this.controls.lock()
+    pause() {
+        this.paused = true
     }
-
-    unlock() {
-        this.controls.unlock()
+    resume() {
+        this.paused = false
     }
 
     // Set up pointer lock controls and corresponding event listeners
     setupControls() {
         let jumpSpeed = 12
-        this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement)
 
         this.moveForward = false
         this.moveBackward = false
@@ -40,22 +50,6 @@ export class YorbControls {
         this.direction = new THREE.Vector3()
         this.vertex = new THREE.Vector3()
         this.color = new THREE.Color()
-
-        var overlay = document.getElementById('overlay')
-
-        this.controls.addEventListener('lock', () => {
-            this.clearControls()
-            this.paused = false
-            overlay.style.visibility = 'hidden'
-            document.getElementById('instructions-overlay').style.visibility = 'visible'
-        })
-
-        this.controls.addEventListener('unlock', () => {
-            overlay.style.visibility = 'visible'
-            this.clearControls()
-            this.paused = true
-            document.getElementById('instructions-overlay').style.visibility = 'hidden'
-        })
 
         document.addEventListener(
             'keydown',
@@ -118,7 +112,29 @@ export class YorbControls {
             false
         )
 
-        this.velocity.y = 0
+        let domElement = document.getElementById('scene-container')
+
+        domElement.addEventListener(
+            'mousedown',
+            (e) => {
+                this.onDocumentMouseDown(e)
+            },
+            false
+        )
+        domElement.addEventListener(
+            'mousemove',
+            (e) => {
+                this.onDocumentMouseMove(e)
+            },
+            false
+        )
+        domElement.addEventListener(
+            'mouseup',
+            (e) => {
+                this.onDocumentMouseUp(e)
+            },
+            false
+        )
     }
 
     // clear control state every time we reenter the game
@@ -152,75 +168,86 @@ export class YorbControls {
     // see: https://github.com/mrdoob/three.js/issues/5566
     updateControls() {
         let speed = 50
-        if (this.controls.isLocked === true) {
-            var time = performance.now()
-            var rawDelta = (time - this.prevTime) / 1000
-            // clamp delta so lower frame rate clients don't end up way far away
-            let delta = Math.min(rawDelta, 0.1)
 
-            this.velocity.x -= this.velocity.x * 10.0 * delta
-            this.velocity.z -= this.velocity.z * 10.0 * delta
+        var time = performance.now()
+        var rawDelta = (time - this.prevTime) / 1000
+        // clamp delta so lower frame rate clients don't end up way far away
+        let delta = Math.min(rawDelta, 0.1)
 
-            this.direction.z = Number(this.moveForward) - Number(this.moveBackward)
-            this.direction.x = Number(this.moveRight) - Number(this.moveLeft)
-            this.direction.normalize() // this ensures consistent this.movements in all this.directions
+        this.velocity.x -= this.velocity.x * 10.0 * delta
+        this.velocity.z -= this.velocity.z * 10.0 * delta
 
-            if (this.moveForward || this.moveBackward) {
-                this.velocity.z -= this.direction.z * speed * delta
-            }
+        this.direction.z = Number(this.moveForward) - Number(this.moveBackward)
+        this.direction.x = Number(this.moveRight) - Number(this.moveLeft)
+        this.direction.normalize() // this ensures consistent this.movements in all this.directions
 
-            if (this.moveLeft || this.moveRight) {
-                this.velocity.x -= this.direction.x * speed * delta
-            }
-
-            // left-right movement
-            if ((this.velocity.x > 0 && !this.obstacles.left) || (this.velocity.x < 0 && !this.obstacles.right)) {
-                this.controls.moveRight(-this.velocity.x * delta)
-            }
-
-            // front-back movement
-            if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
-                this.controls.moveForward(-this.velocity.z * delta)
-            }
-
-            // up-down movement
-            // origin point from which we cast a ray downwards
-            var origin = this.controls.getObject().position.clone()
-            origin.set(origin.x, origin.y - this.cameraHeight, origin.z) // set origin to floor level
-
-            // set the raycaster to check downward from this point
-            this.raycaster.set(origin, new THREE.Vector3(0, -1, 0))
-
-            var intersectionsDown = this.raycaster.intersectObjects(this.getCollidables())
-            var onObject = intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.25
-            // Here we talkin bout gravity...
-            // this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
-
-            // For double-jumping!
-            if (this.camera.position.y > 2.5) {
-                // less gravity like when we begin
-                this.gravity = 2.0
-            } else {
-                // once we get below the ceiling, the original value
-                this.gravity = 8.0
-            }
-            this.velocity.y -= 9.8 * this.gravity * delta // 100.0 = mass
-
-            if (onObject === true) {
-                this.velocity.y = Math.max(0, this.velocity.y)
-                this.canJump = true
-            }
-
-            this.camera.position.y += this.velocity.y * delta // new behavior
-
-            if (this.camera.position.y < this.cameraHeight) {
-                this.velocity.y = 0
-                this.camera.position.y = this.cameraHeight
-                this.canJump = true
-            }
-
-            this.prevTime = time
+        if (this.moveForward || this.moveBackward) {
+            this.velocity.z -= this.direction.z * speed * delta
         }
+
+        if (this.moveLeft || this.moveRight) {
+            this.velocity.x -= this.direction.x * speed * delta
+        }
+
+        // left-right movement
+        if ((this.velocity.x > 0 && !this.obstacles.left) || (this.velocity.x < 0 && !this.obstacles.right)) {
+            this.camera.translateX(-this.velocity.x * delta)
+        }
+
+        // front-back movement
+        if ((this.velocity.z > 0 && !this.obstacles.backward) || (this.velocity.z < 0 && !this.obstacles.forward)) {
+            this.camera.position.add(this.getCameraForwardDirAlongXZPlane().multiplyScalar(-this.velocity.z * delta))
+        }
+
+        // up-down movement
+        // origin point from which we cast a ray downwards
+        // var origin = this.controls.getObject().position.clone()
+        let origin = this.camera.position.clone()
+        origin.set(origin.x, origin.y - this.cameraHeight, origin.z) // set origin to floor level
+
+        // set the raycaster to check downward from this point
+        this.raycaster.set(origin, new THREE.Vector3(0, -1, 0))
+
+        var intersectionsDown = this.raycaster.intersectObjects(this.getCollidables())
+        var onObject = intersectionsDown.length > 0 && intersectionsDown[0].distance < 0.25
+        // Here we talkin bout gravity...
+        // this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
+
+        // For double-jumping!
+        if (this.camera.position.y > 2.5) {
+            // less gravity like when we begin
+            this.gravity = 2.0
+        } else {
+            // once we get below the ceiling, the original value
+            this.gravity = 8.0
+        }
+        this.velocity.y -= 9.8 * this.gravity * delta // 100.0 = mass
+
+        if (onObject === true) {
+            this.velocity.y = Math.max(0, this.velocity.y)
+            this.canJump = true
+        }
+
+        this.camera.position.y += this.velocity.y * delta // new behavior
+
+        if (this.camera.position.y < this.cameraHeight) {
+            this.velocity.y = 0
+            this.camera.position.y = this.cameraHeight
+            this.canJump = true
+        }
+
+        this.prevTime = time
+    }
+
+    getCameraForwardDirAlongXZPlane() {
+        let forwardDir = new THREE.Vector3(0, 0, -1)
+        // apply the camera's current rotation to that direction vector:
+        forwardDir.applyQuaternion(this.camera.quaternion)
+
+        let forwardAlongXZPlane = new THREE.Vector3(forwardDir.x, 0, forwardDir.z)
+        forwardAlongXZPlane.normalize()
+
+        return forwardAlongXZPlane
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -283,7 +310,8 @@ export class YorbControls {
         var leftDir = rightDir.clone().negate()
 
         // TODO more points around avatar so we can't be inside of walls
-        let pt = this.controls.getObject().position.clone()
+        // let pt = this.controls.getObject().position.clone()
+        let pt = this.camera.position.clone()
 
         this.forwardCollisionDetectionPoints = [pt]
         this.backwardCollisionDetectionPoints = [pt]
@@ -291,20 +319,18 @@ export class YorbControls {
         this.leftCollisionDetectionPoints = [pt]
 
         // check forward
-        this.obstacles.forward = this.checkCollisions(this.forwardCollisionDetectionPoints, forwardDir, 0)
-        this.obstacles.backward = this.checkCollisions(this.backwardCollisionDetectionPoints, backwardDir, 4)
-        this.obstacles.left = this.checkCollisions(this.leftCollisionDetectionPoints, leftDir, 8)
-        this.obstacles.right = this.checkCollisions(this.rightCollisionDetectionPoints, rightDir, 12)
+        this.obstacles.forward = this.checkCollisions(this.forwardCollisionDetectionPoints, forwardDir)
+        this.obstacles.backward = this.checkCollisions(this.backwardCollisionDetectionPoints, backwardDir)
+        this.obstacles.left = this.checkCollisions(this.leftCollisionDetectionPoints, leftDir)
+        this.obstacles.right = this.checkCollisions(this.rightCollisionDetectionPoints, rightDir)
     }
 
-    checkCollisions(pts, dir, arrowHelperOffset) {
+    checkCollisions(pts, dir) {
         // distance at which a collision will be detected and movement stopped (this should be greater than the movement speed per frame...)
         var detectCollisionDistance = 1
 
         for (var i = 0; i < pts.length; i++) {
             var pt = pts[i].clone()
-            // pt.applyMatrix4(this.playerGroup.matrix);
-            // pt.y += 1.0; // bias upward to head area of player
 
             this.raycaster.set(pt, dir)
             this.raycaster.layers.set(3)
@@ -315,5 +341,35 @@ export class YorbControls {
             }
         }
         return false
+    }
+
+    onDocumentMouseDown(event) {
+        this.onPointerDownPointerX = event.clientX
+        this.onPointerDownPointerY = event.clientY
+        this.onPointerDownLon = this.lon
+        this.onPointerDownLat = this.lat
+        this.isUserInteracting = true
+    }
+
+    onDocumentMouseMove(event) {
+        if (this.isUserInteracting) {
+            this.lon = (this.onPointerDownPointerX - event.clientX) * -0.3 + this.onPointerDownLon
+            this.lat = (event.clientY - this.onPointerDownPointerY) * -0.3 + this.onPointerDownLat
+            this.computeCameraOrientation()
+        }
+    }
+
+    onDocumentMouseUp(event) {
+        this.isUserInteracting = false
+    }
+
+    computeCameraOrientation() {
+        this.lat = Math.max(-85, Math.min(85, this.lat))
+        this.phi = THREE.Math.degToRad(90 - this.lat)
+        this.theta = THREE.Math.degToRad(this.lon)
+        this.camera.target.x = 500 * Math.sin(this.phi) * Math.cos(this.theta)
+        this.camera.target.y = 500 * Math.cos(this.phi)
+        this.camera.target.z = 500 * Math.sin(this.phi) * Math.sin(this.theta)
+        this.camera.lookAt(this.camera.target)
     }
 }
