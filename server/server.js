@@ -10,28 +10,36 @@
  *
  */
 
-// Set environment variables
-// Set Debug level before we require 'debug' or 'mediasoup'!
 
-const config = require('./config')
-require('dotenv').config()
 
-// copy over config from .env file:
 
-config.httpIp = process.env.PRODUCTION_IP
-config.httpPort = process.env.PRODUCTION_PORT
+// Set these for your particular IP / Port
+PROJECT_DATABASE_URL="https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=157"
+
+// For working locally
+PRODUCTION_IP = "192.168.0.107"
+PRODUCTION_PORT = "3000";
+
+// For deploying on YORB.itp.io
+// PRODUCTION_IP="142.93.6.195"
+// PRODUCTION_PORT="3040"
+
+
+
+// Mediasoup configuration
+const config = require(process.cwd() + '/server/config.js');
+config.httpIp = PRODUCTION_IP
+config.httpPort = PRODUCTION_PORT
 
 config.mediasoup.webRtcTransport.listenIps = [
     { ip: '127.0.0.1', announcedIp: null },
-    { ip: process.env.PRODUCTION_IP, announcedIp: null },
+    { ip: PRODUCTION_IP, announcedIp: null },
 ]
 
-console.log('Environment Variables:')
-console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
-console.log(process.env)
-console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
-
 // IMPORTS
+
+// set debug name
+process.env.DEBUG = 'YORBSERVER*'
 
 const debugModule = require('debug')
 const mediasoup = require('mediasoup')
@@ -44,16 +52,26 @@ var express = require('express'),
     http = require('http')
 var app = express()
 var server = http.createServer(app)
-var io = require('socket.io').listen(server)
 
-app.use(express.static(__dirname + '/public'))
+let io = require('socket.io')()
+io.listen(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
+})
 
-server.listen(process.env.PRODUCTION_PORT)
-console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT)
+const distFolder = process.cwd() + '/dist';
+console.log('Serving static files at ', distFolder);
+app.use(express.static(process.cwd() + '/dist'));
 
-const log = debugModule('demo-app')
-const warn = debugModule('demo-app:WARN')
-const err = debugModule('demo-app:ERROR')
+server.listen(PRODUCTION_PORT)
+console.log(`Server listening on http://${PRODUCTION_IP}:${PRODUCTION_PORT}`);
+
+const log = debugModule('YORBSERVER')
+const warn = debugModule('YORBSERVER:WARN')
+const err = debugModule('YORBSERVER:ERROR')
 
 // one mediasoup worker and router
 //
@@ -203,7 +221,7 @@ main()
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function updateProjects() {
-    let url = process.env.PROJECT_DATABASE_URL
+    let url = PROJECT_DATABASE_URL
     try {
         https
             .get(url, (res) => {

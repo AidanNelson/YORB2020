@@ -1,4 +1,5 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
+
 export class Sketches {
     constructor(scene) {
         this.scene = scene
