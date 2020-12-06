@@ -120,15 +120,12 @@ export class Yorb extends EventEmitter {
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer)
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
-        this.itpModel = new ITPModel(this.scene)
+        // this.itpModel = new ITPModel(this.scene)
 
         this.yorblet = new Yorblet(this.scene, this.projectionScreens);
 
 
-        this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
-        this.show.setup()
-
-        // this.show = new SpringShow(this.scene, this.camera, this.controls)
+        // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
         // this.show.setup()
 
         // this.sketches = new Sketches(this.scene)
@@ -178,7 +175,7 @@ export class Yorb extends EventEmitter {
     // update projects:
     updateProjects(projects) {
         console.log('yorb received',projects.length,'show projects');
-        this.show.updateProjects(projects)
+        // this.show.updateProjects(projects)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//

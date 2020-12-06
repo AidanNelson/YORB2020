@@ -1,4 +1,4 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
 
 export class Yorblet {
     constructor(scene, projectionScreenManager) {
@@ -57,7 +57,7 @@ export class Yorblet {
 
     addFloor(){
          // add the ITP floor
-         const floorTexture = new THREE.TextureLoader().load('textures/floor.jpg')
+         const floorTexture = new THREE.TextureLoader().load(require('../assets/images/textures/floor.jpg'))
          floorTexture.wrapS = THREE.RepeatWrapping
          floorTexture.wrapT = THREE.RepeatWrapping
          floorTexture.repeat.set(10, 10)
