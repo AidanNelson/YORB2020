@@ -14,7 +14,7 @@ import { ITPModel } from './itpModel'
 import { Sketches } from './p5Sketches'
 import { ProjectionScreens } from './projectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
-import { Yorblet } from './Yorblets.js'
+import { Yorblet } from './yorblet.js'
 
 
 import * as THREE from "three";
