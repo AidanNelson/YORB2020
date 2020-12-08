@@ -70,16 +70,20 @@ export class Yorb extends EventEmitter {
         // Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
         // In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
-        let randX = this.randomRange(-2,2)
-        let randZ = this.randomRange(-2,2)
-        this.camera.position.set(randX, this.cameraHeight, randZ)
+        // let randX = this.randomRange(-2,2)
+        // let randZ = this.randomRange(-2,2)
+        // this.camera.position.set(randX, this.cameraHeight, randZ)
+
+        // PARACHUTE IS BACK...
+        // Start us up high on the Y axis and outside the Yorblet
+        this.camera.position.set(-3, 100, 43)
 
         // create an AudioListener and add it to the camera
         this.listener = new THREE.AudioListener()
         this.camera.add(this.listener)
         this.scene.add(this.camera)
 
-        this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5))
+        // this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5))
 
         window.camera = this.camera
 
