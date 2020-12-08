@@ -227,9 +227,10 @@ async function updateProjects() {
             })
 
             res.on('end', function () {
+                var json;
                 try {
                     // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
-                    var json = JSON.parse(body)
+                    json = JSON.parse(body)
                 } catch (err) {
                     console.error('update projects error: ' + err)
                 }
