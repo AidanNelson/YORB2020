@@ -277,6 +277,19 @@ export class Yorb extends EventEmitter {
 
     // TODO make this simpler...? more performant?
     updatePositions() {
+
+      // PARACHUTE IS BACK...
+      // While landing, let's look at the middle of the area
+      if (this.camera.position.y > 2 && this.firstTime) {
+        // Trying for a smooth looking up motion
+        let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
+        // let lookFar = new THREE.Vector3(13, this.cameraHeight, -32);
+        // let lookFar = new THREE.Vector3(-5, this.cameraHeight, -10)
+        this.camera.lookAt(lookMiddle)
+      } else {
+        this.firstTime = false;
+      }
+
         let snapDistance = 0.5
         // let snapAngle = 0.2; // radians
         for (let _id in this.clients) {
