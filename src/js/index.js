@@ -355,9 +355,9 @@ function setupControls() {
 function toggleWebcamImage() {
 	let webcamImage = document.getElementById("webcam-status-image");
 	if (getCamPausedState()) {
-		webcamImage.src = "images/no-webcam.png";
+		webcamImage.src = require("../assets/images/no-webcam.png");
 	} else {
-		webcamImage.src = "images/webcam.png";
+		webcamImage.src = require("../assets/images/webcam.png");
 	}
 
 }
@@ -365,9 +365,9 @@ function toggleWebcamImage() {
 function toggleMicrophoneImage() {
 	let micImg = document.getElementById("microphone-status-image");
 	if (getMicPausedState()) {
-		micImg.src = "images/no-mic.png";
+		micImg.src = require("../assets/images/no-mic.png");
 	} else {
-		micImg.src = "images/mic.png";
+		micImg.src = require("../assets/images/mic.png");
 	}
 }
 
