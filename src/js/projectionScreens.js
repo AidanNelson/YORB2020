@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { makeVideoTextureAndMaterial, redrawVideoCanvas } from './utils'
-import { shareScreen } from './index'
+import { mySocketID, shareScreen } from './index'
 
 export class ProjectionScreens {
     constructor(scene, camera, mouse) {
@@ -147,9 +147,9 @@ export class ProjectionScreens {
     }
 
     projectToScreen(screenId) {
-        console.log("I'm going to project to screen " + screenId)
-        shareScreen(screenId)
-        this.projectionScreens[screenId].userData.activeUserId = this.mySocketID
+        console.log("I'm going to project to screen " + screenId);
+        shareScreen(screenId);
+        this.projectionScreens[screenId].userData.activeUserId = mySocketID;
     }
 
     updateProjectionScreen(config) {
@@ -211,16 +211,13 @@ export class ProjectionScreens {
     }
 
     onMouseClick(e) {
-        console.log('click');
         if (this.hightlightedScreen && this.shift_down) {
-            console.log('click');
             this.projectToScreen(this.hightlightedScreen.userData.screenId)
         }
     }
 
     onKeyDown(e) {
         if (e.keyCode == 16) {
-            console.log('shiftdown');
             this.shift_down = true
         }
     }

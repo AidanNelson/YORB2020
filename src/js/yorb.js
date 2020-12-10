@@ -267,9 +267,8 @@ export class Yorb {
 
                     // update projection screens
                     let projectionScreenId = _clientProps[_id].projectionScreenId;
-                    console.log('screenId:',projectionScreenId);
                     if (projectionScreenId !== -1 && projectionScreenId !== undefined){
-                        this.projectionScreens.claimProjectionScreen(projectionScreenId, _id);
+                        this.projectionScreens.assignProjectionScreen(projectionScreenId, _id);
                     }
                 }
             }
