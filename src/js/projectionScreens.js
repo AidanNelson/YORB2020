@@ -159,6 +159,11 @@ export class ProjectionScreens {
         console.log('Updating Projection Screen: ' + screenId + ' with screenshare from user ' + activeUserId)
     }
 
+    claimProjectionScreen(screenId, clientId){
+        console.log('Updating Projection Screen: ' + screenId + ' with screenshare from user ' + clientId)
+        this.projectionScreens[screenId].userData.activeUserId = clientId;
+    }
+
     update() {
         this.updateProjectionScreens()
     }
