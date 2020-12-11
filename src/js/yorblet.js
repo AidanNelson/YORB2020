@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { projects } from '.'
 import { create3DText, createSimpleText } from './utils'
 
 const YORBLET_INDEX = 1
@@ -11,160 +12,83 @@ export class Yorblet {
     }
 
     setup() {
-        //this.addPerformanceRoom();
-
         this.addFloor()
         this.addCenterPiece()
-        this.arrangeProjectsAlongOval(YORBLET_INDEX)
+        this.arrangeProjects()
     }
 
-    ///// Shape Helper Functions /////
-
-    //draw circles
-
-    drawCircle(radius, numFaces, matColor, posX, posY, posZ, angle) {
-        const circlegeometry = new THREE.CircleGeometry(radius, numFaces)
-        const circlematerial = new THREE.MeshBasicMaterial({ color: matColor })
-        const circle = new THREE.Mesh(circlegeometry, circlematerial)
-        circle.position.set(posX, posY, posZ)
-        circle.rotateY(angle)
-        circle.lookAt(0, 0, 0)
-        this.scene.add(circle)
-    }
-
-    // Draw Square
-
-    drawRect(height, width, faces, planeColor, posX, posY, posZ, angle) {
-        //plane  1
-        const planegeometry = new THREE.PlaneBufferGeometry(height, width, faces)
-        const planematerial = new THREE.MeshBasicMaterial({ color: planeColor, side: THREE.DoubleSide })
-        const plane = new THREE.Mesh(planegeometry, planematerial)
-        plane.position.set(posX, posY, posZ)
-        plane.rotateY(angle)
-        plane.lookAt(0, 2, 0)
-        this.scene.add(plane)
-    }
-
-    // Draw Triangles
-    drawTri(scaleX, scaleY, scaleZ, posX, posY, posZ, triColor, angle, rotateDegrees) {
-        var triangleGeometry = new THREE.Geometry()
-        var v1 = new THREE.Vector3(0, 0, 0)
-        var v2 = new THREE.Vector3(30, 0, 0)
-        var v3 = new THREE.Vector3(30, 30, 0)
-
-        var triangle = new THREE.Triangle(v1, v2, v3)
-        var normal = triangle.normal()
-
-        // An example of getting the area from the Triangle class
-        //console.log( 'Area of triangle is: '+ triangle.area() );
-
-        triangleGeometry.vertices.push(triangle.a)
-        triangleGeometry.vertices.push(triangle.b)
-        triangleGeometry.vertices.push(triangle.c)
-        triangleGeometry.faces.push(new THREE.Face3(0, 1, 2, normal))
-        triangleGeometry.scale(scaleX, scaleY, scaleZ)
-
-        //geom.scale(new THREE.Vector3(2,2,2));
-        const trianglematerial = new THREE.MeshBasicMaterial({ color: triColor, side: THREE.DoubleSide })
-        var triangleMesh = new THREE.Mesh(triangleGeometry, trianglematerial)
-        triangleMesh.position.set(posX, posY, posZ)
-        triangleMesh.rotateY(angle)
-        triangleMesh.lookAt(0, 2, 0)
-        triangleMesh.rotateZ(rotateDegrees)
-        //var triangleScale = new THREE.Vector3(0,0,0);
-
-        this.scene.add(triangleMesh)
-    }
-
-    //
-
-    addDoor(centerX, centerY, centerZ, lookAtX, lookAtY, lookAtZ) {
-        const doorGeometry = new THREE.BoxBufferGeometry(1, 2, 0.1)
-        const doorMat = new THREE.MeshLambertMaterial({ color: 0x000000 })
-        const doorMesh = new THREE.Mesh(doorGeometry, doorMat)
-        doorMesh.position.set(centerX, centerY, centerZ)
-        doorMesh.lookAt(lookAtX, lookAtY, lookAtZ)
-        this.scene.add(doorMesh)
-    }
-
-    addFloor() {
-        // add the ITP floor
-        const floorTexture = new THREE.TextureLoader().load(require('../assets/images/textures/floor.jpg'))
-        floorTexture.wrapS = THREE.RepeatWrapping
-        floorTexture.wrapT = THREE.RepeatWrapping
-        floorTexture.repeat.set(10, 10)
-
-        const floorGeometry = new THREE.PlaneBufferGeometry(128, 128, 1, 1)
-        const floorMaterial = new THREE.MeshBasicMaterial({ map: floorTexture, side: THREE.DoubleSide })
-        const plane = new THREE.Mesh(floorGeometry, floorMaterial)
-        plane.lookAt(0, 1, 0)
-        this.scene.add(plane)
-    }
-
-    addYorblet1() {
-        const cylinderGeometry = new THREE.CylinderBufferGeometry(36, 36, 10, 32, 1, true, 0, Math.PI * 1.95)
-        const cylinderMaterial = new THREE.MeshLambertMaterial({
-            color: 0x000000,
-            side: THREE.DoubleSide,
-        })
-        const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
-        this.scene.add(cylinder)
-
-        // https://stackoverflow.com/questions/24273990/calculating-evenly-spaced-points-on-the-perimeter-of-a-circle
+    arrangeProjects() {
         let numProjects = 8
         let radius = 30
-        for (let i = 0; i < numProjects; i++) {
-            let theta = (Math.PI * 2) / numProjects
-            let angle = theta * i
+        let fenceRadius = radius + 10
 
-            console.log('angle: ', angle)
-
-            let centerX = radius * Math.cos(angle)
-            let centerZ = radius * Math.sin(angle)
-            this.addPresentationStage(centerX, centerZ, 1, angle)
-        }
-    }
-
-    arrangeProjectsAlongOval() {
-        const curve = new THREE.EllipseCurve(
-            0,
-            0, // ax, aY
-            35,
-            60, // xRadius, yRadius
-            0,
-            2 * Math.PI, // aStartAngle, aEndAngle
-            false, // aClockwise
-            0 // aRotation
-        )
-
-        let projectLocations = curve.getPoints(9)
-        for (let i = 0; i < projectLocations.length - 1; i++) {
-            let pt = projectLocations[i]
-            if (i == 0) {
-                this.makeEntranceAtPosition(pt)
-            } else {
-                console.log('Adding project at position ', i)
-                this.addPresentationStage(pt.x, pt.y, 1, 0)
-            }
-        }
-
-    }
-
-    makeEntranceAtPosition(pt) {
-        const geometry = new THREE.TorusBufferGeometry(10, 1, 16, 24, Math.PI)
+        // add entrance:
+        const geometry = new THREE.TorusBufferGeometry(12, 2, 16, 24, Math.PI)
         const material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
         const torus = new THREE.Mesh(geometry, material)
         this.scene.add(torus)
-        torus.position.set(pt.x, 0, pt.y)
+        torus.position.set(fenceRadius, 0, 0)
         torus.lookAt(0, 0, 0)
+
+        //backside fence
+        let fenceGeo = new THREE.BoxBufferGeometry(50,10,0.1);
+        let fenceMat = new THREE.MeshBasicMaterial({ color: 0x232378, side: THREE.DoubleSide })
+        let fenceMesh = new THREE.Mesh(fenceGeo, fenceMat);
+        this.scene.add(fenceMesh);
+        fenceMesh.position.set(-fenceRadius,0,0);
+        fenceMesh.rotateY(Math.PI/2);
+
+        // set left side offsets
+        let xOffset = 0
+        let zOffset = 20
+
+        // add left fence:
+        let cylinderGeometry = new THREE.CylinderBufferGeometry(fenceRadius, fenceRadius, 10, 32, 1, true, 0, Math.PI)
+        let cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x232378, side: THREE.DoubleSide })
+        let cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
+        cylinder.position.set(xOffset, 0, zOffset)
+        cylinder.rotateY((-Math.PI * 1) / 2)
+        this.scene.add(cylinder)
+
+        let projectIndex = 0
+        // make left 4 projects
+        for (let i = 0; i < 4; i++) {
+            let theta = (Math.PI * 2) / 6
+            let angle = theta * i
+
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            this.addPresentationStage(projectIndex, centerX, centerZ, xOffset, zOffset, 1, angle)
+            projectIndex++
+        }
+
+        xOffset = 0
+        zOffset = -20
+
+        // make right 4 projects
+        for (let i = 3; i < 7; i++) {
+            let theta = (Math.PI * 2) / 6
+            let angle = theta * i
+
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            this.addPresentationStage(projectIndex, centerX, centerZ, xOffset, zOffset, 1, angle)
+            projectIndex++
+        }
+        // add right side fence
+        cylinderGeometry = new THREE.CylinderBufferGeometry(fenceRadius, fenceRadius, 10, 32, 1, true, 0, Math.PI)
+        cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x232378, side: THREE.DoubleSide })
+        cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
+        cylinder.position.set(xOffset, 0, zOffset)
+        cylinder.rotateY((Math.PI * 1) / 2)
+        this.scene.add(cylinder)
     }
 
-    addPresentationStage(centerX, centerZ, scaleFactor = 1, angle) {
+    addPresentationStage(projectIndex, centerX, centerZ, lookAtX, lookAtZ, scaleFactor = 1, angle) {
         const cylinderGeometry = new THREE.CylinderBufferGeometry(3 * scaleFactor, 3 * scaleFactor, 1, 32, 1, false)
         const cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
         const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
         cylinder.position.set(centerX, 0, centerZ)
-        //cylinder.lookAt(0,0,0);
         this.scene.add(cylinder)
 
         if (YORBLET_INDEX === 1) {
@@ -185,7 +109,7 @@ export class Yorblet {
             // do styling for yorblet 8
         }
 
-        this.addCircleFence(centerX, centerZ, angle)
+        // this.addCircleFence(centerX, centerZ, angle)
         //this.addRectFence(centerX, centerZ, angle);
         //this.addTriFence(centerX, centerZ, angle);
 
@@ -203,10 +127,10 @@ export class Yorblet {
         const domeGeometry = new THREE.SphereBufferGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)
 
         domeGeometry.scale(0.75, 0.75, 0.75)
-        const domeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
+        const domeMaterial = new THREE.MeshBasicMaterial({ color: 0x121212, side: THREE.DoubleSide })
         const domeMesh = new THREE.Mesh(domeGeometry, domeMaterial)
         domeMesh.position.set(centerX, 1, centerZ)
-        domeMesh.lookAt(0, 2, 0)
+        domeMesh.lookAt(lookAtX, 2, lookAtZ)
         domeMesh.rotateY(Math.PI)
         this.scene.add(domeMesh)
 
@@ -214,7 +138,7 @@ export class Yorblet {
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
 
-        const text = 'Lydia Jessup'
+        const text = 'Lydia Jessup' + projectIndex.toString()
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
@@ -230,14 +154,20 @@ export class Yorblet {
         const fontMaterial = new THREE.MeshPhongMaterial({ color: 0x1250cc, flatShading: true })
         const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial)
 
-        let font_xshift = 30 * Math.cos(angle + 0.1)
-        let font_zshift = 30 * Math.sin(angle + 0.1)
-        fontMesh.position.set(font_xshift, 1.5, font_zshift)
+        // let font_xshift = 30 * Math.cos(angle + 0.1)
+        // let font_zshift = 30 * Math.sin(angle + 0.1)
+        let fontOffsetX = 3
+        let fontOffsetY = 2
+        let fontOffsetZ = 0
+        fontMesh.position.set(centerX, 0, centerZ)
         fontMesh.rotateY(angle)
-        fontMesh.lookAt(0, 0, 0)
+        fontMesh.lookAt(lookAtX, 0, lookAtZ)
+        fontMesh.translateX(fontOffsetX)
+        fontMesh.translateY(fontOffsetY)
+        fontMesh.translateZ(fontOffsetZ)
         this.scene.add(fontMesh)
 
-        this.projectionScreenManager.addScreen(centerX, 2, centerZ, 0, 2, 0, scaleFactor)
+        this.projectionScreenManager.addScreen(centerX, 2, centerZ, lookAtX, 2, lookAtZ, scaleFactor)
     }
 
     //circle version of fence
@@ -257,49 +187,46 @@ export class Yorblet {
 
         let xshift_c1 = 30 * Math.cos(angle + 0.15)
         let zshift_c1 = 30 * Math.sin(angle + 0.15)
-        // this.drawCircle(3, 32, collightBlue, xshift_c1, 7, zshift_c1, angle)
-        let xOffset = 0;
-        let zOffset = 0;
         this.drawCircle(3, 32, collightBlue, centerX + xOffset, 7, centerZ + zOffset, angle)
 
         //med circles
         let xshift_c2 = 30 * Math.cos(angle - 0.14)
         let zshift_c2 = 30 * Math.sin(angle - 0.14)
 
-        // this.drawCircle(1, 32, collightBlue, xshift_c2, 4, zshift_c2, angle)
+        this.drawCircle(1, 32, collightBlue, xshift_c2, 4, zshift_c2, angle)
 
         let xshift_c3 = 30 * Math.cos(angle - 0.2)
         let zshift_c3 = 30 * Math.sin(angle - 0.2)
-        // this.drawCircle(2, 32, coldarkBlue, xshift_c3, 7, zshift_c3, angle)
+        this.drawCircle(2, 32, coldarkBlue, xshift_c3, 7, zshift_c3, angle)
         //
         // //small circles
         let xshift_c4 = 30 * Math.cos(angle + 0.2)
         let zshift_c4 = 30 * Math.sin(angle + 0.2)
-        // this.drawCircle(1, 32, colmainBlue, xshift_c4, 2, zshift_c4, angle)
+        this.drawCircle(1, 32, colmainBlue, xshift_c4, 2, zshift_c4, angle)
 
         let xshift_c5 = 30 * Math.cos(angle - 0.12)
         let zshift_c5 = 30 * Math.sin(angle - 0.12)
-        // this.drawCircle(0.5, 32, colmainPink, xshift_c5, 5, zshift_c5, angle)
+        this.drawCircle(0.5, 32, colmainPink, xshift_c5, 5, zshift_c5, angle)
 
         //draw fence
         let xshift_c6 = 30 * Math.cos(angle + 0.3)
         let zshift_c6 = 30 * Math.sin(angle + 0.3)
-        // this.drawCircle(1, 32, coldarkBlue, xshift_c6, 2.5, zshift_c6, angle)
+        this.drawCircle(1, 32, coldarkBlue, xshift_c6, 2.5, zshift_c6, angle)
 
         //draw fence
         let xshift_c7 = 30 * Math.cos(angle + 0.4)
         let zshift_c7 = 30 * Math.sin(angle + 0.4)
-        // this.drawCircle(1, 32, coldarkBlue, xshift_c7, 2, zshift_c7, angle)
+        this.drawCircle(1, 32, coldarkBlue, xshift_c7, 2, zshift_c7, angle)
 
         //draw fence
         let xshift_c8 = 30 * Math.cos(angle + 0.5)
         let zshift_c8 = 30 * Math.sin(angle + 0.5)
-        // this.drawCircle(1, 32, coldarkBlue, xshift_c8, 2.5, zshift_c8, angle)
+        this.drawCircle(1, 32, coldarkBlue, xshift_c8, 2.5, zshift_c8, angle)
 
         //draw fence
         let xshift_c9 = 30 * Math.cos(angle + 0.6)
         let zshift_c9 = 30 * Math.sin(angle + 0.6)
-        // this.drawCircle(1, 32, coldarkBlue, xshift_c9, 2, zshift_c9, angle)
+        this.drawCircle(1, 32, coldarkBlue, xshift_c9, 2, zshift_c9, angle)
     }
 
     addRectFence(centerX, centerZ, angle) {
@@ -494,4 +421,86 @@ export class Yorblet {
 
     //     this.projectionScreenManager.addScreen(0, 6, -10, 0, 2, 0, 3)
     // }
+
+    ///// Shape Helper Functions /////
+
+    //draw circles
+
+    drawCircle(radius, numFaces, matColor, posX, posY, posZ, lookAtX, lookAtZ) {
+        const circlegeometry = new THREE.CircleGeometry(radius, numFaces)
+        const circlematerial = new THREE.MeshBasicMaterial({ color: matColor })
+        const circle = new THREE.Mesh(circlegeometry, circlematerial)
+        circle.position.set(posX, posY, posZ)
+        circle.lookAt(lookAtX, 0, lookAtZ)
+        this.scene.add(circle)
+    }
+
+    // Draw Square
+
+    drawRect(height, width, faces, planeColor, posX, posY, posZ, angle) {
+        //plane  1
+        const planegeometry = new THREE.PlaneBufferGeometry(height, width, faces)
+        const planematerial = new THREE.MeshBasicMaterial({ color: planeColor, side: THREE.DoubleSide })
+        const plane = new THREE.Mesh(planegeometry, planematerial)
+        plane.position.set(posX, posY, posZ)
+        plane.rotateY(angle)
+        plane.lookAt(0, 2, 0)
+        this.scene.add(plane)
+    }
+
+    // Draw Triangles
+    drawTri(scaleX, scaleY, scaleZ, posX, posY, posZ, triColor, angle, rotateDegrees) {
+        var triangleGeometry = new THREE.Geometry()
+        var v1 = new THREE.Vector3(0, 0, 0)
+        var v2 = new THREE.Vector3(30, 0, 0)
+        var v3 = new THREE.Vector3(30, 30, 0)
+
+        var triangle = new THREE.Triangle(v1, v2, v3)
+        var normal = triangle.normal()
+
+        // An example of getting the area from the Triangle class
+        //console.log( 'Area of triangle is: '+ triangle.area() );
+
+        triangleGeometry.vertices.push(triangle.a)
+        triangleGeometry.vertices.push(triangle.b)
+        triangleGeometry.vertices.push(triangle.c)
+        triangleGeometry.faces.push(new THREE.Face3(0, 1, 2, normal))
+        triangleGeometry.scale(scaleX, scaleY, scaleZ)
+
+        //geom.scale(new THREE.Vector3(2,2,2));
+        const trianglematerial = new THREE.MeshBasicMaterial({ color: triColor, side: THREE.DoubleSide })
+        var triangleMesh = new THREE.Mesh(triangleGeometry, trianglematerial)
+        triangleMesh.position.set(posX, posY, posZ)
+        triangleMesh.rotateY(angle)
+        triangleMesh.lookAt(0, 2, 0)
+        triangleMesh.rotateZ(rotateDegrees)
+        //var triangleScale = new THREE.Vector3(0,0,0);
+
+        this.scene.add(triangleMesh)
+    }
+
+    //
+
+    addDoor(centerX, centerY, centerZ, lookAtX, lookAtY, lookAtZ) {
+        const doorGeometry = new THREE.BoxBufferGeometry(1, 2, 0.1)
+        const doorMat = new THREE.MeshLambertMaterial({ color: 0x000000 })
+        const doorMesh = new THREE.Mesh(doorGeometry, doorMat)
+        doorMesh.position.set(centerX, centerY, centerZ)
+        doorMesh.lookAt(lookAtX, lookAtY, lookAtZ)
+        this.scene.add(doorMesh)
+    }
+
+    addFloor() {
+        // add the ITP floor
+        const floorTexture = new THREE.TextureLoader().load(require('../assets/images/textures/floor.jpg'))
+        floorTexture.wrapS = THREE.RepeatWrapping
+        floorTexture.wrapT = THREE.RepeatWrapping
+        floorTexture.repeat.set(10, 10)
+
+        const floorGeometry = new THREE.PlaneBufferGeometry(128, 128, 1, 1)
+        const floorMaterial = new THREE.MeshBasicMaterial({ map: floorTexture, side: THREE.DoubleSide })
+        const plane = new THREE.Mesh(floorGeometry, floorMaterial)
+        plane.lookAt(0, 1, 0)
+        this.scene.add(plane)
+    }
 }
