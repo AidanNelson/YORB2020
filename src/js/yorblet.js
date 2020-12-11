@@ -32,16 +32,17 @@ export class Yorblet {
       var colBlue = 0x05C1DA;
 
 
-      this.drawCircle(8, 32, colPurple, -2, 12, -15);
-      this.drawCircle(6, 32, colWhite, 10, 20, -15);
+
+      this.drawCircle(8, 32, collightBlue, -2, 12, -15);
+      this.drawCircle(6, 32, colmainBlue, 10, 20, -15);
 
       //med circles
-      this.drawCircle(4, 32, colGreen, 1, 10, -15);
-      this.drawCircle(4, 32, colBlack, 10, 6, -15);
+      this.drawCircle(4, 32, coldarkBlue, 1, 10, -15);
+      this.drawCircle(4, 32, colmainBlue, 10, 6, -15);
 
       //small circles
-      this.drawCircle(2, 32, colBlack, -10, 18, -15);
-      this.drawCircle(1, 32, colPink, -3, 12, -15);
+      this.drawCircle(2, 32, coldarkBlue, -10, 18, -15);
+      this.drawCircle(1, 32, colmainPink, -3, 12, -15);
 
 
     }
@@ -57,7 +58,7 @@ export class Yorblet {
         // circle.rotateY(rotate);
         // this.scene.add( circle );
 
-        
+
         const circlegeometry = new THREE.CircleGeometry( radius, numFaces );
         const circlematerial = new THREE.MeshBasicMaterial( { color: matColor } );
         const circle = new THREE.Mesh( circlegeometry, circlematerial );
@@ -129,7 +130,7 @@ export class Yorblet {
     addCylindricalRoom() {
         const cylinderGeometry = new THREE.CylinderBufferGeometry(36,36, 10, 32, 1, true, 0, Math.PI * 1.95)
         const cylinderMaterial = new THREE.MeshLambertMaterial({
-            color: 0xffffe6,
+            color: 0x000000,
             side: THREE.DoubleSide
         })
         const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
@@ -170,6 +171,12 @@ export class Yorblet {
         var colPurple = 0x9588CB;
         var colBlue = 0x05C1DA;
 
+
+        var colmainBlue = 0x4B4FF4;
+        var coldarkBlue = 0x1250CC;
+        var collightBlue = 0x05C1DA;
+        var colmainPink = 0xFC3691;
+
         //test circle
         // const circlegeometry = new THREE.CircleGeometry( 5, 32 );
         // const circlematerial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
@@ -181,52 +188,52 @@ export class Yorblet {
         //this works!
 
 
-        this.drawCircle(4, 32, colPurple, centerX, 4, centerZ, angle);
+        this.drawCircle(3.5, 32, colmainBlue, centerX, 4.5, centerZ, angle);
 
         let xshift_white = 30 * Math.cos(angle+0.15);
         let zshift_white = 30 * Math.sin(angle+0.15);
-        this.drawCircle(3, 32, colWhite, (xshift_white), 7, (zshift_white), angle);
+        this.drawCircle(3, 32, collightBlue, (xshift_white), 7, (zshift_white), angle);
         //console.log("circle: ", centerX);
 
         //med circles
         let xshift_green = 30 * Math.cos(angle-0.14);
         let zshift_green = 30 * Math.sin(angle-0.14);
 
-        this.drawCircle(1, 32, colGreen, (xshift_green), 4, (zshift_green), angle);
+        this.drawCircle(1, 32, collightBlue, (xshift_green), 4, (zshift_green), angle);
 
         let xshift_black1 = 30 * Math.cos(angle-0.20);
         let zshift_black1 = 30 * Math.sin(angle-0.20);
-        this.drawCircle(2, 32, colBlack, xshift_black1, 7, zshift_black1, angle);
+        this.drawCircle(2, 32, coldarkBlue, xshift_black1, 7, zshift_black1, angle);
         //
         // //small circles
         let xshift_black2 = 30 * Math.cos(angle+0.20);
         let zshift_black2 = 30 * Math.sin(angle+0.20);
-        this.drawCircle(1, 32, colPurple, xshift_black2, 2, zshift_black2, angle);
+        this.drawCircle(1, 32, colmainBlue, xshift_black2, 2, zshift_black2, angle);
 
         let xshift_pink = 30 * Math.cos(angle-0.12);
         let zshift_pink = 30 * Math.sin(angle-0.12);
-        this.drawCircle(0.5, 32, colPink, (xshift_pink), 5, (zshift_pink), angle);
+        this.drawCircle(0.5, 32, colmainPink, (xshift_pink), 5, (zshift_pink), angle);
 
 
         //draw fence
         let xshift_black3 = 30 * Math.cos(angle+0.3);
         let zshift_black3 = 30 * Math.sin(angle+0.3);
-        this.drawCircle(1, 32, colPurple, xshift_black3, 2.5, zshift_black3, angle);
+        this.drawCircle(1, 32, coldarkBlue, xshift_black3, 2.5, zshift_black3, angle);
 
         //draw fence
         let xshift_black4 = 30 * Math.cos(angle+0.4);
         let zshift_black4 = 30 * Math.sin(angle+0.4);
-        this.drawCircle(1, 32, colPurple, xshift_black4, 2, zshift_black4, angle);
+        this.drawCircle(1, 32, coldarkBlue, xshift_black4, 2, zshift_black4, angle);
 
         //draw fence
         let xshift_black5 = 30 * Math.cos(angle+0.5);
         let zshift_black5 = 30 * Math.sin(angle+0.5);
-        this.drawCircle(1, 32, colPurple, xshift_black5, 2.5, zshift_black5, angle);
+        this.drawCircle(1, 32, coldarkBlue, xshift_black5, 2.5, zshift_black5, angle);
 
         //draw fence
         let xshift_black6 = 30 * Math.cos(angle+0.6);
         let zshift_black6 = 30 * Math.sin(angle+0.6);
-        this.drawCircle(1, 32, colPurple, xshift_black6, 2, zshift_black6, angle);
+        this.drawCircle(1, 32, coldarkBlue, xshift_black6, 2, zshift_black6, angle);
 
 
 
@@ -284,15 +291,15 @@ export class Yorblet {
               const fontGeometry = new THREE.TextBufferGeometry(text, {
                 font: font,
                 size:  .25,
-                height:  .2,
+                height:  .01,
                 curveSegments: 11,
-                bevelEnabled: false,
-                bevelThickness: 0.05,
-                bevelSize: 0.10,
+                bevelEnabled: true,
+                bevelThickness: 0.02,
+                bevelSize: 0.01,
                 bevelSegments: 6,
               });
 
-              const fontMaterial = new THREE.MeshPhongMaterial( {color: 0xc6fc03, flatShading: true} );
+              const fontMaterial = new THREE.MeshPhongMaterial( {color: 0xFC3691, flatShading: true} );
               const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial);
 
               let font_xshift = 30 * Math.cos(angle+0.1);

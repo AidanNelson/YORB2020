@@ -89,7 +89,7 @@ export class Yorb extends EventEmitter {
         })
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-        this.renderer.setClearColor(new THREE.Color('lightblue'))
+        this.renderer.setClearColor(new THREE.Color(0x1250CC))
         this.renderer.setSize(this.width, this.height)
 
         this.addLights()
@@ -191,7 +191,7 @@ export class Yorb extends EventEmitter {
             require("../assets/images/Park2/posz.jpg"),
             require("../assets/images/Park2/negz.jpg"),
         ])
-        this.scene.background = this.envMap
+        //this.scene.background = this.envMap
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
