@@ -17,11 +17,52 @@ export class Yorblet {
 
         this.addFloor();
         this.addCenterPiece();
+        this.getPointsAlongOval();
 
     }
 
 
+
+
     ///// Shape Helper Functions /////
+
+    getPointsAlongOval(){
+      const curve = new THREE.EllipseCurve(
+        0,  0,            // ax, aY
+        6, 10,           // xRadius, yRadius
+        0,  2 * Math.PI,  // aStartAngle, aEndAngle
+        false,            // aClockwise
+        0                 // aRotation
+      );
+      
+      const points = curve.getPoints( 50 );
+      const projectLocations = curve.getPoints(9);
+
+      const projectGeo = new THREE.SphereBufferGeometry(1,12,12);
+      let projectMat = new THREE.MeshLambertMaterial();
+      for (let i = 0; i < projectLocations.length-1; i++){
+        if ( i === 0) continue;
+        if (i === 0) {
+          projectMat = new THREE.MeshLambertMaterial({color: 'hotpink'})
+        } else {
+          projectMat = new THREE.MeshLambertMaterial();
+        }
+        let pt = projectLocations[i];
+        const projectMesh = new THREE.Mesh(projectGeo, projectMat);
+        this.scene.add(projectMesh);
+        projectMesh.position.set(pt.x,0,pt.y);
+      }
+      console.log(points);
+      const geometry = new THREE.BufferGeometry().setFromPoints( points );
+      
+      const material = new THREE.LineBasicMaterial( { color : 0xff00ff } );
+      
+      // Create the final object to add to the scene
+      const ellipse = new THREE.Line( geometry, material );
+      this.scene.add(ellipse);
+      ellipse.rotateX(Math.PI/2);
+      ellipse.position.set(0,0.1,0);
+    }
 
 
     //draw circles
