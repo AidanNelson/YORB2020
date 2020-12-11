@@ -86,7 +86,7 @@ export class Yorb {
         })
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-        this.renderer.setClearColor(new THREE.Color(0x1250CC)) // change sky color
+        this.renderer.setClearColor(new THREE.Color(0x232323)) // change sky color
         this.renderer.setSize(this.width, this.height)
 
         this.addLights()
