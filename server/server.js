@@ -273,6 +273,7 @@ async function runSocketServer() {
             // position: [0, 0.5, 0],
             // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
             rotation: [0, 0, 0],
+            projectionScreenId: -1
         }
 
         socket.emit('introduction', socket.id, Object.keys(clients))
@@ -292,12 +293,12 @@ async function runSocketServer() {
                 clients[socket.id].rotation = data[1]
                 clients[socket.id].lastSeenTs = now
             }
-            // io.sockets.emit('userPositions', clients);
         })
 
-        socket.on('projectToScreen', (data) => {
-            log('Received projection screen config: ', data)
-            io.sockets.emit('projectToScreen', data)
+        socket.on('claimProjectionScreen', (data) => {
+            if (clients[socket.id]) {
+                clients[socket.id].projectionScreenId = data.screenId;
+            }
         })
 
         // Handle the disconnection
