@@ -184,8 +184,35 @@ export class Yorblet {
         //this.addTriFence(centerX, centerZ, angle);
 
 
-        //this.addRectFence
-        //this.addTriFence
+        // making a mini dome
+                      //https://threejsfundamentals.org/threejs/lessons/threejs-primitives.html
+                      //trying sphereGeometryconst radius = 7;
+
+        const radius = 7;
+        const widthSegments = 12;
+        const heightSegments = 8;
+        const phiStart = Math.PI * 0.25;
+        const phiLength = Math.PI * 1.5;
+        const thetaStart = Math.PI * 0.1;
+        const thetaLength = Math.PI * 0.5;
+        const domeGeometry = new THREE.SphereBufferGeometry(
+                    radius,
+                    widthSegments, heightSegments,
+                    phiStart, phiLength,
+                    thetaStart, thetaLength);
+
+        domeGeometry.scale(.75, .75, .75);
+        const domeMaterial = new THREE.MeshBasicMaterial( {color: 0x000000, side: THREE.DoubleSide} );
+        const domeMesh = new THREE.Mesh(domeGeometry, domeMaterial);
+        domeMesh.position.set(centerX, 1, centerZ);
+        domeMesh.rotateY(angle);
+        domeMesh.lookAt(0, 2, 0);
+        this.scene.add( domeMesh );
+
+
+
+
+
 
         //// Draw Label (placeholder for now) - make separate functionn?
             const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json' );
