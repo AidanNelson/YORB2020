@@ -28,12 +28,12 @@ const err = debugModule('YORB:ERROR')
 const p5 = require('p5')
 
 // For running against local server
-const WEB_SOCKET_SERVER = 'localhost:3000'
-const INSTANCE_PATH = '/socket.io'
+// const WEB_SOCKET_SERVER = 'localhost:3000'
+// const INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-// const WEB_SOCKET_SERVER = "https://yorb.itp.io";
-// const INSTANCE_PATH = "/experimental/socket.io";
+const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+const INSTANCE_PATH = "/experimental/socket.io";
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
@@ -635,8 +635,8 @@ export async function startScreenshare(screenId) {
 
         if (screenAudioProducer) {
 		}
-		
-		// then tell the server we claim that screen: 
+
+		// then tell the server we claim that screen:
 		socket.emit('claimProjectionScreen', {
             screenId: screenId,
         })
