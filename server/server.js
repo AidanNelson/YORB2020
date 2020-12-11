@@ -10,24 +10,19 @@
  *
  */
 
-
-
-
 // Set these for your particular IP / Port
-PROJECT_DATABASE_URL="https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=157"
+PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=157'
 
 // For working locally
-PRODUCTION_IP = "192.168.0.107"
-PRODUCTION_PORT = "3000";
+PRODUCTION_IP = '192.168.0.107'
+PRODUCTION_PORT = '3000'
 
 // For deploying on YORB.itp.io
 // PRODUCTION_IP="142.93.6.195"
 // PRODUCTION_PORT="3040"
 
-
-
 // Mediasoup configuration
-const config = require(process.cwd() + '/server/config.js');
+const config = require(process.cwd() + '/server/config.js')
 config.httpIp = PRODUCTION_IP
 config.httpPort = PRODUCTION_PORT
 
@@ -62,12 +57,12 @@ io.listen(server, {
     },
 })
 
-const distFolder = process.cwd() + '/dist';
-console.log('Serving static files at ', distFolder);
-app.use(express.static(process.cwd() + '/dist'));
+const distFolder = process.cwd() + '/dist'
+console.log('Serving static files at ', distFolder)
+app.use(express.static(process.cwd() + '/dist'))
 
 server.listen(PRODUCTION_PORT)
-console.log(`Server listening on http://${PRODUCTION_IP}:${PRODUCTION_PORT}`);
+console.log(`Server listening on http://${PRODUCTION_IP}:${PRODUCTION_PORT}`)
 
 const log = debugModule('YORBSERVER')
 const warn = debugModule('YORBSERVER:WARN')
@@ -222,29 +217,31 @@ main()
 
 async function updateProjects() {
     let url = PROJECT_DATABASE_URL
-    try {
-        https
-            .get(url, (res) => {
-                var body = ''
 
-                res.on('data', function (chunk) {
-                    body += chunk
-                })
+    https
+        .get(url, (res) => {
+            var body = ''
 
-                res.on('end', function () {
+            res.on('data', function (chunk) {
+                body += chunk
+            })
+
+            res.on('end', function () {
+                var json;
+                try {
                     // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
-                    var json = JSON.parse(body)
-                    projects = json
-                    log('Updated projects from database.')
-                    io.sockets.emit('projects', projects)
-                })
+                    json = JSON.parse(body)
+                } catch (err) {
+                    console.error('update projects error: ' + err)
+                }
+                projects = json
+                log('Updated projects from database.')
+                io.sockets.emit('projects', projects)
             })
-            .on('error', function (e) {
-                log('Got an error: ', e)
-            })
-    } catch (err) {
-        console.error('update projects error: ' + err)
-    }
+        })
+        .on('error', function (e) {
+            log('Got an error: ', e)
+        })
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -276,6 +273,7 @@ async function runSocketServer() {
             // position: [0, 0.5, 0],
             // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
             rotation: [0, 0, 0],
+            projectionScreenId: -1
         }
 
         socket.emit('introduction', socket.id, Object.keys(clients))
@@ -295,12 +293,12 @@ async function runSocketServer() {
                 clients[socket.id].rotation = data[1]
                 clients[socket.id].lastSeenTs = now
             }
-            // io.sockets.emit('userPositions', clients);
         })
 
-        socket.on('projectToScreen', (data) => {
-            log('Received projection screen config: ', data)
-            io.sockets.emit('projectToScreen', data)
+        socket.on('claimProjectionScreen', (data) => {
+            if (clients[socket.id]) {
+                clients[socket.id].projectionScreenId = data.screenId;
+            }
         })
 
         // Handle the disconnection

@@ -16,15 +16,12 @@ import { ProjectionScreens } from './projectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
 import { Yorblet } from './yorblet.js'
 
-
-import * as THREE from "three";
+import * as THREE from 'three'
 
 const Stats = require('./libs/stats.min.js')
-const EventEmitter = require('events')
 
-export class Yorb extends EventEmitter {
+export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
-        super()
 
         // add this to window to allow javascript console debugging
         window.scene = this
@@ -93,7 +90,7 @@ export class Yorb extends EventEmitter {
         })
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-        this.renderer.setClearColor(new THREE.Color('lightblue'))
+        this.renderer.setClearColor(new THREE.Color(0x232323)) // change sky color
         this.renderer.setSize(this.width, this.height)
 
         this.addLights()
@@ -126,8 +123,7 @@ export class Yorb extends EventEmitter {
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
         // this.itpModel = new ITPModel(this.scene)
 
-        this.yorblet = new Yorblet(this.scene, this.projectionScreens);
-
+        this.yorblet = new Yorblet(this.scene, this.projectionScreens)
 
         // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
         // this.show.setup()
@@ -178,7 +174,7 @@ export class Yorb extends EventEmitter {
     //
     // update projects:
     updateProjects(projects) {
-        console.log('yorb received',projects.length,'show projects');
+        console.log('yorb received', projects.length, 'show projects')
         // this.show.updateProjects(projects)
     }
 
@@ -188,14 +184,14 @@ export class Yorb extends EventEmitter {
 
     loadBackground() {
         this.envMap = new THREE.CubeTextureLoader().load([
-            require("../assets/images/Park2/posx.jpg"),
-            require("../assets/images/Park2/negx.jpg"),
-            require("../assets/images/Park2/posy.jpg"),
-            require("../assets/images/Park2/negy.jpg"),
-            require("../assets/images/Park2/posz.jpg"),
-            require("../assets/images/Park2/negz.jpg"),
+            require('../assets/images/Park2/posx.jpg'),
+            require('../assets/images/Park2/negx.jpg'),
+            require('../assets/images/Park2/posy.jpg'),
+            require('../assets/images/Park2/negy.jpg'),
+            require('../assets/images/Park2/posz.jpg'),
+            require('../assets/images/Park2/negz.jpg'),
         ])
-        this.scene.background = this.envMap
+        //this.scene.background = this.envMap
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -252,6 +248,7 @@ export class Yorb extends EventEmitter {
         this.clients[_id].texture = videoTexture
         this.clients[_id].desiredPosition = new THREE.Vector3()
         // this.clients[_id].desiredRotation = new THREE.Quaternion();
+        this.clients[_id].projectionScreenId= -1;
     }
 
     removeClient(_id) {
@@ -263,13 +260,20 @@ export class Yorb extends EventEmitter {
         let halfClientHeight = 1
 
         for (let _id in _clientProps) {
-            // we'll update ourselves separately to avoid lag...
             if (_id in this.clients) {
                 if (_id != this.mySocketID) {
+                    // we'll update ourselves separately to avoid lag...
+                    // update position
                     this.clients[_id].desiredPosition = new THREE.Vector3(_clientProps[_id].position[0], _clientProps[_id].position[1], _clientProps[_id].position[2])
-                    // this.clients[_id].desiredRotation = new THREE.Quaternion().fromArray(_clientProps[_id].rotation)
+                    // update rotation
                     let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ')
                     this.clients[_id].group.setRotationFromEuler(euler)
+
+                    // update projection screens
+                    let projectionScreenId = _clientProps[_id].projectionScreenId;
+                    if (projectionScreenId !== -1 && projectionScreenId !== undefined){
+                        this.projectionScreens.assignProjectionScreen(projectionScreenId, _id);
+                    }
                 }
             }
         }
