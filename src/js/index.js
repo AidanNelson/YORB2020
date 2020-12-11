@@ -565,6 +565,7 @@ export async function sendCameraStreams() {
 
 export async function startScreenshare(screenId) {
     log('start screen share')
+		alert('please use headphones to avoid feedback!')
     // make sure we've joined the room and that we have a sending
     // transport
     await joinRoom()
@@ -575,7 +576,8 @@ export async function startScreenshare(screenId) {
         // get a screen share track
         localScreen = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: false,
+            audio: true, // this must be true to share audio from a Chrome tab
+												 // system audio however will come from the microphone
         })
 
         // also make a local video Element to hold the stream
