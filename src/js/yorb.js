@@ -67,20 +67,16 @@ export class Yorb {
         // Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
         // In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
-        // let randX = this.randomRange(-2,2)
-        // let randZ = this.randomRange(-2,2)
-        // this.camera.position.set(randX, this.cameraHeight, randZ)
-
-        // PARACHUTE IS BACK...
-        // Start us up high on the Y axis and outside the Yorblet
-        this.camera.position.set(-3, 100, 43)
+        let randX = this.randomRange(-2, 2)
+        let randZ = this.randomRange(-2, 2)
+        this.camera.position.set(randX, this.cameraHeight, randZ)
 
         // create an AudioListener and add it to the camera
         this.listener = new THREE.AudioListener()
         this.camera.add(this.listener)
         this.scene.add(this.camera)
 
-        // this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5))
+        this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5))
 
         window.camera = this.camera
 
@@ -281,19 +277,6 @@ export class Yorb {
 
     // TODO make this simpler...? more performant?
     updatePositions() {
-
-      // PARACHUTE IS BACK...
-      // While landing, let's look at the middle of the area
-      if (this.camera.position.y > 2 && this.firstTime) {
-        // Trying for a smooth looking up motion
-        let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
-        // let lookFar = new THREE.Vector3(13, this.cameraHeight, -32);
-        // let lookFar = new THREE.Vector3(-5, this.cameraHeight, -10)
-        this.camera.lookAt(lookMiddle)
-      } else {
-        this.firstTime = false;
-      }
-
         let snapDistance = 0.5
         // let snapAngle = 0.2; // radians
         for (let _id in this.clients) {
