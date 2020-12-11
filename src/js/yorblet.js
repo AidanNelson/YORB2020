@@ -21,44 +21,12 @@ export class Yorblet {
     }
 
 
-    addCircles(){
-
-      // colorsssss //
-      var colBlack = 0x000000;
-      var colWhite = 0xffffff;
-      var colGreen = 0xc6fc03;
-      var colPink = 0xFB69B9;
-      var colPurple = 0x9588CB;
-      var colBlue = 0x05C1DA;
-
-
-
-      this.drawCircle(8, 32, collightBlue, -2, 12, -15);
-      this.drawCircle(6, 32, colmainBlue, 10, 20, -15);
-
-      //med circles
-      this.drawCircle(4, 32, coldarkBlue, 1, 10, -15);
-      this.drawCircle(4, 32, colmainBlue, 10, 6, -15);
-
-      //small circles
-      this.drawCircle(2, 32, coldarkBlue, -10, 18, -15);
-      this.drawCircle(1, 32, colmainPink, -3, 12, -15);
-
-
-    }
-
     ///// Shape Helper Functions /////
 
 
+    //draw circles
+
     drawCircle(radius, numFaces, matColor, posX, posY, posZ, angle){
-        // const circlegeometry = new THREE.CircleGeometry( radius, numFaces );
-        // const circlematerial = new THREE.MeshBasicMaterial( { color: matColor } );
-        // const circle = new THREE.Mesh( circlegeometry, circlematerial );
-        // circle.position.set(posX, posY, posZ);
-        // circle.rotateY(rotate);
-        // this.scene.add( circle );
-
-
         const circlegeometry = new THREE.CircleGeometry( radius, numFaces );
         const circlematerial = new THREE.MeshBasicMaterial( { color: matColor } );
         const circle = new THREE.Mesh( circlegeometry, circlematerial );
@@ -67,10 +35,58 @@ export class Yorblet {
         circle.lookAt(0,0,0);
         this.scene.add( circle );
 
-
-
       }
 
+
+    // Draw Square
+
+    drawRect(height, width, faces, planeColor, posX, posY, posZ, angle){
+      //plane  1
+      const planegeometry = new THREE.PlaneBufferGeometry( height, width, faces );
+      const planematerial = new THREE.MeshBasicMaterial( {color: planeColor, side: THREE.DoubleSide} );
+      const plane = new THREE.Mesh( planegeometry, planematerial );
+      plane.position.set(posX, posY, posZ);
+      plane.rotateY(angle);
+      plane.lookAt(0,2,0);
+      this.scene.add( plane );
+    }
+
+
+    // Draw Triangles
+    drawTri(scaleX, scaleY, scaleZ, posX, posY, posZ, triColor, angle, rotateDegrees){
+
+      var triangleGeometry = new THREE.Geometry();
+      var v1 = new THREE.Vector3(0,0,0);
+      var v2 = new THREE.Vector3(30,0,0);
+      var v3 = new THREE.Vector3(30,30,0);
+
+      var triangle = new THREE.Triangle( v1, v2, v3 );
+      var normal = triangle.normal();
+
+      // An example of getting the area from the Triangle class
+      //console.log( 'Area of triangle is: '+ triangle.area() );
+
+      triangleGeometry.vertices.push(triangle.a);
+      triangleGeometry.vertices.push(triangle.b);
+      triangleGeometry.vertices.push(triangle.c);
+      triangleGeometry.faces.push( new THREE.Face3( 0, 1, 2, normal ) );
+      triangleGeometry.scale(scaleX, scaleY, scaleZ);
+
+      //geom.scale(new THREE.Vector3(2,2,2));
+      const trianglematerial = new THREE.MeshBasicMaterial( {color: triColor, side: THREE.DoubleSide} );
+      var triangleMesh= new THREE.Mesh( triangleGeometry, trianglematerial );
+      triangleMesh.position.set(posX, posY, posZ);
+      triangleMesh.rotateY(angle);
+      triangleMesh.lookAt(0,2,0);
+      triangleMesh.rotateZ(rotateDegrees);
+      //var triangleScale = new THREE.Vector3(0,0,0);
+
+      this.scene.add(triangleMesh);
+
+  }
+
+
+    //
 
 
     addDoor(centerX,centerY,centerZ,lookAtX,lookAtY,lookAtZ){
@@ -161,128 +177,17 @@ export class Yorblet {
         this.scene.add(cylinder)
 
 
-        //testing stage
+        this.addCircleFence(centerX, centerZ, angle);
 
-        // colorsssss //
-        var colBlack = 0x000000;
-        var colWhite = 0xffffff;
-        var colGreen = 0xc6fc03;
-        var colPink = 0xFB69B9;
-        var colPurple = 0x9588CB;
-        var colBlue = 0x05C1DA;
+        //this.addRectFence(centerX, centerZ, angle);
+
+        //this.addTriFence(centerX, centerZ, angle);
 
 
-        var colmainBlue = 0x4B4FF4;
-        var coldarkBlue = 0x1250CC;
-        var collightBlue = 0x05C1DA;
-        var colmainPink = 0xFC3691;
+        //this.addRectFence
+        //this.addTriFence
 
-        //test circle
-        // const circlegeometry = new THREE.CircleGeometry( 5, 32 );
-        // const circlematerial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
-        // const circle = new THREE.Mesh( circlegeometry, circlematerial );
-        // circle.position.set(centerX, 0, centerZ);
-        // circle.rotateY(angle);
-        // circle.lookAt(0,0,0);
-        // this.scene.add( circle );
-        //this works!
-
-
-        this.drawCircle(3.5, 32, colmainBlue, centerX, 4.5, centerZ, angle);
-
-        let xshift_white = 30 * Math.cos(angle+0.15);
-        let zshift_white = 30 * Math.sin(angle+0.15);
-        this.drawCircle(3, 32, collightBlue, (xshift_white), 7, (zshift_white), angle);
-        //console.log("circle: ", centerX);
-
-        //med circles
-        let xshift_green = 30 * Math.cos(angle-0.14);
-        let zshift_green = 30 * Math.sin(angle-0.14);
-
-        this.drawCircle(1, 32, collightBlue, (xshift_green), 4, (zshift_green), angle);
-
-        let xshift_black1 = 30 * Math.cos(angle-0.20);
-        let zshift_black1 = 30 * Math.sin(angle-0.20);
-        this.drawCircle(2, 32, coldarkBlue, xshift_black1, 7, zshift_black1, angle);
-        //
-        // //small circles
-        let xshift_black2 = 30 * Math.cos(angle+0.20);
-        let zshift_black2 = 30 * Math.sin(angle+0.20);
-        this.drawCircle(1, 32, colmainBlue, xshift_black2, 2, zshift_black2, angle);
-
-        let xshift_pink = 30 * Math.cos(angle-0.12);
-        let zshift_pink = 30 * Math.sin(angle-0.12);
-        this.drawCircle(0.5, 32, colmainPink, (xshift_pink), 5, (zshift_pink), angle);
-
-
-        //draw fence
-        let xshift_black3 = 30 * Math.cos(angle+0.3);
-        let zshift_black3 = 30 * Math.sin(angle+0.3);
-        this.drawCircle(1, 32, coldarkBlue, xshift_black3, 2.5, zshift_black3, angle);
-
-        //draw fence
-        let xshift_black4 = 30 * Math.cos(angle+0.4);
-        let zshift_black4 = 30 * Math.sin(angle+0.4);
-        this.drawCircle(1, 32, coldarkBlue, xshift_black4, 2, zshift_black4, angle);
-
-        //draw fence
-        let xshift_black5 = 30 * Math.cos(angle+0.5);
-        let zshift_black5 = 30 * Math.sin(angle+0.5);
-        this.drawCircle(1, 32, coldarkBlue, xshift_black5, 2.5, zshift_black5, angle);
-
-        //draw fence
-        let xshift_black6 = 30 * Math.cos(angle+0.6);
-        let zshift_black6 = 30 * Math.sin(angle+0.6);
-        this.drawCircle(1, 32, coldarkBlue, xshift_black6, 2, zshift_black6, angle);
-
-
-
-        // this.drawCircle(8, 32, colPurple, (centerX-2), (12), (centerZ-15), angle);
-        // this.drawCircle(6, 32, colWhite, (centerX+10), 20, (centerZ-15), angle);
-        //
-        // //med circles
-        // this.drawCircle(4, 32, colGreen, (centerX+1), 10, (centerZ-15), angle);
-        // this.drawCircle(4, 32, colBlack, (centerX+10), 6, (centerZ-15), angle);
-        //
-        // //small circles
-        // this.drawCircle(2, 32, colBlack, (centerX-10), 18, (centerZ-15), angle);
-        // this.drawCircle(1, 32, colPink, (centerX-3), 12, (centerZ-15), angle);
-
-
-        // //add label
-        // let textDepth = 0.1;
-        // let curveSegments = 3;
-        // let message, txt;
-        //
-        // message = 'Lydia Jessup!';
-        //
-        // // const loader = new THREE.FontLoader();
-        // // const font = loader.load('../assets/fonts/helvetiker_regular_copy.typeface.json');
-        //
-        // const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json' );
-        // const font = new THREE.Font( fontJson );
-        //
-        // // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, fontMesh
-        // txt = create3DText(message, 0.25, textDepth, curveSegments, 0.01, 0.01, false, false, font);
-        //
-        // //draw fence
-        // let font_xshift = 30 * Math.cos(angle+0.2);
-        // let font_zshift = 30 * Math.sin(angle+0.2);
-        //
-        // txt.position.set(0, 0, 0);
-        // //txt.rotateY(angle);
-        // //txt.lookAt(0,0,0);
-        // this.scene.add(txt);
-
-
-//this isn't workinng
-            //
-            // const loader = new THREE.FontLoader();
-            //
-            // loader.load('../assets/fonts/helvetiker_regular_copy.typeface.json', (font) => {
-            // //
-
-
+        //// Draw Label (placeholder for now) - make separate functionn?
             const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json' );
             const font = new THREE.Font( fontJson );
 
@@ -299,7 +204,7 @@ export class Yorblet {
                 bevelSegments: 6,
               });
 
-              const fontMaterial = new THREE.MeshPhongMaterial( {color: 0xFC3691, flatShading: true} );
+              const fontMaterial = new THREE.MeshPhongMaterial( {color: 0x1250CC, flatShading: true} );
               const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial);
 
               let font_xshift = 30 * Math.cos(angle+0.1);
@@ -309,24 +214,244 @@ export class Yorblet {
               fontMesh.lookAt(0,0,0);
               this.scene.add( fontMesh );
 
-          //  });
-
-
 
         this.projectionScreenManager.addScreen(centerX,2,centerZ,0,2,0, scaleFactor);
     }
 
 
+
+
+
+    //circle version of fence
+    addCircleFence(centerX, centerZ, angle){
+
+              // colorsssss //
+              var colBlack = 0x000000;
+              var colWhite = 0xffffff;
+              var colmainBlue = 0x4B4FF4;
+              var coldarkBlue = 0x1250CC;
+              var collightBlue = 0x05C1DA;
+              var colmainPink = 0xFC3691;
+
+
+              //draw the circles
+
+              //center circle
+              this.drawCircle(3.5, 32, colmainBlue, centerX, 4.5, centerZ, angle);
+
+              let xshift_c1 = 30 * Math.cos(angle+0.15);
+              let zshift_c1 = 30 * Math.sin(angle+0.15);
+              this.drawCircle(3, 32, collightBlue, (xshift_c1), 7, (zshift_c1), angle);
+
+              //med circles
+              let xshift_c2 = 30 * Math.cos(angle-0.14);
+              let zshift_c2 = 30 * Math.sin(angle-0.14);
+
+              this.drawCircle(1, 32, collightBlue, (xshift_c2), 4, (zshift_c2), angle);
+
+              let xshift_c3 = 30 * Math.cos(angle-0.20);
+              let zshift_c3 = 30 * Math.sin(angle-0.20);
+              this.drawCircle(2, 32, coldarkBlue, xshift_c3, 7, zshift_c3, angle);
+              //
+              // //small circles
+              let xshift_c4 = 30 * Math.cos(angle+0.20);
+              let zshift_c4 = 30 * Math.sin(angle+0.20);
+              this.drawCircle(1, 32, colmainBlue, xshift_c4, 2, zshift_c4, angle);
+
+              let xshift_c5 = 30 * Math.cos(angle-0.12);
+              let zshift_c5 = 30 * Math.sin(angle-0.12);
+              this.drawCircle(0.5, 32, colmainPink, (xshift_c5), 5, (zshift_c5), angle);
+
+
+              //draw fence
+              let xshift_c6 = 30 * Math.cos(angle+0.3);
+              let zshift_c6 = 30 * Math.sin(angle+0.3);
+              this.drawCircle(1, 32, coldarkBlue, xshift_c6, 2.5, zshift_c6, angle);
+
+              //draw fence
+              let xshift_c7 = 30 * Math.cos(angle+0.4);
+              let zshift_c7 = 30 * Math.sin(angle+0.4);
+              this.drawCircle(1, 32, coldarkBlue, xshift_c7, 2, zshift_c7, angle);
+
+              //draw fence
+              let xshift_c8 = 30 * Math.cos(angle+0.5);
+              let zshift_c8 = 30 * Math.sin(angle+0.5);
+              this.drawCircle(1, 32, coldarkBlue, xshift_c8, 2.5, zshift_c8, angle);
+
+              //draw fence
+              let xshift_c9 = 30 * Math.cos(angle+0.6);
+              let zshift_c9 = 30 * Math.sin(angle+0.6);
+              this.drawCircle(1, 32, coldarkBlue, xshift_c9, 2, zshift_c9, angle);
+
+
+    }
+
+
+
+    addRectFence(centerX, centerZ, angle){
+
+
+      // colorsssss //
+      var colBlack = 0x000000;
+      var colWhite = 0xffffff;
+      var colmainBlue = 0x4B4FF4;
+      var coldarkBlue = 0x1250CC;
+      var collightBlue = 0x05C1DA;
+      var colmainPink = 0xFC3691;
+      var colmainGreen = 0x9BE210;
+
+      var colmedPink = 0xFB69B9;
+      var coldarkPink = 0xE49ADD;
+
+
+
+      //draw the circles
+
+      //center circle
+      this.drawRect(6, 6, 5, colmainPink, centerX, 4.5, centerZ, angle);
+
+      let xshift_c1 = 30 * Math.cos(angle+0.15);
+      let zshift_c1 = 30 * Math.sin(angle+0.15);
+      this.drawRect(6, 4, 5, colmedPink, (xshift_c1), 7, (zshift_c1), angle);
+
+      // //med circles
+      let xshift_c2 = 30 * Math.cos(angle-0.14);
+      let zshift_c2 = 30 * Math.sin(angle-0.14);
+      this.drawRect(5, 5, 5, colmedPink, (xshift_c2), 8, (zshift_c2), angle);
+
+      let xshift_c3 = 30 * Math.cos(angle-0.20);
+      let zshift_c3 = 30 * Math.sin(angle-0.20);
+      this.drawRect(3, 3, 5, colmainPink, xshift_c3, 7, zshift_c3, angle);
+      //
+
+      let xshift_c5 = 30 * Math.cos(angle-0.12);
+      let zshift_c5 = 30 * Math.sin(angle-0.12);
+      this.drawRect(2, 2, 2, colmainGreen, (xshift_c5), 5, (zshift_c5), angle);
+
+
+
+      // //small circles
+      let xshift_c4 = 30 * Math.cos(angle+0.20);
+      let zshift_c4 = 30 * Math.sin(angle+0.20);
+      this.drawRect(1.5, 1.5, 5, coldarkPink, xshift_c4, 2, zshift_c4, angle);
+
+      //draw fence
+      let xshift_c6 = 30 * Math.cos(angle+0.3);
+      let zshift_c6 = 30 * Math.sin(angle+0.3);
+      this.drawRect(1.5, 1.5, 5, coldarkPink, xshift_c6, 2.5, zshift_c6, angle);
+
+      //draw fence
+      let xshift_c7 = 30 * Math.cos(angle+0.4);
+      let zshift_c7 = 30 * Math.sin(angle+0.4);
+      this.drawRect(1.5, 1.5, 5, coldarkPink, xshift_c7, 2, zshift_c7, angle);
+
+      //draw fence
+      let xshift_c8 = 30 * Math.cos(angle+0.5);
+      let zshift_c8 = 30 * Math.sin(angle+0.5);
+      this.drawRect(1.5, 1.5, 5, coldarkPink, xshift_c8, 2.5, zshift_c8, angle);
+
+      //draw fence
+      let xshift_c9 = 30 * Math.cos(angle+0.6);
+      let zshift_c9 = 30 * Math.sin(angle+0.6);
+      this.drawRect(1.5, 1.5, 5, coldarkPink, xshift_c9, 2, zshift_c9, angle);
+
+
+
+    }
+
+
+
+    addTriFence(centerX, centerZ, angle){
+
+    //  drawTri(scaleX, scaleY, scaleZ, posX, posY, posZ, triColor, angle, rotateDegrees){
+
+    // colorsssss //
+    var colBlack = 0x000000;
+    var colWhite = 0xffffff;
+    var colmainBlue = 0x4B4FF4;
+    var coldarkBlue = 0x1250CC;
+    var collightBlue = 0x05C1DA;
+    var colmainPink = 0xFC3691;
+    var colmainGreen = 0x9BE210;
+    var colmainYellow = 0xFFD810;
+
+    var colmedPink = 0xFB69B9;
+    var coldarkPink = 0xE49ADD;
+    var coldarkYellow = 0xF4D01D;
+    var colOrange = 0xFD8F20;
+
+
+    //draw the circles
+
+    //center circle
+    // let xshift_c0 = 30 * Math.cos(angle-0.15);
+    // let zshift_c0 = 30 * Math.sin(angle-.15);
+    this.drawTri(.3, .3, .3, centerX, 4.5, centerZ, coldarkYellow, angle, 0);
+
+    let xshift_c1 = 30 * Math.cos(angle+0.15);
+    let zshift_c1 = 30 * Math.sin(angle+0.15);
+    this.drawTri(0.1, 0.1, 0.1, (xshift_c1), 7, (zshift_c1), colmainBlue, angle, 0);
+
+    // // //med circles
+    // let xshift_c2 = 30 * Math.cos(angle-0.14);
+    // let zshift_c2 = 30 * Math.sin(angle-0.14);
+    // this.drawTri(0.2, 0.2, 0.2, (xshift_c2), 8, (zshift_c2), colmedPink, angle, 0);
+
+    let xshift_c3 = 30 * Math.cos(angle-0.20);
+    let zshift_c3 = 30 * Math.sin(angle-0.20);
+    this.drawTri(0.05, 0.05, 0.05, xshift_c3, 7, zshift_c3, coldarkYellow, angle, (-1.5708*3));
+    //
+    //
+    let xshift_c5 = 30 * Math.cos(angle-0.18);
+    let zshift_c5 = 30 * Math.sin(angle-0.18);
+    this.drawTri(0.1, 0.1, 0.1, (xshift_c5), 7, (zshift_c5), colmainBlue, angle, (-1.5708*1));
+
+
+    let xshift_c10 = 30 * Math.cos(angle-0.12);
+    let zshift_c10 = 30 * Math.sin(angle-0.12);
+    this.drawTri(0.25, 0.25, 0.25, (xshift_c10), 10, (zshift_c10), colmainYellow, angle, (-1.5708));
+
+
+    //
+    //
+    // //small circles
+    let xshift_c4 = 30 * Math.cos(angle+0.20);
+    let zshift_c4 = 30 * Math.sin(angle+0.20);
+    this.drawTri(0.05, 0.05, 0.05, xshift_c4, 2, zshift_c4, colOrange, angle, 0);
+
+    //draw fence
+    let xshift_c6 = 30 * Math.cos(angle+0.3);
+    let zshift_c6 = 30 * Math.sin(angle+0.3);
+    this.drawTri(0.05, 0.05, 0.05, xshift_c6, 2.5, zshift_c6, colOrange, angle, 0);
+
+    //draw fence
+    let xshift_c7 = 30 * Math.cos(angle+0.4);
+    let zshift_c7 = 30 * Math.sin(angle+0.4);
+    this.drawTri(0.05, 0.05, 0.05, xshift_c7, 2, zshift_c7, colOrange, angle, 0);
+
+    //draw fence
+    let xshift_c8 = 30 * Math.cos(angle+0.5);
+    let zshift_c8 = 30 * Math.sin(angle+0.5);
+    this.drawTri(0.05, 0.05, 0.05, xshift_c8, 2.5, zshift_c8, colOrange, angle, 0);
+
+    //draw fence
+    let xshift_c9 = 30 * Math.cos(angle+0.6);
+    let zshift_c9 = 30 * Math.sin(angle+0.6);
+    this.drawTri(0.05, 0.05, 0.05, xshift_c9, 2, zshift_c9, colOrange, angle, 0);
+
+
+
+
+
+
+    }
+
+
+
+
     addCenterPiece(){
 
       // add table
-
-      // const tableGeometry = new THREE.CylinderBufferGeometry(1, 1, 2, 32, 1, false);
-      // const tableMaterial = new THREE.MeshPhongMaterial({ color: 0xFB69B9, side: THREE.DoubleSide });
-      // const table = new THREE.Mesh(tableGeometry, tableMaterial);
-      // table.position.set(0, 0, 0);
-      // //cylinder.lookAt(0,0,0);
-      // this.scene.add(table);
 
       const centerGeometry = new THREE.SphereGeometry( 1, 32, 32 );
       const centerMaterial = new THREE.MeshPhongMaterial( {color: 0xFB69B9} );
