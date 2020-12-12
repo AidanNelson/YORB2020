@@ -73,12 +73,14 @@ export class Yorb {
 
         // PARACHUTE IS BACK...
         // Start us up high on the Y axis and outside the Yorblet
-        this.camera.position.set(-3, 100, 43)
+        this.camera.position.set(-15, 100, 40)
 
         // create an AudioListener and add it to the camera
         this.listener = new THREE.AudioListener()
         this.camera.add(this.listener)
         this.scene.add(this.camera)
+        this.camera.lookAt(0, 0, 0)
+
 
         // this.camera.lookAt(new THREE.Vector3(-13.6, this.cameraHeight, -14.5))
 
@@ -284,14 +286,15 @@ export class Yorb {
 
       // PARACHUTE IS BACK...
       // While landing, let's look at the middle of the area
-      if (this.camera.position.y > 2 && this.firstTime) {
+      // if (this.camera.position.y > 2 && this.firstTime) {
+      if (this.camera.position.y > 5) {
         // Trying for a smooth looking up motion
-        let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
+          let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
         // let lookFar = new THREE.Vector3(13, this.cameraHeight, -32);
         // let lookFar = new THREE.Vector3(-5, this.cameraHeight, -10)
-        this.camera.lookAt(lookMiddle)
-      } else {
-        this.firstTime = false;
+          this.camera.lookAt(lookMiddle)
+      // } else {
+        // this.firstTime = false;
       }
 
         let snapDistance = 0.5

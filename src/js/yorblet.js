@@ -419,7 +419,7 @@ export class Yorblet {
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
 
-        const text = 'Circle Room'
+        let text = "Back to YORB"
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
