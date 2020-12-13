@@ -5,7 +5,7 @@ import { create3DText, createSimpleText } from './utils'
 const project_thumbnails = require('../assets/images/project_thumbnails/*.png')
 
 // set which YORBLET we're in
-const YORBLET_INDEX = 3
+const YORBLET_INDEX = 4;
 
 // pick colors
 const OUTER_FENCE_COLOR = 0x232323 //0x232378
@@ -16,6 +16,7 @@ const PROJECT_NUMBER_COLOR = 0xffffff;
 const SKY_COLOR_CIRCLE_ROOM = 0x1250CC;
 const SKY_COLOR_RECT_ROOM = 0xe49add;
 const SKY_COLOR_TRI_ROOM = 0xfd8f20;
+const SKY_COLOR_BOLT_ROOM = 0x18DD6C;
 
 // other parameters:
 const NUMBER_OF_PROJECTS = 10
@@ -240,6 +241,7 @@ export class Yorblet {
             this.addTriFence(centerX, centerZ, lookAtX, lookAtZ, angle)
         } else if (YORBLET_INDEX === 4) {
             // do styling for yorblet 4
+            this.addLightningFence(centerX, centerZ);
         } else if (YORBLET_INDEX === 5) {
             // do styling for yorblet 5
         } else if (YORBLET_INDEX === 6) {
@@ -587,19 +589,135 @@ export class Yorblet {
 
     }
 
+
+    addLightningFence(centerX, centerZ){
+
+
+      // colorsssss //
+      var colBlack = 0x000000
+      var colWhite = 0xffffff
+      var colmainBlue = 0x4b4ff4
+      var coldarkBlue = 0x1250cc
+      var collightBlue = 0x05c1da
+      var colmainPink = 0xfc3691
+      var colmainGreen = 0x9be210
+      var colmainYellow = 0xffd810
+
+      var colmedPink = 0xfb69b9
+      var coldarkPink = 0xe49add
+      var coldarkYellow = 0xf4d01d
+      var colOrange = 0xfd8f20
+
+      var collightGreen = 0x18DD6C;
+      var coldarkGreen = 0x64C5BB;
+      var colsuperGreen = 0xBFF98C;
+      var accentYellow = 0xF9F912;
+      var accentBlue = 0x67D6B5;
+      var accentGreen = 0x77E424;
+
+
+
+
+      let scale = 6;
+      let centerY = 4;
+
+      let offsetX = 3;// how far to the circle's right
+      let offsetY = 0;// how far to the circle's up-down
+      let offsetZ = -4.8;// how far to the circle's forward-backward
+      this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+
+      //two
+      scale = 2;
+      centerY = 4;
+
+      offsetX = 3;// how far to the circle's right
+      offsetY = 2;// how far to the circle's up-down
+      offsetZ = -4.5;// how far to the circle's forward-backward
+      this.drawLightning(scale, accentYellow, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+
+      //three
+      scale = 5;
+      centerY = 4;
+
+      offsetX = -5;// how far to the circle's right
+      offsetY = -1;// how far to the circle's up-down
+      offsetZ = -4;// how far to the circle's forward-backward
+      this.drawLightning(scale, accentBlue, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+
+      //three
+      scale = 3;
+      centerY = 4;
+
+      offsetX = -6;// how far to the circle's right
+      offsetY = 3;// how far to the circle's up-down
+      offsetZ = -3.8;// how far to the circle's forward-backward
+      //this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+
+      //SMALL FENCE
+      //four
+      scale = 1;
+      centerY = 4;
+
+      offsetX = 6;// how far to the circle's right
+      offsetY = -3;// how far to the circle's up-down
+      offsetZ = -4;// how far to the circle's forward-backward
+      this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+      //five
+      scale = 1;
+      centerY = 4;
+
+      offsetX = 10;// how far to the circle's right
+      offsetY = -3.5;// how far to the circle's up-down
+      offsetZ = -4;// how far to the circle's forward-backward
+      this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+      //five
+      scale = 1;
+      centerY = 4;
+
+      offsetX = 14;// how far to the circle's right
+      offsetY = -3;// how far to the circle's up-down
+      offsetZ = -4;// how far to the circle's forward-backward
+      this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+
+      //six
+      scale = 1;
+      centerY = 4;
+
+      offsetX = 18;// how far to the circle's right
+      offsetY = -3.5;// how far to the circle's up-down
+      offsetZ = -4;// how far to the circle's forward-backward
+      this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+
+
+
+    }
+
     addCenterPiece() {
         // add table
 
         const centerGeometry = new THREE.SphereGeometry(200, 32, 32)
 
         //CIRCLE SKY
-        //const centerMaterial = new THREE.MeshPhongMaterial({ color: SKY_COLOR_CIRCLE_ROOM, side: THREE.DoubleSide })
+        //const centerMaterial = new THREE.MeshLambertMaterial({ color: SKY_COLOR_CIRCLE_ROOM, side: THREE.DoubleSide })
 
         // RECTANGLE SKY
-        //const centerMaterial = new THREE.MeshPhongMaterial({ color: SKY_COLOR_RECT_ROOM, side: THREE.DoubleSide })
+        //const centerMaterial = new THREE.MeshLambertMaterial({ color: SKY_COLOR_RECT_ROOM, side: THREE.DoubleSide })
 
         //TRIANGLE SKY
-        const centerMaterial = new THREE.MeshPhongMaterial({ color: SKY_COLOR_TRI_ROOM, side: THREE.DoubleSide })
+        //try basic material or lambert
+        //const centerMaterial = new THREE.MeshLambertMaterial({ color: SKY_COLOR_TRI_ROOM, side: THREE.DoubleSide })
+
+
+        //BOLT SKY
+        //try basic material or lambert
+        const centerMaterial = new THREE.MeshLambertMaterial({ color: SKY_COLOR_BOLT_ROOM, side: THREE.DoubleSide })
 
 
 
@@ -627,6 +745,41 @@ export class Yorblet {
         const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial)
         fontMesh.position.set(-1, 2, 0)
         fontMesh.rotateY(Math.PI / 2)
+
+
+
+        // //draw lightning
+        // const x = 0, y = 0;
+        //
+        // const lightningBolt = new THREE.Shape();
+        //
+        //
+        // lightningBolt.moveTo( x , y );
+        // lightningBolt.lineTo(x+.5, y);
+        // lightningBolt.lineTo(x+1.25, y+1.25);
+        // lightningBolt.lineTo(x+.75, y+1.25);
+        // lightningBolt.lineTo(x+1.25, y+2);
+        // lightningBolt.lineTo(x+.5, y+2);
+        // lightningBolt.lineTo(x, y+.75);
+        // lightningBolt.lineTo(x+.5, y+.75);
+        // lightningBolt.lineTo(x+.1,  y);
+        //
+        //
+        // const geometry = new THREE.ShapeGeometry( lightningBolt );
+        // const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        // const lightningMesh = new THREE.Mesh( geometry, material ) ;
+        //
+        //
+        // //triangleMesh.translateX(offsetX)
+        // lightningMesh.translateY(1)
+        // lightningMesh.translateZ(1)
+        // console.log("bolt: " +lightningMesh.position.x);
+        //
+        //
+        // this.scene.add( lightningMesh );
+        //
+        //
+
 
         //this.scene.add(fontMesh)
     }
@@ -710,6 +863,48 @@ export class Yorblet {
 
         this.scene.add(triangleMesh)
     }
+
+
+    drawLightning(scale, matcolor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ){
+
+      //draw lightning
+      const x = 0, y = 0;
+
+      const lightningBolt = new THREE.Shape();
+
+
+      lightningBolt.moveTo( x , y );
+      lightningBolt.lineTo(x+.5, y);
+      lightningBolt.lineTo(x+1.25, y+1.25);
+      lightningBolt.lineTo(x+.75, y+1.25);
+      lightningBolt.lineTo(x+1.25, y+2);
+      lightningBolt.lineTo(x+.5, y+2);
+      lightningBolt.lineTo(x, y+.75);
+      lightningBolt.lineTo(x+.5, y+.75);
+      lightningBolt.lineTo(x+.1,  y);
+
+
+      const geometry = new THREE.ShapeGeometry( lightningBolt );
+      const material = new THREE.MeshPhongMaterial( { color: matcolor } );
+      const lightningMesh = new THREE.Mesh( geometry, material ) ;
+
+
+      //set position and look at and rotate
+      lightningMesh.position.set(centerX, centerY, centerZ)
+      lightningMesh.lookAt(0, 2, 0)
+
+      //offset in space
+      lightningMesh.translateX(offsetX)
+      lightningMesh.translateY(offsetY)
+      lightningMesh.translateZ(offsetZ)
+
+      lightningMesh.scale.set(scale, scale, scale);
+
+      this.scene.add( lightningMesh );
+
+
+      }
+
 
 
 
