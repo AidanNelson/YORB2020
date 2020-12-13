@@ -86,7 +86,7 @@ export class Yorb {
         })
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-        this.renderer.setClearColor(new THREE.Color(0x1250CC)) // change sky color
+        this.renderer.setClearColor(new THREE.Color('lightblue')) // change sky color
         this.renderer.setSize(this.width, this.height)
 
         this.addLights()
@@ -119,7 +119,7 @@ export class Yorb {
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
         // this.itpModel = new ITPModel(this.scene)
 
-        this.yorblet = new Yorblet(this.scene, this.projectionScreens)
+        this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera)
 
         // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
         // this.show.setup()
@@ -170,7 +170,7 @@ export class Yorb {
     //
     // update projects:
     updateProjects(projects) {
-        console.log('yorb received', projects.length, 'show projects')
+        // console.log('yorb received', projects.length, 'show projects')
         // this.show.updateProjects(projects)
     }
 
