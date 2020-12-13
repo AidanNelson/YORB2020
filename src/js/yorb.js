@@ -121,7 +121,6 @@ export class Yorb {
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
         // this.itpModel = new ITPModel(this.scene)
 
-        // let pyrViolet = require('../assets/models/portals/pyr-violet.glb')
         this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, PortalModels['pyrGreen'], "https://yorblet1.itp.io")
 
         // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)

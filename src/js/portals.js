@@ -8,6 +8,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 //when yorb.js creates a yorblet, it also needs that yorblets url and portal model
 //then in the yorblet, it creates a portal from here using those arguments
+//the portal trigger is checked in the update method of yorb.js
 export class Portal {
     constructor(scene, portal, destination){
         this.scene = scene; //da sceneee
@@ -21,7 +22,6 @@ export class Portal {
     }
 
     loadPortalModel(modelPath) {
-        console.log('model path: ' + this.model);
         this.portalLoader.load(
             modelPath,
             (gltf) => {
@@ -48,10 +48,8 @@ export class Portal {
     teleportCheck(userPosition){
         //need to change because getPlayerPosition doesn't return a vec3
         let userVec3 = new Vector3(userPosition[0], userPosition[1], userPosition[2]);
-        console.log('distance: ' + this.position.distanceTo(userVec3));
         if(this.position.distanceTo(userVec3) <= this.radius){
             console.log('teleporting');
-            // window.open('https://yorb.itp.io/experimental'); //send them to lobby TODO update url
             window.open(this.destination);
             return true; //for the trigger that removes the user from this yorblet
         }
