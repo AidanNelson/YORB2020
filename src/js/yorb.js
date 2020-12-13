@@ -9,7 +9,8 @@ import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 
-import { SpringShow } from './springShow2020'
+import { SpringShow2020 } from './springShow2020'
+import { WinterShow2020 } from './winterShow2020'
 import { ITPModel } from './itpModel'
 import { Sketches } from './p5Sketches'
 import { ProjectionScreens } from './projectionScreens'

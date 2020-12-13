@@ -5,7 +5,7 @@ import { hackToRemovePlayerTemporarily } from './index.js'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
-export class SpringShow2020 {
+export class WinterShow2020 {
     constructor(scene, camera, controls, mouse) {
         this.scene = scene
         this.camera = camera
