@@ -164,6 +164,11 @@ export class ProjectionScreens {
         this.projectionScreens[screenId].userData.activeUserId = clientId;
     }
 
+    releaseProjectionScreen(screenId){
+        console.log("Releasing projection screen: ",screenId);
+        this.projectionScreens[screenId].userData.activeUserId = "default";
+    }
+
     update() {
         this.updateProjectionScreens()
     }

@@ -301,6 +301,14 @@ async function runSocketServer() {
             }
         })
 
+        socket.on('releaseProjectionScreen', (data) => {
+            if (clients[socket.id]) {
+                clients[socket.id].projectionScreenId = -1;
+            }
+            console.log('release', data.screenId);
+            io.sockets.emit('releaseProjectionScreen', data);
+        })
+
         // Handle the disconnection
         socket.on('disconnect', () => {
             //Delete this client from the object

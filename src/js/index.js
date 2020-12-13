@@ -28,12 +28,12 @@ const err = debugModule('YORB:ERROR')
 const p5 = require('p5')
 
 // For running against local server
-//const WEB_SOCKET_SERVER = 'localhost:3000'
-//const INSTANCE_PATH = '/socket.io'
+const WEB_SOCKET_SERVER = 'localhost:3000'
+const INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-const WEB_SOCKET_SERVER = "https://yorb.itp.io";
-const INSTANCE_PATH = "/experimental/socket.io";
+// const WEB_SOCKET_SERVER = 'https://yorb.itp.io'
+// const INSTANCE_PATH = '/experimental/socket.io'
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
@@ -70,7 +70,7 @@ export let mySocketID,
     projects = [],
     miniMapSketch,
     selfViewSketch,
-    initialized = false
+    initialized = false;
 
 window.clients = {} // array of connected clients for three.js scene
 window.lastPollSyncData = {}
@@ -145,8 +145,8 @@ async function init() {
 }
 
 export function shareScreen(screenId) {
-    console.log('Starting screenshare to screen with ID ', screenId);
-    startScreenshare(screenId);
+    console.log('Starting screenshare to screen with ID ', screenId)
+    startScreenshare(screenId)
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -219,9 +219,9 @@ function initSocketConnection() {
         })
 
         // listen for projection screen changes:
-        socket.on('projectToScreen', (config) => {
-            console.log('Received incoming projection screen config:', config)
-            yorbScene.updateProjectionScreen(config)
+        socket.on('releaseProjectionScreen', (data) => {
+            console.log('Releasing screen with id', data.screenId);
+            yorbScene.releaseProjectionScreen(data.screenId)
         })
     })
 }
@@ -610,6 +610,11 @@ export async function startScreenshare(screenId) {
         screenVideoProducer.track.onended = async () => {
             log('screen share stopped')
             try {
+                console.log('releasing', screenId);
+                socket.emit('releaseProjectionScreen', {
+                    screenId: screenId
+                });
+                
                 await screenVideoProducer.pause()
 
                 let { error } = await socket.request('close-producer', { producerId: screenVideoProducer.id })
@@ -632,10 +637,10 @@ export async function startScreenshare(screenId) {
         }
 
         if (screenAudioProducer) {
-		}
-		
-		// then tell the server we claim that screen: 
-		socket.emit('claimProjectionScreen', {
+        }
+
+        // then tell the server we claim that screen:
+        socket.emit('claimProjectionScreen', {
             screenId: screenId,
         })
     } catch (e) {
@@ -808,7 +813,7 @@ export async function subscribeToTrack(peerId, mediaTag) {
     // until we're connected, then send a resume request to the server
     // to get our first keyframe and start displaying video
     while (recvTransport.connectionState !== 'connected') {
-        log('  transport connstate', recvTransport.connectionState)
+        log('Transport connection state:', recvTransport.connectionState)
         await sleep(100)
     }
     // okay, we're ready. let's ask the peer to send us media
@@ -1200,7 +1205,10 @@ function addVideoAudio(consumer, peerId, mediaTag) {
 
         // TODO: do i need to update video width and height? or is that based on stream...?
         console.log('Updating video source for user with ID: ' + peerId)
-        el.srcObject = new MediaStream([consumer.track.clone()])
+
+        let trackClone = consumer.track.clone()
+        let sourceStream = new MediaStream([trackClone])
+        el.srcObject = sourceStream
         el.consumer = consumer
 
         // let's "yield" and return before playing, rather than awaiting on
