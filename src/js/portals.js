@@ -19,6 +19,7 @@ export class Portal {
         this.portalLoader = new GLTFLoader();
         // this.loadPortalModel(require(this.model));
         this.loadPortalModel(this.model);
+        
         // this.loadPetModels();
         // portalLoader.load(this.model, function (gltf) {
         //     let portalScene = gltf.scene;
@@ -84,8 +85,7 @@ export class Portal {
     // }
     
     teleportCheck(userPosition){
-        // console.log('portal Pos: ' + this.position);
-        // console.log('player Pos: ' + userPosition);
+        //need to change because getPlayerPosition doesn't return a vec3
         let userVec3 = new Vector3(userPosition[0], userPosition[1], userPosition[2]);
         console.log('distance: ' + this.position.distanceTo(userVec3));
         if(this.position.distanceTo(userVec3) <= this.radius){
