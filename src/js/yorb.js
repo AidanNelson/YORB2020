@@ -361,6 +361,10 @@ export class Yorb {
         this.projectionScreens.updateProjectionScreen(config)
     }
 
+    releaseProjectionScreen(screenId){
+        this.projectionScreens.releaseProjectionScreen(screenId);
+    }
+
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // Audio 📣

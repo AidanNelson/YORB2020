@@ -164,6 +164,11 @@ export class ProjectionScreens {
         this.projectionScreens[screenId].userData.activeUserId = clientId;
     }
 
+    releaseProjectionScreen(screenId){
+        console.log("Releasing projection screen: ",screenId);
+        this.projectionScreens[screenId].userData.activeUserId = "default";
+    }
+
     update() {
         this.updateProjectionScreens()
     }
@@ -213,6 +218,7 @@ export class ProjectionScreens {
     onMouseClick(e) {
         if (this.hightlightedScreen && this.shift_down) {
             this.projectToScreen(this.hightlightedScreen.userData.screenId)
+            this.shift_down = false; // reset this because the displayMedia dialog means we lose the onKeyUp event
         }
     }
 
