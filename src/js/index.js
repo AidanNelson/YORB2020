@@ -218,6 +218,10 @@ function initSocketConnection() {
             yorbScene.updateClientPositions(_clientProps)
         })
 
+        socket.on('projectionScreenUpdate', (_clientProps) => {
+            yorbScene.updateProjectionScreenOwnership(_clientProps)
+        })
+
         // listen for projection screen changes:
         socket.on('releaseProjectionScreen', (data) => {
             console.log('Releasing screen with id', data.screenId);
@@ -575,7 +579,7 @@ export async function startScreenshare(screenId) {
         // get a screen share track
         localScreen = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: false,
+            audio: true,
         })
 
         // also make a local video Element to hold the stream
@@ -636,8 +640,7 @@ export async function startScreenshare(screenId) {
             }
         }
 
-        if (screenAudioProducer) {
-        }
+
 
         // then tell the server we claim that screen:
         socket.emit('claimProjectionScreen', {
@@ -1176,11 +1179,15 @@ function addVideoAudio(consumer, peerId, mediaTag) {
     }
 
     const isScreenshare = mediaTag == 'screen-video'
+    const isScreenshareAudio = mediaTag == 'screen-audio'
     console.log('MediaTag: ', mediaTag, ' / isScreenshare: ', isScreenshare)
 
     let elementID = `${peerId}_${consumer.kind}`
     if (isScreenshare) {
         elementID = `${peerId}_screenshare`
+    }
+    if (isScreenshareAudio){
+        elementID = `${peerId}_screenshareAudio`
     }
     let el = document.getElementById(elementID)
 
@@ -1227,6 +1234,9 @@ function addVideoAudio(consumer, peerId, mediaTag) {
             console.log('Creating audio element for user with ID: ' + peerId)
             el = document.createElement('audio')
             el.id = `${peerId}_${consumer.kind}`
+            if (isScreenshareAudio) {
+                el.id = `${peerId}_screenshareAudio`
+            }
             document.body.appendChild(el)
             el.setAttribute('playsinline', true)
             el.setAttribute('autoplay', true)
@@ -1236,7 +1246,10 @@ function addVideoAudio(consumer, peerId, mediaTag) {
         el.srcObject = new MediaStream([consumer.track.clone()])
         el.consumer = consumer
         el.volume = 0 // start at 0 and let the three.js scene take over from here...
-        yorbScene.createOrUpdatePositionalAudio(peerId)
+        if (!isScreenshareAudio){
+            yorbScene.createOrUpdatePositionalAudio(peerId)
+        }
+        
 
         // let's "yield" and return before playing, rather than awaiting on
         // play() succeeding. play() will not succeed on a producer-paused

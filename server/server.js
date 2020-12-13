@@ -227,7 +227,7 @@ async function updateProjects() {
             })
 
             res.on('end', function () {
-                var json;
+                var json
                 try {
                     // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
                     json = JSON.parse(body)
@@ -273,7 +273,7 @@ async function runSocketServer() {
             // position: [0, 0.5, 0],
             // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
             rotation: [0, 0, 0],
-            projectionScreenId: -1
+            projectionScreenId: -1,
         }
 
         socket.emit('introduction', socket.id, Object.keys(clients))
@@ -297,16 +297,18 @@ async function runSocketServer() {
 
         socket.on('claimProjectionScreen', (data) => {
             if (clients[socket.id]) {
-                clients[socket.id].projectionScreenId = data.screenId;
+                clients[socket.id].projectionScreenId = data.screenId
             }
+
+            io.sockets.emit('projectionScreenUpdate', clients)
         })
 
         socket.on('releaseProjectionScreen', (data) => {
             if (clients[socket.id]) {
-                clients[socket.id].projectionScreenId = -1;
+                clients[socket.id].projectionScreenId = -1
             }
-            console.log('release', data.screenId);
-            io.sockets.emit('releaseProjectionScreen', data);
+            console.log('release', data.screenId)
+            io.sockets.emit('releaseProjectionScreen', data)
         })
 
         // Handle the disconnection

@@ -265,6 +265,15 @@ export class Yorb {
                     let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ')
                     this.clients[_id].group.setRotationFromEuler(euler)
 
+                }
+            }
+        }
+    }
+
+    updateProjectionScreenOwnership(_clientProps){
+        for (let _id in _clientProps) {
+            if (_id in this.clients) {
+                if (_id != this.mySocketID) {
                     // update projection screens
                     let projectionScreenId = _clientProps[_id].projectionScreenId;
                     if (projectionScreenId !== -1 && projectionScreenId !== undefined){
@@ -322,6 +331,7 @@ export class Yorb {
 
             if (this.frameCount % 20 == 0) {
                 this.updateClientVolumes()
+                this.projectionScreens.updatePositionalAudio()
                 this.movementCallback()
                 // this.show.update()
                 this.projectionScreens.checkProjectionScreenCollisions()
@@ -355,10 +365,6 @@ export class Yorb {
                 redrawVideoCanvas(remoteVideo, remoteVideoCanvas, this.clients[_id].texture)
             }
         }
-    }
-
-    updateProjectionScreen(config) {
-        this.projectionScreens.updateProjectionScreen(config)
     }
 
     releaseProjectionScreen(screenId){
