@@ -213,6 +213,7 @@ export class ProjectionScreens {
     onMouseClick(e) {
         if (this.hightlightedScreen && this.shift_down) {
             this.projectToScreen(this.hightlightedScreen.userData.screenId)
+            this.shift_down = false; // reset this because the displayMedia dialog means we lose the onKeyUp event
         }
     }
 
