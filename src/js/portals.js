@@ -1,10 +1,13 @@
 //can ask August if you have questions about this!
-//models from YG using Vectary ~ * ~ * ../assets/portals
+//models from YG using Vectary ~ * ~ * ../assets/models/portals
 
 import * as THREE from 'three'
 import { Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+
+//when yorb.js creates a yorblet, it also needs that yorblets url and portal model
+//then in the yorblet, it creates a portal from here using those arguments
 export class Portal {
     constructor(scene, portal, destination){
         this.scene = scene; //da sceneee
