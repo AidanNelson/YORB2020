@@ -22,7 +22,6 @@ const Stats = require('./libs/stats.min.js')
 
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
-
         // add this to window to allow javascript console debugging
         window.scene = this
 
@@ -244,7 +243,7 @@ export class Yorb {
         this.clients[_id].texture = videoTexture
         this.clients[_id].desiredPosition = new THREE.Vector3()
         // this.clients[_id].desiredRotation = new THREE.Quaternion();
-        this.clients[_id].projectionScreenId= -1;
+        this.clients[_id].projectionScreenId = -1
     }
 
     removeClient(_id) {
@@ -264,24 +263,20 @@ export class Yorb {
                     // update rotation
                     let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ')
                     this.clients[_id].group.setRotationFromEuler(euler)
-
                 }
             }
         }
     }
 
-    updateProjectionScreenOwnership(_clientProps){
+    updateProjectionScreenOwnership(_clientProps) {
         for (let _id in _clientProps) {
-            if (_id in this.clients) {
-                if (_id != this.mySocketID) {
-                    // update projection screens
-                    let projectionScreenId = _clientProps[_id].projectionScreenId;
-                    if (projectionScreenId !== -1 && projectionScreenId !== undefined){
-                        this.projectionScreens.assignProjectionScreen(projectionScreenId, _id);
-                    }
-                }
+            // update projection screens
+            let projectionScreenId = _clientProps[_id].projectionScreenId
+            if (projectionScreenId !== -1 && projectionScreenId !== undefined) {
+                this.projectionScreens.assignProjectionScreen(projectionScreenId, _id)
             }
         }
+
     }
 
     // TODO make this simpler...? more performant?
@@ -367,8 +362,8 @@ export class Yorb {
         }
     }
 
-    releaseProjectionScreen(screenId){
-        this.projectionScreens.releaseProjectionScreen(screenId);
+    releaseProjectionScreen(screenId) {
+        this.projectionScreens.releaseProjectionScreen(screenId)
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//

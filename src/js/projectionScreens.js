@@ -151,7 +151,7 @@ export class ProjectionScreens {
     projectToScreen(screenId) {
         console.log("I'm going to project to screen " + screenId)
         shareScreen(screenId)
-        this.projectionScreens[screenId].userData.activeUserId = mySocketID
+        // this.projectionScreens[screenId].userData.activeUserId = mySocketID
     }
 
     assignProjectionScreen(screenId, clientId) {
@@ -182,25 +182,11 @@ export class ProjectionScreens {
                 }
             }
         }
-        // for (let _id in this.clients) {
-        //     if (this.clients[_id].audioElement) {
-        //         let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position)
-        //         if (distSquared > this.distanceThresholdSquared) {
-        //             // TODO pause consumer here, rather than setting volume to zero
-        //             this.clients[_id].audioElement.volume = 0
-        //         } else {
-        //             // from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
-        //             let volume = Math.min(1, this.rolloffNumerator / distSquared)
-        //             this.clients[_id].audioElement.volume = volume
-        //         }
-        //     }
-        // }
     }
 
 
     update() {
         this.updateProjectionScreens()
-        // this.updatePositionalAudio();
     }
 
     /*

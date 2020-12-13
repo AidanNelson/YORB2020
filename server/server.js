@@ -285,6 +285,7 @@ async function runSocketServer() {
 
         //Update everyone that the number of users has changed
         io.sockets.emit('newUserConnected', io.engine.clientsCount, socket.id, Object.keys(clients))
+        io.sockets.emit('projectionScreenUpdate', clients)// send initial screenshare info
 
         socket.on('move', (data) => {
             let now = Date.now()
@@ -313,10 +314,16 @@ async function runSocketServer() {
 
         // Handle the disconnection
         socket.on('disconnect', () => {
+            // release screen when someone leaves
+            if (clients[socket.id].projectionScreenId !== -1){
+                let data = {screenId: clients[socket.id].projectionScreenId}
+                io.sockets.emit('releaseProjectionScreen', data)
+            }
             //Delete this client from the object
             delete clients[socket.id]
             io.sockets.emit('userDisconnected', socket.id, Object.keys(clients))
             log('User ' + socket.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected')
+            
         })
 
         //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
