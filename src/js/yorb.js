@@ -119,7 +119,7 @@ export class Yorb {
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
         // this.itpModel = new ITPModel(this.scene)
 
-        this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera)
+        this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, '../assets/models/portals/pyr-violet.glb', "https://yorblet1.itp.io")
 
         // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
         // this.show.setup()
@@ -328,6 +328,11 @@ export class Yorb {
             }
             if (this.frameCount % 50 == 0) {
                 this.selectivelyPauseAndResumeConsumers()
+                //check for portal trigger
+                if(this.yorblet.portal.teleportCheck(this.getPlayerPosition()[0])){ //in lobby needs to be loop of all yorblets  TODO
+                    //if returns true, remove user from this yorblet TODO
+                    
+                } 
             }
         }
 

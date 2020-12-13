@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { projects } from '.'
 import { create3DText, createSimpleText } from './utils'
+import { Portal } from './portals'
+import { Vector3 } from 'three'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/*.png')
 
@@ -21,7 +23,7 @@ const FENCE_RADIUS = RADIUS + 10
 const FENCE_HEIGHT = 12
 
 export class Yorblet {
-    constructor(scene, projectionScreenManager, mouse, camera) {
+    constructor(scene, projectionScreenManager, mouse, camera, portalModel, url) {
         this.scene = scene
         this.mouse = mouse;
         this.camera = camera;
@@ -52,6 +54,11 @@ export class Yorblet {
 
         // finally, call the setup function:
         this.setup()
+
+        //putting portal here so can call the checkTeleport function
+        this.portalModel = portalModel; //lobby and yorblet share same portal instead of having lobby portal and yorblet portal
+        this.url = url; //url of this yorblet server -- for lobby to reference
+        this.portal = new Portal(this.scene, {model: this.portalModel, position: new Vector3(0, 0, 5)}, 'https://yorb.itp.io/experimental');
     }
 
     setup() {
@@ -73,6 +80,7 @@ export class Yorblet {
 
         // then add the individual project posters
         this.createProjectPodiums()
+
     }
 
     createYorbletExterior() {
