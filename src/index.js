@@ -10,7 +10,7 @@
 // IMPORTS
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
-import Scene from './scene';
+import {Yorb} from './Yorb';
 
 const io = require('socket.io-client');
 const socketPromise = require('./libs/socket.io-promise').promise;
@@ -163,6 +163,18 @@ async function init() {
 }
 
 
+export function shareScreen(screenId) {
+	console.log("Starting screenshare to screen with ID ", screenId);
+
+	console.log(socket);
+	socket.emit('projectToScreen', {
+		screenId: screenId,
+		activeUserId: mySocketID
+	});
+
+	startScreenshare();
+}
+
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Socket.io
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -211,7 +223,7 @@ function initSocketConnection() {
 
 		socket.on('projects', _projects => {
 			console.log("Received project list from server.");
-			// updateProjects(_projects);
+			updateProjects(_projects);
 		});
 
 		socket.on('userDisconnected', (_id, _ids) => {
@@ -290,7 +302,7 @@ function createScene() {
 	// initialize three.js scene
 	console.log("Creating three.js scene...")
 
-	yorbScene = new Scene(
+	yorbScene = new Yorb(
 		onPlayerMove,
 		clients,
 		mySocketID);
@@ -1114,7 +1126,7 @@ async function pollAndUpdate() {
 	// push through the paused state to new sync list
 	lastPollSyncData = peers;
 
-	setTimeout(pollAndUpdate, 1000);
+	setTimeout(pollAndUpdate, 1500);
 }
 
 
