@@ -1,16 +1,23 @@
-const THREE = require('./libs/three.min.js')
+import * as THREE from "three";
 import { makeVideoTextureAndMaterial, redrawVideoCanvas } from './utils'
-import { shareScreen } from './index'
+import { mySocketID, shareScreen } from './index'
 
 export class ProjectionScreens {
-    constructor(scene, camera) {
+    constructor(scene, camera, mouse) {
         this.scene = scene
         this.camera = camera
+        this.mouse = mouse;
+
+        this.screenIdIndex = 0;
 
         this.projectionScreens = {} // object to store projection screens
         this.shift_down = false
         this.createBlankScreenVideo()
-        this.createProjectionScreens()
+        // this.createProjectionScreens()
+
+   
+
+        this.raycaster = new THREE.Raycaster();
 
         // so that we can 'listen' for a shift-down
         let domElement = document.getElementById('scene-container')
@@ -19,11 +26,12 @@ export class ProjectionScreens {
         window.addEventListener('keyup', (e) => this.onKeyUp(e), false)
     }
 
+
     createBlankScreenVideo() {
         let blankScreenVideo = document.createElement('video')
         blankScreenVideo.setAttribute('id', 'default_screenshare')
         document.body.appendChild(blankScreenVideo)
-        blankScreenVideo.src = '/images/old-television.mp4'
+        blankScreenVideo.src = require('../assets/images/old-television.mp4');
         blankScreenVideo.loop = true
         blankScreenVideo.muted = true // this is necessary so it is able to auto play
         blankScreenVideo.play()
@@ -32,18 +40,6 @@ export class ProjectionScreens {
     createProjectionScreens() {
         let locations = {
             data: [
-                // {	room: "entranceWay",
-                // 	x: 3.3663431855797707,
-                // 	y: 1.9,
-                // 	z: -0.88,
-                // 	rot: Math.PI/2
-                // },
-                // { room: "classRoom1-center",
-                // 	x: 2.8,
-                // 	y: 1.9,
-                // 	z: 24.586520,
-                // 	rot: Math.PI/2
-                // },
                 {
                     room: 'classRoom1-left',
                     x: 2.8,
@@ -107,7 +103,7 @@ export class ProjectionScreens {
         let num = locations.data.length
 
         for (let i = 0; i < num; i++) {
-            let _id = 'screenshare' + i
+            let _id = 'screenshare' + this.screenIdIndex.toString();
             let dims = { width: 1920, height: 1080 }
             let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
 
@@ -124,14 +120,36 @@ export class ProjectionScreens {
             }
 
             this.projectionScreens[_id] = screen
+            this.screenIdIndex++;
         }
     }
 
+    addScreen(centerX,centerY,centerZ, lookAtX,lookAtY,lookAtZ, scaleFactor){
+        let _id = 'screenshare' + this.screenIdIndex.toString();
+
+        let dims = { width: 1920, height: 1080 }
+        let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
+        console.log(scaleFactor);
+        let screen = new THREE.Mesh(new THREE.BoxGeometry(5 * scaleFactor, (5 *  scaleFactor * 9) / 16, 0.01), videoMaterial)
+
+        screen.position.set(centerX, centerY, centerZ)
+        screen.lookAt(lookAtX,lookAtY, lookAtZ)
+        this.scene.add(screen)
+
+        screen.userData = {
+            videoTexture: videoTexture,
+            activeUserId: 'default',
+            screenId: _id,
+        }
+
+        this.projectionScreens[_id] = screen
+        this.screenIdIndex++;
+    }
+
     projectToScreen(screenId) {
-        console.log("I'm going to project to screen " + screenId)
-        // this.emit("projectToScreen", screenId);
-        shareScreen(screenId)
-        this.projectionScreens[screenId].userData.activeUserId = this.mySocketID
+        console.log("I'm going to project to screen " + screenId);
+        shareScreen(screenId);
+        this.projectionScreens[screenId].userData.activeUserId = mySocketID;
     }
 
     updateProjectionScreen(config) {
@@ -139,6 +157,11 @@ export class ProjectionScreens {
         let activeUserId = config.activeUserId
         this.projectionScreens[screenId].userData.activeUserId = activeUserId
         console.log('Updating Projection Screen: ' + screenId + ' with screenshare from user ' + activeUserId)
+    }
+
+    assignProjectionScreen(screenId, clientId){
+        console.log('Updating Projection Screen: ' + screenId + ' with screenshare from user ' + clientId)
+        this.projectionScreens[screenId].userData.activeUserId = clientId;
     }
 
     update() {
@@ -168,19 +191,9 @@ export class ProjectionScreens {
     }
 
     checkProjectionScreenCollisions() {
-        var matrix = new THREE.Matrix4()
-        matrix.extractRotation(this.camera.matrix)
-        var backwardDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix)
-        var forwardDir = backwardDir.clone().negate()
+        this.raycaster.setFromCamera(this.mouse, this.camera);
 
-        // TODO more points around avatar so we can't be inside of walls
-        let pt = this.camera.position.clone()
-
-        let raycaster = new THREE.Raycaster()
-
-        raycaster.set(pt, forwardDir)
-
-        var intersects = raycaster.intersectObjects(Object.values(this.projectionScreens))
+        var intersects = this.raycaster.intersectObjects(Object.values(this.projectionScreens))
 
         // if we have intersections, highlight them
         let thresholdDist = 7
@@ -189,10 +202,11 @@ export class ProjectionScreens {
                 // this.screenHoverImage.style = "visiblity: visible;"
                 let screen = intersects[0].object
                 this.hightlightedScreen = screen
-                // console.log(screen.material)
             } else {
                 this.hightlightedScreen = null
             }
+        } else {
+            this.hightlightedScreen  = null;
         }
     }
 

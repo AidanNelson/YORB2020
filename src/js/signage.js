@@ -1,4 +1,3 @@
-const THREE = require('./libs/three.min.js')
 import { create3DText, createSimpleText } from './utils'
 
 export class Signage {

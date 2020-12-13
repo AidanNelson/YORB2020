@@ -10,28 +10,31 @@
  *
  */
 
-// Set environment variables
-// Set Debug level before we require 'debug' or 'mediasoup'!
+// Set these for your particular IP / Port
+PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=157'
 
-const config = require('./config')
-require('dotenv').config()
+// For working locally
+PRODUCTION_IP = '192.168.0.107'
+PRODUCTION_PORT = '3000'
 
-// copy over config from .env file:
+// For deploying on YORB.itp.io
+// PRODUCTION_IP="142.93.6.195"
+// PRODUCTION_PORT="3040"
 
-config.httpIp = process.env.PRODUCTION_IP
-config.httpPort = process.env.PRODUCTION_PORT
+// Mediasoup configuration
+const config = require(process.cwd() + '/server/config.js')
+config.httpIp = PRODUCTION_IP
+config.httpPort = PRODUCTION_PORT
 
 config.mediasoup.webRtcTransport.listenIps = [
     { ip: '127.0.0.1', announcedIp: null },
-    { ip: process.env.PRODUCTION_IP, announcedIp: null },
+    { ip: PRODUCTION_IP, announcedIp: null },
 ]
 
-console.log('Environment Variables:')
-console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
-console.log(process.env)
-console.log('~~~~~~~~~~~~~~~~~~~~~~~~~')
-
 // IMPORTS
+
+// set debug name
+process.env.DEBUG = 'YORBSERVER*'
 
 const debugModule = require('debug')
 const mediasoup = require('mediasoup')
@@ -44,16 +47,26 @@ var express = require('express'),
     http = require('http')
 var app = express()
 var server = http.createServer(app)
-var io = require('socket.io').listen(server)
 
-app.use(express.static(__dirname + '/public'))
+let io = require('socket.io')()
+io.listen(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
+})
 
-server.listen(process.env.PRODUCTION_PORT)
-console.log('Server listening on http://localhost:' + process.env.PRODUCTION_PORT)
+const distFolder = process.cwd() + '/dist'
+console.log('Serving static files at ', distFolder)
+app.use(express.static(process.cwd() + '/dist'))
 
-const log = debugModule('demo-app')
-const warn = debugModule('demo-app:WARN')
-const err = debugModule('demo-app:ERROR')
+server.listen(PRODUCTION_PORT)
+console.log(`Server listening on http://${PRODUCTION_IP}:${PRODUCTION_PORT}`)
+
+const log = debugModule('YORBSERVER')
+const warn = debugModule('YORBSERVER:WARN')
+const err = debugModule('YORBSERVER:ERROR')
 
 // one mediasoup worker and router
 //
@@ -203,30 +216,32 @@ main()
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function updateProjects() {
-    let url = process.env.PROJECT_DATABASE_URL
-    try {
-        https
-            .get(url, (res) => {
-                var body = ''
+    let url = PROJECT_DATABASE_URL
 
-                res.on('data', function (chunk) {
-                    body += chunk
-                })
+    https
+        .get(url, (res) => {
+            var body = ''
 
-                res.on('end', function () {
+            res.on('data', function (chunk) {
+                body += chunk
+            })
+
+            res.on('end', function () {
+                var json;
+                try {
                     // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
-                    var json = JSON.parse(body)
-                    projects = json
-                    log('Updated projects from database.')
-                    io.sockets.emit('projects', projects)
-                })
+                    json = JSON.parse(body)
+                } catch (err) {
+                    console.error('update projects error: ' + err)
+                }
+                projects = json
+                log('Updated projects from database.')
+                io.sockets.emit('projects', projects)
             })
-            .on('error', function (e) {
-                log('Got an error: ', e)
-            })
-    } catch (err) {
-        console.error('update projects error: ' + err)
-    }
+        })
+        .on('error', function (e) {
+            log('Got an error: ', e)
+        })
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -258,6 +273,7 @@ async function runSocketServer() {
             // position: [0, 0.5, 0],
             // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
             rotation: [0, 0, 0],
+            projectionScreenId: -1
         }
 
         socket.emit('introduction', socket.id, Object.keys(clients))
@@ -277,12 +293,12 @@ async function runSocketServer() {
                 clients[socket.id].rotation = data[1]
                 clients[socket.id].lastSeenTs = now
             }
-            // io.sockets.emit('userPositions', clients);
         })
 
-        socket.on('projectToScreen', (data) => {
-            log('Received projection screen config: ', data)
-            io.sockets.emit('projectToScreen', data)
+        socket.on('claimProjectionScreen', (data) => {
+            if (clients[socket.id]) {
+                clients[socket.id].projectionScreenId = data.screenId;
+            }
         })
 
         // Handle the disconnection
