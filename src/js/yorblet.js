@@ -12,6 +12,7 @@ const OUTER_FENCE_COLOR = 0x232378
 const ENTRANCE_COLOR = 0xf9f910
 const STAGE_COLOR = 0x232323
 const DOME_COLOR = 0x232323
+const PROJECT_NUMBER_COLOR = 0x123456;
 
 // other parameters:
 const NUMBER_OF_PROJECTS = 10
@@ -139,7 +140,7 @@ export class Yorblet {
         let xOffset = 0
         let zOffset = 20
 
-        let projectIndex = 0
+        let projectIndex = 1
         // make left side projects
         for (let i = 0; i < this.numProjects / 2; i++) {
             let theta = (Math.PI * 2) / (this.numProjects - 2)
@@ -266,37 +267,35 @@ export class Yorblet {
         domeMesh.rotateY(Math.PI)
         this.scene.add(domeMesh)
 
-        //// Draw Label (placeholder for now) - make separate functionn?
-        // const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
-        // const font = new THREE.Font(fontJson)
-        // const text = 'Lydia Jessup' + projectIndex.toString()
+        // Draw Label (placeholder for now) - make separate functionn?
+        const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
+        const font = new THREE.Font(fontJson)
+        const text = "# " +  projectIndex.toString()
 
-        // const fontGeometry = new THREE.TextBufferGeometry(text, {
-        //     font: font,
-        //     size: 0.25,
-        //     height: 0.01,
-        //     curveSegments: 11,
-        //     bevelEnabled: true,
-        //     bevelThickness: 0.02,
-        //     bevelSize: 0.01,
-        //     bevelSegments: 6,
-        // })
+        const fontGeometry = new THREE.TextBufferGeometry(text, {
+            font: font,
+            size: 1,
+            height: 0.01,
+            curveSegments: 11,
+            bevelEnabled: true,
+            bevelThickness: 0.02,
+            bevelSize: 0.01,
+            bevelSegments: 6,
+        })
 
-        // const fontMaterial = new THREE.MeshPhongMaterial({ color: 0x1250cc, flatShading: true })
-        // const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial)
+        const fontMaterial = new THREE.MeshPhongMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
+        const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial)
 
-        // // let font_xshift = 30 * Math.cos(angle + 0.1)
-        // // let font_zshift = 30 * Math.sin(angle + 0.1)
-        // let fontOffsetX = 3
-        // let fontOffsetY = 2
-        // let fontOffsetZ = 0
-        // fontMesh.position.set(centerX, 0, centerZ)
-        // fontMesh.rotateY(angle)
-        // fontMesh.lookAt(lookAtX, 0, lookAtZ)
-        // fontMesh.translateX(fontOffsetX)
-        // fontMesh.translateY(fontOffsetY)
-        // fontMesh.translateZ(fontOffsetZ)
-        // this.scene.add(fontMesh)
+        let fontOffsetX = 3
+        let fontOffsetY = 5
+        let fontOffsetZ = -1
+        fontMesh.position.set(centerX, 0, centerZ)
+        fontMesh.rotateY(angle)
+        fontMesh.lookAt(lookAtX, 0, lookAtZ)
+        fontMesh.translateX(fontOffsetX)
+        fontMesh.translateY(fontOffsetY)
+        fontMesh.translateZ(fontOffsetZ)
+        this.scene.add(fontMesh)
 
         this.projectionScreenManager.addScreen(centerX, 2, centerZ, lookAtX, 2, lookAtZ, scaleFactor)
     }
@@ -334,10 +333,10 @@ export class Yorblet {
         offsetZ = -4.3 // how far to the circle's forward-backward
         this.drawCircle(2, 32, coldarkBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-        offsetX = -3 // how far to the circle's right
-        offsetY = -2 // how far to the circle's up-down
-        offsetZ = -4.0 // how far to the circle's forward-backward
-        this.drawCircle(3, 32, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        offsetX = 3.5 // how far to the circle's right
+        offsetY = 0.25 // how far to the circle's up-down
+        offsetZ = -1.5 // how far to the circle's forward-backward
+        this.drawCircle(2, 32, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         // let xshift_c1 = 30 * Math.cos(angle + 0.15)
         // let zshift_c1 = 30 * Math.sin(angle + 0.15)
@@ -620,27 +619,28 @@ export class Yorblet {
     //lay out some random big objects in the distance
     addOuterDecoration() {
         //
-        let geo = new THREE.BoxBufferGeometry(20, 70, 30)
+        let geo = new THREE.BoxBufferGeometry(20, 120, 30)
         let mat = new THREE.MeshLambertMaterial({ color: 'hotpink' })
         mat.flatShading = true
         let mesh = new THREE.Mesh(geo, mat)
         this.scene.add(mesh)
-        mesh.position.set(-70, 50, 120)
+        mesh.position.set(-70, 20, 120)
         mesh.rotateX(-0.25)
 
         geo = new THREE.BoxBufferGeometry(10, 30, 80)
-        mat = new THREE.MeshLambertMaterial({ color: 'yellow' })
+        mat = new THREE.MeshLambertMaterial({ color: 'darkblue' })
         mat.flatShading = true
         mesh = new THREE.Mesh(geo, mat)
         this.scene.add(mesh)
         mesh.position.set(70, 60, -120)
 
-        geo = new THREE.ConeBufferGeometry(10, 30, 18)
+        geo = new THREE.ConeBufferGeometry(10, 200, 4)
         mat = new THREE.MeshLambertMaterial({ color: 'red' })
         mat.flatShading = true
         mesh = new THREE.Mesh(geo, mat)
         this.scene.add(mesh)
-        mesh.position.set(-30, 30, -90)
+        mesh.position.set(-30, 0, -90)
+        mesh.rotateY(3);
     }
 
     addFloor() {
