@@ -1,11 +1,16 @@
 import * as THREE from 'three'
 import { projects } from '.'
 import { create3DText, createSimpleText } from './utils'
+import {hackToRemovePlayerTemporarily}  from "./index";
 
-const project_thumbnails = require('../assets/images/project_thumbnails/*.png')
+const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
+
 
 // set which YORBLET we're in
-const YORBLET_INDEX = 1
+// import { YORBLET_INDEX } from "./index";
+const YORBLET_INDEX = 1;
+
+// const YORBLET_INDEX = YORBLET_INDEX;
 
 // pick colors
 const OUTER_FENCE_COLOR = 0x232378
@@ -15,17 +20,18 @@ const DOME_COLOR = 0x232323
 const PROJECT_NUMBER_COLOR = 0x123456;
 
 // other parameters:
-const NUMBER_OF_PROJECTS = 10
+const NUMBER_OF_PROJECTS = 8
 const RADIUS = 30
 const FENCE_RADIUS = RADIUS + 10
 const FENCE_HEIGHT = 12
 
 export class Yorblet {
-    constructor(scene, projectionScreenManager, mouse, camera) {
+    constructor(scene, projectionScreenManager, mouse, camera, controls) {
         this.scene = scene
         this.mouse = mouse;
         this.camera = camera;
         this.projectionScreenManager = projectionScreenManager
+        this.controls = controls;
 
         //
         this.numProjects = NUMBER_OF_PROJECTS
@@ -34,14 +40,15 @@ export class Yorblet {
         this.raycaster = new THREE.Raycaster()
         this.textureLoader = new THREE.TextureLoader()
         this.textParser = new DOMParser()
+        this.activeProjectId = -1;
 
         // materials for the project podiums
-        this.highlightMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a })
-        this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff })
-        this.linkVisitedMaterial = new THREE.MeshLambertMaterial({
+        this.highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff1a })
+        this.linkMaterial = new THREE.MeshBasicMaterial({ color: 0xb3b3ff })
+        this.linkVisitedMaterial = new THREE.MeshBasicMaterial({
             color: 0x6699ff,
         })
-        this.statusBoxMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 })
+        this.statusBoxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 })
 
         //
         this.projects = []
@@ -71,8 +78,6 @@ export class Yorblet {
         // then the stages and styling fo those stages
         this.createYorbletStages()
 
-        // then add the individual project posters
-        this.createProjectPodiums()
     }
 
     createYorbletExterior() {
@@ -748,6 +753,12 @@ export class Yorblet {
         }
 
         imageSign.name = _project.project_id
+
+        imageSign.lookAt(lookAtX, 1.5, lookAtZ);
+        imageSign.rotateY(-Math.PI/2);
+        imageSign.translateZ(2);
+        imageSign.translateX(7);
+        imageSign.translateY(0.25);
         return imageSign
     }
 
@@ -796,18 +807,20 @@ export class Yorblet {
                     }
                 }
             }
-            // console.log('Number of total projects: ', this.projects.length)
+            console.log('Number of total projects: ', this.projects.length)
             // console.log('Number of unique projects: ', numUniqueProjects)
 
+            this.createProjectPodiums();
+
             // then plae all of the unique projects
-            for (let i = 0; i < uniqueProjects.length; i++) {
-                let proj = uniqueProjects[i]
-                let locX = -23.55
-                let locZ = -80 + i * 1
-                let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                this.hyperlinkedObjects.push(hyperlink)
-                this.scene.add(hyperlink)
-            }
+            // for (let i = 0; i < uniqueProjects.length; i++) {
+            //     let proj = uniqueProjects[i]
+            //     let locX = -23.55
+            //     let locZ = -80 + i * 1
+            //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+            //     this.hyperlinkedObjects.push(hyperlink)
+            //     this.scene.add(hyperlink)
+            // }
 
             // console.log("We've placed ", endIndex, ' projects so far.')
         }
@@ -987,6 +1000,8 @@ export class Yorblet {
     highlightHyperlinks() {
         let thresholdDist = 5
         let now = Date.now()
+
+        // console.log(this.hyperlinkedObjects);
 
         // store reference to last highlighted project id
         let lastHighlightedProjectId = this.hightlightedProjectId
