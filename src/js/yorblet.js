@@ -22,7 +22,7 @@ const SKY_COLOR_GREEN_ROOM = 0x18DD6C;
 
 
 // other parameters:
-const NUMBER_OF_PROJECTS = 10
+const NUMBER_OF_PROJECTS = 8
 const RADIUS = 30
 const FENCE_RADIUS = RADIUS + 10
 const FENCE_HEIGHT = 12
@@ -80,9 +80,11 @@ export class Yorblet {
         // then add the individual project posters
         this.createProjectPodiums()
 
+        //style yorblet (sky and fence)
+        this.styleYorblet();
 
-        // //testing adding fences
-        // this.createBoltFence(SKY_COLOR_GREEN_ROOM);
+        //add yorblet label
+        this.createYorbletLabel();
 
     }
 
@@ -143,6 +145,43 @@ export class Yorblet {
         cylinder.rotateY((Math.PI * 1) / 2)
         this.scene.add(cylinder)
     }
+
+    createYorbletLabel(){
+
+      let labelRadius = FENCE_RADIUS
+
+      // Draw Label in back of room on wall
+      const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
+      const font = new THREE.Font(fontJson)
+      const text = "Yorblet  " + YORBLET_INDEX.toString();
+
+      const fontGeometry = new THREE.TextBufferGeometry(text, {
+          font: font,
+          size: 2.5,
+          height: 0.01,
+          curveSegments: 11,
+          bevelEnabled: true,
+          bevelThickness: 0.1,
+          bevelSize: 0.1,
+          bevelSegments: 6,
+      })
+
+      const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
+      const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
+      const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
+      //alternate color0x787878
+
+      let labelOffsetX = 2;
+      let labelOffsetY = 1.5;
+      let labelOffsetZ = 5;
+
+
+      fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
+      fontMesh.lookAt(0, 2, 0)
+      this.scene.add(fontMesh)
+
+    }
+
 
     createYorbletStages() {
         let radius = RADIUS
@@ -477,6 +516,37 @@ export class Yorblet {
         }
     }
 
+
+    styleYorblet(){
+            // style the area according to which YORBLET we are in
+            if (YORBLET_INDEX === 1) {
+                // do styling for yorblet 1
+                this.addSky(SKY_COLOR_BLUE_ROOM);
+                this.createCircleFence(SKY_COLOR_BLUE_ROOM);
+            } else if (YORBLET_INDEX === 2) {
+                // do styling for yorblet 2
+                this.addSky(SKY_COLOR_PINK_ROOM);
+                this.createRectFence(SKY_COLOR_PINK_ROOM);
+            } else if (YORBLET_INDEX === 3) {
+                // do styling for yorblet 3
+                this.addSky(SKY_COLOR_YELLOW_ROOM);
+                this.createTriFence(SKY_COLOR_YELLOW_ROOM);
+            } else if (YORBLET_INDEX === 4) {
+                // do styling for yorblet 4
+                this.addSky(SKY_COLOR_GREEN_ROOM);
+                this.createBoltFence(SKY_COLOR_GREEN_ROOM);
+            } else if (YORBLET_INDEX === 5) {
+                // do styling for yorblet 5
+            } else if (YORBLET_INDEX === 6) {
+                // do styling for yorblet 6
+            } else if (YORBLET_INDEX === 7) {
+                // do styling for yorblet 7
+            } else if (YORBLET_INDEX === 8) {
+                // do styling for yorblet 8
+            }
+        }
+
+
     addPresentationStage(projectIndex, centerX, centerZ, lookAtX, lookAtZ, scaleFactor = 1, angle) {
         // add the stage itself
         const cylinderGeometry = new THREE.CylinderBufferGeometry(3 * scaleFactor, 3 * scaleFactor, 1, 32, 1, false)
@@ -490,24 +560,15 @@ export class Yorblet {
         if (YORBLET_INDEX === 1) {
             // do styling for yorblet 1
             this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
-            this.addSky(SKY_COLOR_BLUE_ROOM);
-            this.createCircleFence(SKY_COLOR_BLUE_ROOM);
         } else if (YORBLET_INDEX === 2) {
             // do styling for yorblet 2
             this.addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
-            this.addSky(SKY_COLOR_PINK_ROOM);
-            this.createRectFence(SKY_COLOR_PINK_ROOM);
         } else if (YORBLET_INDEX === 3) {
             // do styling for yorblet 3
             this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
-            this.addSky(SKY_COLOR_YELLOW_ROOM);
-            this.createTriFence(SKY_COLOR_YELLOW_ROOM);
         } else if (YORBLET_INDEX === 4) {
             // do styling for yorblet 4
             this.addLightningRoom(centerX, centerZ);
-            this.addSky(SKY_COLOR_GREEN_ROOM);
-            this.createBoltFence(SKY_COLOR_GREEN_ROOM);
-
         } else if (YORBLET_INDEX === 5) {
             // do styling for yorblet 5
         } else if (YORBLET_INDEX === 6) {
@@ -541,6 +602,7 @@ export class Yorblet {
         this.scene.add(domeMesh)
 
         // Draw Label (placeholder for now) - make separate functionn?
+        /// Font for numbers
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
         const text = projectIndex.toString()
@@ -556,8 +618,10 @@ export class Yorblet {
             bevelSegments: 6,
         })
 
-        const fontMaterial = new THREE.MeshPhongMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
-        const fontMesh = new THREE.Mesh(fontGeometry, fontMaterial)
+        const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
+        const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
+        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
+        //alternate color0x787878
 
         let fontOffsetX = 4
         let fontOffsetY = 8
@@ -569,6 +633,9 @@ export class Yorblet {
         fontMesh.translateY(fontOffsetY)
         fontMesh.translateZ(fontOffsetZ)
         this.scene.add(fontMesh)
+
+
+        /// Font for back walls
 
         this.projectionScreenManager.addScreen(centerX, 2, centerZ, lookAtX, 2, lookAtZ, scaleFactor)
     }
@@ -968,7 +1035,7 @@ export class Yorblet {
 
         //SKY
         const centerGeometry = new THREE.SphereGeometry(200, 32, 32)
-        const centerMaterial = new THREE.MeshLambertMaterial({ color: skyColor, side: THREE.DoubleSide })
+        const centerMaterial = new THREE.MeshBasicMaterial({ color: skyColor, side: THREE.DoubleSide })
         const center = new THREE.Mesh(centerGeometry, centerMaterial)
         center.position.set(0, 0, 0)
         this.scene.add(center)
@@ -1025,7 +1092,7 @@ export class Yorblet {
     drawRect(height, width, faces, matColor, posX, posY, posZ, offsetX, offsetY, offsetZ, lookAtX, lookatZ) {
         //plane  1
         const planegeometry = new THREE.PlaneBufferGeometry(height, width, faces)
-        const planematerial = new THREE.MeshPhongMaterial({ color: matColor, side: THREE.DoubleSide })
+        const planematerial = new THREE.MeshBasicMaterial({ color: matColor, side: THREE.DoubleSide })
         const plane = new THREE.Mesh(planegeometry, planematerial)
 
         //set position and lookat
@@ -1066,7 +1133,7 @@ export class Yorblet {
         triangleGeometry.scale(scaleX, scaleY, scaleZ)
 
         //geom.scale(new THREE.Vector3(2,2,2));
-        const trianglematerial = new THREE.MeshPhongMaterial({ color: matColor, side: THREE.DoubleSide })
+        const trianglematerial = new THREE.MeshBasicMaterial({ color: matColor, side: THREE.DoubleSide })
         var triangleMesh = new THREE.Mesh(triangleGeometry, trianglematerial)
 
         //set position and look at and rotate
@@ -1104,7 +1171,7 @@ export class Yorblet {
 
 
       const geometry = new THREE.ShapeGeometry( lightningBolt );
-      const material = new THREE.MeshPhongMaterial( { color: matcolor } );
+      const material = new THREE.MeshBasicMaterial( { color: matcolor } );
       const lightningMesh = new THREE.Mesh( geometry, material ) ;
 
 
