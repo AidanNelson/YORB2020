@@ -11,7 +11,7 @@
  */
 
 // Set these for your particular IP / Port
-PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=157'
+PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=164'
 
 // For working locally
 PRODUCTION_IP = '192.168.0.107'
@@ -227,7 +227,7 @@ async function updateProjects() {
             })
 
             res.on('end', function () {
-                var json;
+                var json
                 try {
                     // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
                     json = JSON.parse(body)
@@ -273,7 +273,7 @@ async function runSocketServer() {
             // position: [0, 0.5, 0],
             // rotation: [0, 0, 0, 1] // stored as XYZW values of Quaternion
             rotation: [0, 0, 0],
-            projectionScreenId: -1
+            projectionScreenId: -1,
         }
 
         socket.emit('introduction', socket.id, Object.keys(clients))
@@ -285,6 +285,7 @@ async function runSocketServer() {
 
         //Update everyone that the number of users has changed
         io.sockets.emit('newUserConnected', io.engine.clientsCount, socket.id, Object.keys(clients))
+        io.sockets.emit('projectionScreenUpdate', clients)// send initial screenshare info
 
         socket.on('move', (data) => {
             let now = Date.now()
@@ -297,16 +298,32 @@ async function runSocketServer() {
 
         socket.on('claimProjectionScreen', (data) => {
             if (clients[socket.id]) {
-                clients[socket.id].projectionScreenId = data.screenId;
+                clients[socket.id].projectionScreenId = data.screenId
             }
+
+            io.sockets.emit('projectionScreenUpdate', clients)
+        })
+
+        socket.on('releaseProjectionScreen', (data) => {
+            if (clients[socket.id]) {
+                clients[socket.id].projectionScreenId = -1
+            }
+            console.log('release', data.screenId)
+            io.sockets.emit('releaseProjectionScreen', data)
         })
 
         // Handle the disconnection
         socket.on('disconnect', () => {
+            // release screen when someone leaves
+            if (clients[socket.id].projectionScreenId !== -1){
+                let data = {screenId: clients[socket.id].projectionScreenId}
+                io.sockets.emit('releaseProjectionScreen', data)
+            }
             //Delete this client from the object
             delete clients[socket.id]
             io.sockets.emit('userDisconnected', socket.id, Object.keys(clients))
             log('User ' + socket.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected')
+            
         })
 
         //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
