@@ -584,7 +584,11 @@ export async function startScreenshare(screenId) {
         // get a screen share track
         localScreen = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: true,
+            audio: {
+                     autoGainControl: false, // seems to make it mono if true
+                     echoCancellation: false,
+                     noiseSupression: false,
+                   },
         })
 
         // also make a local video Element to hold the stream

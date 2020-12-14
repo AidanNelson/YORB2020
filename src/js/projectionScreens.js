@@ -9,8 +9,9 @@ export class ProjectionScreens {
         this.mouse = mouse
 
         // audio variables:
+        this.volume = 0; // for lerping audioEl clicks
         this.distanceThresholdSquared = 500
-        this.rolloffNumerator = 5
+        this.rolloffNumerator = 7
 
         this.screenIdIndex = 0
 
@@ -178,7 +179,8 @@ export class ProjectionScreens {
                 } else {
                     // from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
                     let volume = Math.min(1, this.rolloffNumerator / distSquared)
-                    audioEl.volume = volume
+                    audioEl.volume = THREE.Math.lerp(this.volume, volume, 0.5)
+                    this.volume = audioEl.volume
                 }
             }
         }
