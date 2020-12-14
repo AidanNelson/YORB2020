@@ -9,10 +9,10 @@ const PortalModels = require('../assets/models/portals/*.glb');
 //this reference holds all info about which portal goes to where, used by both yorblet.js and winterShow2020.js
 const yorbletReference = [ //need to update with label colors TODO
     {url: "https://yorb.itp.io", model: PortalModels['tacobell'], label: {text:"Go back to Lobby", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}}, //lobby
-    {url: 'https://yorblet1.itp.io', model: PortalModels['sphBlue'], label: {text:"Go to Yorblet A", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet2.itp.io', model: PortalModels['cubPink'], label: {text:"Go to Yorblet B", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet3.itp.io', model: PortalModels['pyrYellow'], label: {text:"Go to Yorblet C", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet4.itp.io', model: PortalModels['ligGreen'], label: {text:"Go to Yorblet D", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet1.itp.io', model: PortalModels['sphBlue'], label: {text:"Go to Yorblet 1", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet2.itp.io', model: PortalModels['cubPink'], label: {text:"Go to Yorblet 2", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet3.itp.io', model: PortalModels['pyrYellow'], label: {text:"Go to Yorblet 3", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet4.itp.io', model: PortalModels['ligGreen'], label: {text:"Go to Yorblet 4", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
 
 ]
 
@@ -23,7 +23,7 @@ export class Portal {
     constructor(scene, position, destination_index) {
         //using the index of the destination because this portal doesn't need to know anything about where it is (besides position), only where it's going
         this.scene = scene; //da sceneee
-        this.model = yorbletReference[destination_index].url; //path to glb
+        this.model = yorbletReference[destination_index].model; //path to glb
         this.position = position; //vec3
         this.destination = yorbletReference[destination_index].url; //url
         this.radius = 1; //trigger distance
@@ -84,6 +84,8 @@ export class Portal {
     teleportCheck(userPosition) {
         //needed to convert because getPlayerPosition doesn't return a vec3
         let userVec3 = new Vector3(userPosition[0], userPosition[1], userPosition[2]);
+        console.log(this.position.distanceTo(userVec3));
+        
         if (this.position.distanceTo(userVec3) <= this.radius) {
             console.log('teleporting');
             //if doing modal, would need to do so here, but would have to change the return timing
