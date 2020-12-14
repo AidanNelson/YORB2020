@@ -1131,36 +1131,79 @@ export class Yorblet {
     //lay out some random big objects in the distance
     addOuterDecoration() {
         //
-        let geo = new THREE.BoxBufferGeometry(20, 120, 30)
-        let mat = new THREE.MeshLambertMaterial({ color: 'hotpink' })
-        mat.flatShading = true
-        let mesh = new THREE.Mesh(geo, mat)
-        this.scene.add(mesh)
-        mesh.position.set(-70, 20, 120)
-        mesh.rotateX(-0.25)
+        // let geo = new THREE.BoxBufferGeometry(20, 120, 30)
+        // let mat = new THREE.MeshLambertMaterial({ color: 'hotpink' })
+        // mat.flatShading = true
+        // let mesh = new THREE.Mesh(geo, mat)
+        // this.scene.add(mesh)
+        // mesh.position.set(-70, 20, 120)
+        // mesh.rotateX(-0.25)
 
-        geo = new THREE.BoxBufferGeometry(10, 30, 80)
-        mat = new THREE.MeshLambertMaterial({ color: 'darkblue' })
-        mat.flatShading = true
-        mesh = new THREE.Mesh(geo, mat)
-        this.scene.add(mesh)
-        mesh.position.set(70, 60, -120)
+        // geo = new THREE.BoxBufferGeometry(10, 30, 80)
+        // mat = new THREE.MeshLambertMaterial({ color: 'darkblue' })
+        // mat.flatShading = true
+        // mesh = new THREE.Mesh(geo, mat)
+        // this.scene.add(mesh)
+        // mesh.position.set(70, 60, -120)
 
-        geo = new THREE.ConeBufferGeometry(10, 200, 4)
-        mat = new THREE.MeshLambertMaterial({ color: 'red' })
-        mat.flatShading = true
-        mesh = new THREE.Mesh(geo, mat)
-        this.scene.add(mesh)
-        mesh.position.set(-30, 0, -90)
-        mesh.rotateY(3);
+        // geo = new THREE.ConeBufferGeometry(10, 200, 4)
+        // mat = new THREE.MeshLambertMaterial({ color: 'red' })
+        // mat.flatShading = true
+        // mesh = new THREE.Mesh(geo, mat)
+        // this.scene.add(mesh)
+        // mesh.position.set(-30, 0, -90)
+        // mesh.rotateY(3);
 
-        //making sphere around whole project to control sky color
-        // geo = new THREE.SphereBufferGeometry(50, 32, 32 );
-        // mat = new THREE.MeshLambertMaterial({ color: 'darkblue' });
-        // mat.flatShading = true;
-        // mesh = new THREE.Mesh(geo, mat);
-        // this.scene.add(mesh);
-        // mesh.position.set(0, 0, 0);
+
+        //cone
+        const coneGeometry = new THREE.ConeBufferGeometry( 30, 40, 6 );
+        const coneEdges = new THREE.EdgesGeometry( coneGeometry );
+        const coneLine = new THREE.LineSegments( coneEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+
+        coneLine.position.set(80, 60, -100);
+        coneLine.rotateY(3);
+        this.scene.add( coneLine );
+
+
+        //octahedron
+        const octGeometry = new THREE.OctahedronBufferGeometry( 15 );
+        const octEdges = new THREE.EdgesGeometry( octGeometry );
+        const octLine = new THREE.LineSegments( octEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+
+        octLine.position.set(-30, 50, -90);
+        octLine.rotateZ(6);
+        this.scene.add( octLine );
+
+
+        //box
+        const boxGeometry = new THREE.BoxBufferGeometry( 120, 30, 30 );
+        const boxEdges = new THREE.EdgesGeometry( boxGeometry );
+        const boxLine = new THREE.LineSegments( boxEdges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
+
+        boxLine.position.set(-70, 60, 120);
+        boxLine.rotateZ(3);
+        boxLine.rotateX(3);
+        this.scene.add( boxLine );
+
+
+        //cyllinder
+        const cylGeometry = new THREE.CylinderBufferGeometry( 20, 20, 3, 9 );
+        const cylEdges = new THREE.EdgesGeometry( cylGeometry );
+        const cylLine = new THREE.LineSegments( cylEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+
+        cylLine.position.set(70, 60, 90);
+        this.scene.add( cylLine );
+
+
+        //ring
+          const ringGeometry = new THREE.RingBufferGeometry( 20, 10, 32 );
+          const ringEdges = new THREE.EdgesGeometry( ringGeometry );
+          const ringLine = new THREE.LineSegments( ringEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+
+          ringLine.position.set(-100, 50, 0);
+          ringLine.rotateX(2);
+          this.scene.add( ringLine );
+
 
 
     }
