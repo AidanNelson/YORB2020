@@ -32,8 +32,8 @@ const p5 = require('p5')
 // const INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-const WEB_SOCKET_SERVER = 'https://yorb.itp.io'
-const INSTANCE_PATH = '/experimental/socket.io'
+const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+const INSTANCE_PATH = "/experimental/socket.io";
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
@@ -140,6 +140,7 @@ async function init() {
         await joinRoom()
         sendCameraStreams()
         setupControls()
+        turnGravityOn()
         initialized = true
     }
 }
@@ -317,6 +318,10 @@ function setupControls() {
         },
         false
     )
+}
+
+function turnGravityOn() {
+  yorbScene.controls.turnGravityOn()
 }
 
 function toggleWebcamImage() {

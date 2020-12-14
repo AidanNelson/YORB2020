@@ -78,7 +78,17 @@ export class Yorblet {
         // then the stages and styling fo those stages
         this.createYorbletStages()
 
+
+        this.parachuteIn();
+
     }
+
+    parachuteIn() {
+        // PARACHUTE IS BACK...
+        // Start us up high on the Y axis and outside a circular Yorblet
+        this.camera.position.set(58, 100, 0)
+        this.camera.lookAt(0, 0, 0)
+      }
 
     createYorbletExterior() {
         let fenceRadius = FENCE_RADIUS

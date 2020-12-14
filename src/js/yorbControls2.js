@@ -17,6 +17,8 @@ export class YorbControls2 {
 
         this.velocity.y = 0
 
+        this.gravity = false;  // we'll change this once we click 'Enter'
+
         // variables for drag controls
         this.onPointerDownPointerX = 0
         this.onPointerDownPointerY = 0
@@ -50,6 +52,7 @@ export class YorbControls2 {
         this.direction = new THREE.Vector3()
         this.vertex = new THREE.Vector3()
         this.color = new THREE.Color()
+
 
         document.addEventListener(
             'keydown',
@@ -164,6 +167,10 @@ export class YorbControls2 {
         return collidableMeshList
     }
 
+    turnGravityOn() {
+      this.gravity = true;
+    }
+
     // update for these controls, which are unfortunately not included in the controls directly...
     // see: https://github.com/mrdoob/three.js/issues/5566
     updateControls() {
@@ -214,21 +221,28 @@ export class YorbControls2 {
         // this.velocity.y -= 9.8 * 8.0 * delta; // 100.0 = mass
 
         // For double-jumping!
-        if (this.camera.position.y > 2.5) {
+        if (this.camera.position.y > 1.7 && this.gravity) {
             // less gravity like when we begin
             this.gravity = 2.0
-        } else {
-            // once we get below the ceiling, the original value
-            this.gravity = 8.0
+        } else if (this.camera.position.y <= 1.7 && this.gravity){
+            this.gravity = 8.0 // original value
         }
-        this.velocity.y -= 9.8 * this.gravity * delta // 100.0 = mass
+
+        // If gravity has been activated (like after pressing Enter)...
+        if (this.gravity) {
+          // Add gravity
+          this.velocity.y -= 9.8 * this.gravity * delta // 100.0 = mass
+        } else {
+          // Otherwise don't and we stay suspended on the Y axis
+          this.velocity.y = 0;
+        }
 
         if (onObject === true) {
             this.velocity.y = Math.max(0, this.velocity.y)
             this.canJump = true
         }
 
-        this.camera.position.y += this.velocity.y * delta // new behavior
+        this.camera.position.y += this.velocity.y * delta
 
         if (this.camera.position.y < this.cameraHeight) {
             this.velocity.y = 0
