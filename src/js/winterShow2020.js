@@ -5,7 +5,7 @@ import { hackToRemovePlayerTemporarily } from './index.js'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
-export class SpringShow2020 {
+export class WinterShow2020 {
     constructor(scene, camera, controls, mouse) {
         this.scene = scene
         this.camera = camera
@@ -107,7 +107,7 @@ export class SpringShow2020 {
                 }
 
                 startIndex = endIndex
-                endIndex = endIndex + 16
+                endIndex = uniqueProjects.length;
                 for (let i = startIndex; i < endIndex; i++) {
                     let proj = uniqueProjects[i]
                     let locX = -14
@@ -119,151 +119,151 @@ export class SpringShow2020 {
                     this.scene.add(hyperlink)
                 }
 
-                startIndex = endIndex
-                endIndex = endIndex + 12
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -14
-                    let offset = i - startIndex * 1
-                    let locZ = -30 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 12
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -14
+                //     let offset = i - startIndex * 1
+                //     let locZ = -30 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 5
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -14
-                    let offset = i - startIndex * 1
-                    let locZ = -42.75 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 5
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -14
+                //     let offset = i - startIndex * 1
+                //     let locZ = -42.75 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 10
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -7
-                    let offset = i - startIndex * 1
-                    let locZ = -57 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 10
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -7
+                //     let offset = i - startIndex * 1
+                //     let locZ = -57 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 18
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -7
-                    let offset = i - startIndex * 1
-                    let locZ = -77 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 18
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -7
+                //     let offset = i - startIndex * 1
+                //     let locZ = -77 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 11
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -23.55
-                    let offset = i - startIndex * 1
-                    let locZ = -93 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    // hyperlink.rotateY(Math.PI);
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 11
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -23.55
+                //     let offset = i - startIndex * 1
+                //     let locZ = -93 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     // hyperlink.rotateY(Math.PI);
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 11
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -17.25
-                    let offset = i - startIndex * 1
-                    let locZ = -93 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 11
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -17.25
+                //     let offset = i - startIndex * 1
+                //     let locZ = -93 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
 
-                startIndex = endIndex
-                endIndex = endIndex + 11
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -16
-                    let offset = i - startIndex * 1
-                    let locZ = -93 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    // hyperlink.rotateY(Math.PI);
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 11
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -16
+                //     let offset = i - startIndex * 1
+                //     let locZ = -93 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     // hyperlink.rotateY(Math.PI);
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 11
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -23.55
-                    let offset = i - startIndex * 1
-                    let locZ = -106 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    // hyperlink.rotateY(Math.PI);
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 11
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -23.55
+                //     let offset = i - startIndex * 1
+                //     let locZ = -106 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     // hyperlink.rotateY(Math.PI);
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = endIndex + 8
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = 1.25
-                    let offset = i - startIndex * 1
-                    let locZ = -106 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 8
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = 1.25
+                //     let offset = i - startIndex * 1
+                //     let locZ = -106 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                // along x axis:
+                // // along x axis:
 
-                startIndex = endIndex
-                endIndex = endIndex + 19
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let offset = i - startIndex * 1
-                    let locX = -21 + offset
-                    let locZ = -106.5
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(-Math.PI / 2)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = endIndex + 19
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let offset = i - startIndex * 1
+                //     let locX = -21 + offset
+                //     let locZ = -106.5
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(-Math.PI / 2)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
-                startIndex = endIndex
-                endIndex = uniqueProjects.length
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let offset = i - startIndex * 1
-                    let locX = -21 + offset
-                    let locZ = -95.125
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI / 2)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = uniqueProjects.length
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let offset = i - startIndex * 1
+                //     let locX = -21 + offset
+                //     let locZ = -95.125
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI / 2)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
                 console.log("We've placed ", endIndex, ' projects so far.')
             }
@@ -430,7 +430,7 @@ export class SpringShow2020 {
             let pitch = project.elevator_pitch
             let description = project.description
             let link = project.zoom_link
-            let room_status = this.zoomStatusDecoder(project.zoom_status)
+            // let room_status = this.zoomStatusDecoder(project.zoom_status)
 
             let modalEl = document.createElement('div')
             modalEl.className = 'project-modal'
@@ -505,7 +505,8 @@ export class SpringShow2020 {
             let zoomLinkEl = document.createElement('a')
             // zoomLinkEl.href = link
             zoomLinkEl.href = link
-            zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
+            // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
+            zoomLinkEl.innerHTML = "Talk to the Creator!"
             zoomLinkEl.target = '_blank'
             zoomLinkEl.rel = 'noopener noreferrer'
 

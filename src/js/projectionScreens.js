@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'three'
 import { makeVideoTextureAndMaterial, redrawVideoCanvas } from './utils'
 import { mySocketID, shareScreen } from './index'
 
@@ -6,18 +6,21 @@ export class ProjectionScreens {
     constructor(scene, camera, mouse) {
         this.scene = scene
         this.camera = camera
-        this.mouse = mouse;
+        this.mouse = mouse
 
-        this.screenIdIndex = 0;
+        // audio variables:
+        this.volume = 0; // for lerping audioEl clicks
+        this.distanceThresholdSquared = 500
+        this.rolloffNumerator = 7
+
+        this.screenIdIndex = 0
 
         this.projectionScreens = {} // object to store projection screens
         this.shift_down = false
         this.createBlankScreenVideo()
         // this.createProjectionScreens()
 
-   
-
-        this.raycaster = new THREE.Raycaster();
+        this.raycaster = new THREE.Raycaster()
 
         // so that we can 'listen' for a shift-down
         let domElement = document.getElementById('scene-container')
@@ -26,12 +29,11 @@ export class ProjectionScreens {
         window.addEventListener('keyup', (e) => this.onKeyUp(e), false)
     }
 
-
     createBlankScreenVideo() {
         let blankScreenVideo = document.createElement('video')
         blankScreenVideo.setAttribute('id', 'default_screenshare')
         document.body.appendChild(blankScreenVideo)
-        blankScreenVideo.src = require('../assets/images/old-television.mp4');
+        blankScreenVideo.src = require('../assets/images/old-television.mp4')
         blankScreenVideo.loop = true
         blankScreenVideo.muted = true // this is necessary so it is able to auto play
         blankScreenVideo.play()
@@ -103,7 +105,7 @@ export class ProjectionScreens {
         let num = locations.data.length
 
         for (let i = 0; i < num; i++) {
-            let _id = 'screenshare' + this.screenIdIndex.toString();
+            let _id = 'screenshare' + this.screenIdIndex.toString()
             let dims = { width: 1920, height: 1080 }
             let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
 
@@ -117,23 +119,24 @@ export class ProjectionScreens {
                 videoTexture: videoTexture,
                 activeUserId: 'default',
                 screenId: _id,
+                audioEl: false,
             }
 
             this.projectionScreens[_id] = screen
-            this.screenIdIndex++;
+            this.screenIdIndex++
         }
     }
 
-    addScreen(centerX,centerY,centerZ, lookAtX,lookAtY,lookAtZ, scaleFactor){
-        let _id = 'screenshare' + this.screenIdIndex.toString();
+    addScreen(centerX, centerY, centerZ, lookAtX, lookAtY, lookAtZ, scaleFactor) {
+        let _id = 'screenshare' + this.screenIdIndex.toString()
 
         let dims = { width: 1920, height: 1080 }
         let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
-        console.log(scaleFactor);
-        let screen = new THREE.Mesh(new THREE.BoxGeometry(5 * scaleFactor, (5 *  scaleFactor * 9) / 16, 0.01), videoMaterial)
+        console.log(scaleFactor)
+        let screen = new THREE.Mesh(new THREE.BoxGeometry(5 * scaleFactor, (5 * scaleFactor * 9) / 16, 0.01), videoMaterial)
 
         screen.position.set(centerX, centerY, centerZ)
-        screen.lookAt(lookAtX,lookAtY, lookAtZ)
+        screen.lookAt(lookAtX, lookAtY, lookAtZ)
         this.scene.add(screen)
 
         screen.userData = {
@@ -143,26 +146,46 @@ export class ProjectionScreens {
         }
 
         this.projectionScreens[_id] = screen
-        this.screenIdIndex++;
+        this.screenIdIndex++
     }
 
     projectToScreen(screenId) {
-        console.log("I'm going to project to screen " + screenId);
-        shareScreen(screenId);
-        this.projectionScreens[screenId].userData.activeUserId = mySocketID;
+        console.log("I'm going to project to screen " + screenId)
+        shareScreen(screenId)
+        // this.projectionScreens[screenId].userData.activeUserId = mySocketID
     }
 
-    updateProjectionScreen(config) {
-        let screenId = config.screenId
-        let activeUserId = config.activeUserId
-        this.projectionScreens[screenId].userData.activeUserId = activeUserId
-        console.log('Updating Projection Screen: ' + screenId + ' with screenshare from user ' + activeUserId)
+    assignProjectionScreen(screenId, clientId) {
+        console.log('Assigning projection screen: ' + screenId + ' with to user ' + clientId)
+        this.projectionScreens[screenId].userData.activeUserId = clientId
     }
 
-    assignProjectionScreen(screenId, clientId){
-        console.log('Updating Projection Screen: ' + screenId + ' with screenshare from user ' + clientId)
-        this.projectionScreens[screenId].userData.activeUserId = clientId;
+    releaseProjectionScreen(screenId) {
+        console.log('Releasing projection screen: ', screenId)
+        this.projectionScreens[screenId].userData.activeUserId = 'default'
     }
+
+    updatePositionalAudio() {
+        for (let screenId in this.projectionScreens) {
+            let screen = this.projectionScreens[screenId]
+            let clientId = screen.userData.activeUserId;
+            if (clientId === "default") continue;
+            let audioEl = document.getElementById(`${clientId}_screenshareAudio`)
+            if (audioEl) {
+                let distSquared = this.camera.position.distanceToSquared(screen.position)
+                if (distSquared > this.distanceThresholdSquared) {
+                    // TODO pause consumer here, rather than setting volume to zero
+                    audioEl.volume = 0
+                } else {
+                    // from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
+                    let volume = Math.min(1, this.rolloffNumerator / distSquared)
+                    audioEl.volume = THREE.Math.lerp(this.volume, volume, 0.5)
+                    this.volume = audioEl.volume
+                }
+            }
+        }
+    }
+
 
     update() {
         this.updateProjectionScreens()
@@ -191,7 +214,7 @@ export class ProjectionScreens {
     }
 
     checkProjectionScreenCollisions() {
-        this.raycaster.setFromCamera(this.mouse, this.camera);
+        this.raycaster.setFromCamera(this.mouse, this.camera)
 
         var intersects = this.raycaster.intersectObjects(Object.values(this.projectionScreens))
 
@@ -206,13 +229,14 @@ export class ProjectionScreens {
                 this.hightlightedScreen = null
             }
         } else {
-            this.hightlightedScreen  = null;
+            this.hightlightedScreen = null
         }
     }
 
     onMouseClick(e) {
         if (this.hightlightedScreen && this.shift_down) {
             this.projectToScreen(this.hightlightedScreen.userData.screenId)
+            this.shift_down = false // reset this because the displayMedia dialog means we lose the onKeyUp event
         }
     }
 

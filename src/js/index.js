@@ -28,8 +28,8 @@ const err = debugModule('YORB:ERROR')
 const p5 = require('p5')
 
 // For running against local server
-//const WEB_SOCKET_SERVER = 'localhost:3000'
-//const INSTANCE_PATH = '/socket.io'
+// const WEB_SOCKET_SERVER = 'localhost:3000'
+// const INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
 const WEB_SOCKET_SERVER = "https://yorb.itp.io";
@@ -140,13 +140,14 @@ async function init() {
         await joinRoom()
         sendCameraStreams()
         setupControls()
+        turnGravityOn()
         initialized = true
     }
 }
 
 export function shareScreen(screenId) {
-    console.log('Starting screenshare to screen with ID ', screenId);
-    startScreenshare(screenId);
+    console.log('Starting screenshare to screen with ID ', screenId)
+    startScreenshare(screenId)
 }
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -218,10 +219,14 @@ function initSocketConnection() {
             yorbScene.updateClientPositions(_clientProps)
         })
 
+        socket.on('projectionScreenUpdate', (_clientProps) => {
+            yorbScene.updateProjectionScreenOwnership(_clientProps)
+        })
+
         // listen for projection screen changes:
-        socket.on('projectToScreen', (config) => {
-            console.log('Received incoming projection screen config:', config)
-            yorbScene.updateProjectionScreen(config)
+        socket.on('releaseProjectionScreen', (data) => {
+            console.log('Releasing screen with id', data.screenId)
+            yorbScene.releaseProjectionScreen(data.screenId)
         })
     })
 }
@@ -313,6 +318,10 @@ function setupControls() {
         },
         false
     )
+}
+
+function turnGravityOn() {
+  yorbScene.controls.turnGravityOn()
 }
 
 function toggleWebcamImage() {
@@ -575,7 +584,11 @@ export async function startScreenshare(screenId) {
         // get a screen share track
         localScreen = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: false,
+            audio: {
+                     autoGainControl: false, // seems to make it mono if true
+                     echoCancellation: false,
+                     noiseSupression: false,
+                   },
         })
 
         // also make a local video Element to hold the stream
@@ -588,7 +601,42 @@ export async function startScreenshare(screenId) {
             videoEl.setAttribute('style', 'visibility: hidden;')
             document.body.appendChild(videoEl)
         }
-        videoEl.srcObject = localScreen
+
+        let videoTrack = localScreen.getVideoTracks()[0]
+        let videoStream = new MediaStream([videoTrack])
+        videoEl.srcObject = videoStream
+        // videoEl.srcObject = localScreen
+
+        // make an audio element to hold the stream (and have the volume updated positionally)
+        // Positional Audio Works in Firefox:
+        // Global Audio:
+        let audioEl = document.getElementById(mySocketID + '_screenshareAudio')
+        if (audioEl == null) {
+            audioEl = document.createElement('audio')
+            audioEl.id = `${mySocketID}_screenshareAudio`
+            audioEl.setAttribute('playsinline', true)
+            audioEl.setAttribute('autoplay', true)
+            document.body.appendChild(audioEl)
+        }
+
+        console.log('Adding local screenshare <audio> source object')
+        let audioTrack = localScreen.getAudioTracks()[0]
+        if (audioTrack) {
+            let audioStream = new MediaStream([audioTrack])
+            audioEl.srcObject = audioStream
+            audioEl.volume = 0 // start at 0 and let the three.js scene take over from here...
+        }
+
+        // let's "yield" and return before playing, rather than awaiting on
+        // play() succeeding. play() will not succeed on a producer-paused
+        // track until the producer unpauses.
+        audioEl
+            .play()
+            .then(() => {})
+            .catch((e) => {
+                console.log('Play audio error: ' + e)
+                err(e)
+            })
 
         // create a producer for video
         screenVideoProducer = await sendTransport.produce({
@@ -610,6 +658,11 @@ export async function startScreenshare(screenId) {
         screenVideoProducer.track.onended = async () => {
             log('screen share stopped')
             try {
+                console.log('releasing', screenId)
+                socket.emit('releaseProjectionScreen', {
+                    screenId: screenId,
+                })
+
                 await screenVideoProducer.pause()
 
                 let { error } = await socket.request('close-producer', { producerId: screenVideoProducer.id })
@@ -631,11 +684,8 @@ export async function startScreenshare(screenId) {
             }
         }
 
-        if (screenAudioProducer) {
-		}
-		
-		// then tell the server we claim that screen: 
-		socket.emit('claimProjectionScreen', {
+        // then tell the server we claim that screen:
+        socket.emit('claimProjectionScreen', {
             screenId: screenId,
         })
     } catch (e) {
@@ -808,7 +858,7 @@ export async function subscribeToTrack(peerId, mediaTag) {
     // until we're connected, then send a resume request to the server
     // to get our first keyframe and start displaying video
     while (recvTransport.connectionState !== 'connected') {
-        log('  transport connstate', recvTransport.connectionState)
+        log('Transport connection state:', recvTransport.connectionState)
         await sleep(100)
     }
     // okay, we're ready. let's ask the peer to send us media
@@ -1171,11 +1221,15 @@ function addVideoAudio(consumer, peerId, mediaTag) {
     }
 
     const isScreenshare = mediaTag == 'screen-video'
+    const isScreenshareAudio = mediaTag == 'screen-audio'
     console.log('MediaTag: ', mediaTag, ' / isScreenshare: ', isScreenshare)
 
     let elementID = `${peerId}_${consumer.kind}`
     if (isScreenshare) {
         elementID = `${peerId}_screenshare`
+    }
+    if (isScreenshareAudio) {
+        elementID = `${peerId}_screenshareAudio`
     }
     let el = document.getElementById(elementID)
 
@@ -1200,7 +1254,10 @@ function addVideoAudio(consumer, peerId, mediaTag) {
 
         // TODO: do i need to update video width and height? or is that based on stream...?
         console.log('Updating video source for user with ID: ' + peerId)
-        el.srcObject = new MediaStream([consumer.track.clone()])
+
+        let trackClone = consumer.track.clone()
+        let sourceStream = new MediaStream([trackClone])
+        el.srcObject = sourceStream
         el.consumer = consumer
 
         // let's "yield" and return before playing, rather than awaiting on
@@ -1219,6 +1276,9 @@ function addVideoAudio(consumer, peerId, mediaTag) {
             console.log('Creating audio element for user with ID: ' + peerId)
             el = document.createElement('audio')
             el.id = `${peerId}_${consumer.kind}`
+            if (isScreenshareAudio) {
+                el.id = `${peerId}_screenshareAudio`
+            }
             document.body.appendChild(el)
             el.setAttribute('playsinline', true)
             el.setAttribute('autoplay', true)
@@ -1228,7 +1288,9 @@ function addVideoAudio(consumer, peerId, mediaTag) {
         el.srcObject = new MediaStream([consumer.track.clone()])
         el.consumer = consumer
         el.volume = 0 // start at 0 and let the three.js scene take over from here...
-        yorbScene.createOrUpdatePositionalAudio(peerId)
+        if (!isScreenshareAudio) {
+            yorbScene.createOrUpdatePositionalAudio(peerId)
+        }
 
         // let's "yield" and return before playing, rather than awaiting on
         // play() succeeding. play() will not succeed on a producer-paused
