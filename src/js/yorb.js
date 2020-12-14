@@ -21,6 +21,9 @@ import * as THREE from 'three'
 
 const Stats = require('./libs/stats.min.js')
 
+const MODE = "YORBLET";
+export const YORBLET_INDEX = 1;
+
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
         // add this to window to allow javascript console debugging
@@ -117,12 +120,19 @@ export class Yorb {
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer)
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
-        // this.itpModel = new ITPModel(this.scene)
 
-        this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera)
+        this.show = false
+        this.yorblet = false
 
-        // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
-        // this.show.setup()
+        if (MODE === 'YORBLET') {
+            this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, this.controls)
+        }
+
+        if (MODE === 'YORB') {
+            this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse)
+            this.show.setup()
+            this.itpModel = new ITPModel(this.scene)
+        }
 
         // this.sketches = new Sketches(this.scene)
         // setTimeout(() => {
@@ -170,8 +180,13 @@ export class Yorb {
     //
     // update projects:
     updateProjects(projects) {
-        // console.log('yorb received', projects.length, 'show projects')
-        // this.show.updateProjects(projects)
+        if (this.show) {
+            console.log('yorb received', projects.length, 'show projects')
+            this.show.updateProjects(projects)
+        }
+        if (this.yorblet) {
+            this.yorblet.updateProjects(projects)
+        }
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -277,7 +292,6 @@ export class Yorb {
                 this.projectionScreens.assignProjectionScreen(projectionScreenId, _id)
             }
         }
-
     }
 
     // TODO make this simpler...? more performant?
@@ -329,7 +343,12 @@ export class Yorb {
                 this.updateClientVolumes()
                 this.projectionScreens.updatePositionalAudio()
                 this.movementCallback()
-                // this.show.update()
+                if (this.show) {
+                    this.show.update()
+                }
+                if (this.yorblet) {
+                    this.yorblet.update()
+                }
                 this.projectionScreens.checkProjectionScreenCollisions()
             }
             if (this.frameCount % 50 == 0) {
