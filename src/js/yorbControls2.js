@@ -225,8 +225,7 @@ export class YorbControls2 {
             // less gravity like when we begin
             this.gravity = 2.0
         } else if (this.camera.position.y <= 1.7 && this.gravity){
-            // once we get below the ceiling, the original value
-            this.gravity = 8.0
+            this.gravity = 8.0 // original value
         }
 
         // If gravity has been activated (like after pressing Enter)...

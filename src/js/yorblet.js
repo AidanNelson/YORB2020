@@ -2,8 +2,9 @@ import * as THREE from 'three'
 import { create3DText, createSimpleText } from './utils'
 
 export class Yorblet {
-    constructor(scene, projectionScreenManager) {
+    constructor(scene, camera, projectionScreenManager) {
         this.scene = scene
+        this.camera = camera
         this.projectionScreenManager = projectionScreenManager
         this.setup()
     }
@@ -15,6 +16,14 @@ export class Yorblet {
 
         this.addFloor()
         this.addCenterPiece()
+        this.parachuteIn()
+    }
+
+    parachuteIn() {
+      // PARACHUTE IS BACK...
+      // Start us up high on the Y axis and outside a circular Yorblet
+      this.camera.position.set(-15, 100, 40)
+      this.camera.lookAt(0, 0, 0)
     }
 
     ///// Shape Helper Functions /////
