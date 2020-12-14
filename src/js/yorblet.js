@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { projects } from '.'
 import { create3DText, createSimpleText } from './utils'
 import {hackToRemovePlayerTemporarily}  from "./index";
+import { Vector3 } from 'three';
+import { Portal } from './portals'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
@@ -68,6 +70,9 @@ export class Yorblet {
 
         // finally, call the setup function:
         this.setup()
+
+        //add portal back to lobby -- change position (2nd param) TODO
+        this.portal = new Portal(this.scene, new Vector3(0, 0, 5), 0); //third param is index of lobby
     }
 
     setup() {

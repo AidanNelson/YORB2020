@@ -5,7 +5,7 @@
  *
  */
 
-import { pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
+import { hackToRemovePlayerTemporarily, pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 
@@ -357,9 +357,18 @@ export class Yorb {
                 this.movementCallback()
                 if (this.show) {
                     this.show.update()
+                    for(let portal of this.show.portals){ //originally had this in framecount % 50, might want to move there if too slow
+                        if(portal.teleportCheck(this.getPlayerPosition()[0])){
+                            hackToRemovePlayerTemporarily()
+                        }
+                    }
                 }
                 if (this.yorblet) {
                     this.yorblet.update()
+                    if(this.yorblet.portal.teleportCheck(this.getPlayerPosition()[0])){ //for portal trigger
+                        //if returns true, remove user from this yorblet
+                        hackToRemovePlayerTemporarily()
+                    }
                 }
                 this.projectionScreens.checkProjectionScreenCollisions()
             }
