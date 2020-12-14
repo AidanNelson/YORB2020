@@ -357,9 +357,13 @@ export class Yorb {
                 this.movementCallback()
                 if (this.show) {
                     this.show.update()
+                    for(let portal of this.show.portals){ //originally had this in framecount % 50, might want to move there if too slow
+                        portal.teleportCheck(this.getPlayerPosition()[0]);
+                    }
                 }
                 if (this.yorblet) {
                     this.yorblet.update()
+                    this.yorblet.portal.teleportCheck(this.getPlayerPosition()[0]) //for portal trigger
                 }
                 this.projectionScreens.checkProjectionScreenCollisions()
             }

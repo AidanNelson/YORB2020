@@ -2,8 +2,15 @@ import * as THREE from 'three'
 
 import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
+import { Vector3 } from 'three'
+import { Portal } from './portals'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
+
+const yorbletPortalReference = [ //for portal creation, needs scene, position, and index
+    null, //skips 0 because that's lobby
+    {position: new Vector3(0, 0, 5)}, //yorblet 1/A 
+]
 
 export class WinterShow2020 {
     constructor(scene, camera, controls, mouse) {
@@ -30,6 +37,8 @@ export class WinterShow2020 {
         this.projects = []
         this.hyperlinkedObjects = []
         this.linkMaterials = {}
+        
+        this.portals = [];
 
         // let domElement = document.getElementById('scene-container')
         window.addEventListener('click', (e) => this.onMouseClick(e), false)
@@ -44,6 +53,7 @@ export class WinterShow2020 {
         let fontJSON = require('../assets/fonts/helvetiker_bold.json')
         this.font = loader.parse(fontJSON)
         this._updateProjects()
+        this.addPortals()
     }
 
     /*
@@ -267,6 +277,13 @@ export class WinterShow2020 {
 
                 console.log("We've placed ", endIndex, ' projects so far.')
             }
+        }
+    }
+
+    addPortals(){
+        //goes through all yorblets except 0 (lobby) and makes portal
+        for (let i = 1; i < yorbletPortalReference.length; i++){
+            this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
         }
     }
 
