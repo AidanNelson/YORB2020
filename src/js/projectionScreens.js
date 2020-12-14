@@ -179,7 +179,6 @@ export class ProjectionScreens {
                 } else {
                     // from lucasio here: https://discourse.threejs.org/t/positionalaudio-setmediastreamsource-with-webrtc-question-not-hearing-any-sound/14301/29
                     let volume = Math.min(1, this.rolloffNumerator / distSquared)
-                    console.log(volume, this.rolloffNumerator/distSquared)
                     audioEl.volume = THREE.Math.lerp(this.volume, volume, 0.5)
                     this.volume = audioEl.volume
                 }
