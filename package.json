@@ -4,7 +4,7 @@
   "description": "Repo for YORB2020, a virtual version of the fourth floor of 370 Jay Street.",
   "main": "server.js",
   "scripts": {
-    "build": "parcel build src/index.js",
+    "build": "parcel build src/index.html --public-url ./",
     "watch": "parcel src/index.html",
     "start-server": "node server/server.js",
     "production": "export NODE_ENV=PRODUCTION && parcel build src/index.html --public-url ./ && forever start server/server.js"
