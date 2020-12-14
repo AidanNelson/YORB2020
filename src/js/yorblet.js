@@ -5,7 +5,7 @@ import { create3DText, createSimpleText } from './utils'
 const project_thumbnails = require('../assets/images/project_thumbnails/*.png')
 
 // set which YORBLET we're in
-const YORBLET_INDEX = 1;
+const YORBLET_INDEX = 4;
 
 // pick colors
 const OUTER_FENCE_COLOR = 0x232323 //0x232378
@@ -251,13 +251,13 @@ export class Yorblet {
           let scale = .05;
           let centerY = 0;
           let offsetX = 0;// how far to the circle's right
-          let offsetY = 2;// how far to the circle's up-down
+          let offsetY = 4;// how far to the circle's up-down
           let offsetZ = -4;// how far to the circle's forward-backward
           let lookAtX = 0;
           let lookAtY = 2;
           let lookAtZ = 0;
-          let rotateDegrees = 0;
-          this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+
+          this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, -1.5708);
 
 
           projectIndex++
@@ -277,13 +277,13 @@ export class Yorblet {
           let scale = .05;
           let centerY = 0;
           let offsetX = 0;// how far to the circle's right
-          let offsetY = 2;// how far to the circle's up-down
+          let offsetY = 4;// how far to the circle's up-down
           let offsetZ = -4;// how far to the circle's forward-backward
           let lookAtX = 0;
           let lookAtY = 2;
-          let lookAtZ = 0;
-          let rotateDegrees = 0;
-          this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+          let lookAtZ = -1.5708;
+
+          this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, -1.5708);
 
 
           projectIndex++
@@ -682,7 +682,7 @@ export class Yorblet {
         offsetZ = -4.6 // how far to the circle's forward-backward
         rHeight = 5;
         rWidth = 5;
-        this.drawRect(rWidth, rHeight, 5, colmedPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        // this.drawRect(rWidth, rHeight, 5, colmedPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = 6 // how far to the circle's right
         offsetY = 6 // how far to the circle's up-down
@@ -763,34 +763,32 @@ export class Yorblet {
 
 
         //center rectangle
-        let offsetX = 1 // how far to the circle's right
-        let offsetY = 1 // how far to the circle's up-down
+        let offsetX = 2 // how far to the circle's right
+        let offsetY = 6 // how far to the circle's up-down
         let offsetZ = -4.5 // how far to the circle's forward-backward
-        let scaleX = .2;
-        let scaleY = .2;
-        let scaleZ = .2;
-        let rotateDegrees = 0;
-
-
+        let scaleX = .15;
+        let scaleY = .15;
+        let scaleZ = .15;
+        let rotateDegrees = -1.5708;
         this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
 
-        offsetX = 1 // how far to the circle's right
-        offsetY = 4 // how far to the circle's up-down
+        offsetX = 2 // how far to the circle's right
+        offsetY = 11 // how far to the circle's up-down
         offsetZ = -4.4 // how far to the circle's forward-backward
         scaleX = .15;
         scaleY = .15;
         scaleZ = .15;
-        rotateDegrees = 0;
+        rotateDegrees = -1.5708;
         this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
 
         offsetX = -4 // how far to the circle's right
         offsetY = 8 // how far to the circle's up-down
         offsetZ = -4.4 // how far to the circle's forward-backward
-        scaleX = .3;
-        scaleY = .3;
-        scaleZ = .3;
+        scaleX = .4;
+        scaleY = .4;
+        scaleZ = .4;
         rotateDegrees = -1.5708;
         this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
