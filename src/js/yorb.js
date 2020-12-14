@@ -121,7 +121,7 @@ export class Yorb {
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse)
         // this.itpModel = new ITPModel(this.scene)
 
-        this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, PortalModels['pyrGreen'], "https://yorblet1.itp.io")
+        this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, PortalModels['tacobell'], "https://yorblet1.itp.io", {text:"Go back to Lobby", color:0xf4d010, size:0.5, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3})
 
         // this.show = new SpringShow(this.scene, this.camera, this.controls, this.mouse)
         // this.show.setup()
