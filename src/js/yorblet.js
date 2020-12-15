@@ -201,17 +201,6 @@ export class Yorblet {
       const font = new THREE.Font(fontJson)
       const text = "Yorblet " + YORBLET_INDEX.toString();
 
-      const fontGeometry = new THREE.TextBufferGeometry(text, {
-          font: font,
-          size: 2.5,
-          height: 0.01,
-          curveSegments: 11,
-          bevelEnabled: true,
-          bevelThickness: 0.1,
-          bevelSize: 0.1,
-          bevelSegments: 6,
-      })
-
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
             size: 2.5,
