@@ -13,12 +13,12 @@ const yorbletReference = [
     {url: 'https://yorblet2.itp.io', model: PortalModels['cubPink'], label: {text:"Go to Yorblet 2", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet3.itp.io', model: PortalModels['pyrYellow'], label: {text:"Go to Yorblet 3", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet4.itp.io', model:PortalModels ['ligGreen'], label: {text:"Go to Yorblet 4", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet5.itp.io', model: PortalModels['sphViolet'], label: {text:"Go to Yorblet 5", color:0x9588cb, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet5.itp.io', model: PortalModels['sphPink'], label: {text:"Go to Yorblet 5", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet6.itp.io', model: PortalModels['cubYellow'], label: {text:"Go to Yorblet 6", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet7.itp.io', model: PortalModels['pyrOrange'], label: {text:"Go to Yorblet 7", color:0xfd8f20, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet8.itp.io', model: PortalModels['ligBlue'], label: {text:"Go to Yorblet 8", color:0x4b4ff4, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet9.itp.io', model: PortalModels['sphPink'], label: {text:"Go to Yorblet 9", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet10.itp.io', model: PortalModels['cubOrange'], label: {text:"Go to Yorblet 10", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet7.itp.io', model: PortalModels['pyrGreen'], label: {text:"Go to Yorblet 7", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet8.itp.io', model: PortalModels['ligPink'], label: {text:"Go to Yorblet 8", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet9.itp.io', model: PortalModels['sphYellow'], label: {text:"Go to Yorblet 9", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet10.itp.io', model: PortalModels['cubBlue'], label: {text:"Go to Yorblet 10", color:0x4b4ff4, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
 ]
 
 //yorblet.js uses yorblet_index, which gets passed here to 
