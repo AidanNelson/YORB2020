@@ -89,7 +89,7 @@ export class Portal {
     teleportCheck(userPosition) {
         //needed to convert because getPlayerPosition doesn't return a vec3
         let userVec3 = new Vector3(userPosition[0], userPosition[1], userPosition[2]);
-        console.log(this.position.distanceTo(userVec3));
+        // console.log(this.position.distanceTo(userVec3));
         
         if (this.position.distanceTo(userVec3) <= this.radius) {
             console.log('teleporting');
