@@ -192,15 +192,18 @@ export class Yorblet {
         this.scene.add(cylinder)
     }
 
-    createYorbletLabel() {
+    createYorbletLabel(){
+
+
         let labelRadius = FENCE_RADIUS
-
-
-      // Draw Label in back of room on wall
-      const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
-      const font = new THREE.Font(fontJson)
-      const text = "Yorblet " + YORBLET_INDEX.toString();
-
+  
+  
+        // Draw Label in back of room on wall
+        const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
+        const font = new THREE.Font(fontJson)
+        const text = "Yorblet " + YORBLET_INDEX.toString();
+  
+  
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
             size: 2.5,
@@ -211,31 +214,27 @@ export class Yorblet {
             bevelSize: 0.1,
             bevelSegments: 6,
         })
-
-
-      let labelOffsetX = 2;
-      let labelOffsetY = 13;
-      let labelOffsetZ = 6;
-
-
-        //let labelOffsetX = 0
-        //let labelOffsetY = 10
-        //let labelOffsetZ = 7
-
-
-      fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
-//       fontMesh.lookAt(0, 2, 6)
-       fontMesh.rotateY(Math.PI / 2)
-      this.scene.add(fontMesh)
-
-        // add backdrop
-       //let geo = new THREE.BoxBufferGeometry(1, 5, 20)
-        //let mat = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR })
-        //let highlightMat = new THREE.MeshBasicMaterial({ color: 0xf9f910 }) // yellow
-        //let mesh = new THREE.Mesh(geo, [mat, highlightMat])
-        //this.scene.add(mesh)
-        //mesh.position.set(-labelRadius - 1, labelOffsetY + 1, 0)
-    }
+  
+  
+        const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
+        const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
+        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
+        //alternate color0x787878
+  
+  
+        let labelOffsetX = 2;
+        let labelOffsetY = 13;
+        let labelOffsetZ = 6;
+  
+  
+  
+  
+        fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
+        fontMesh.lookAt(0, 2, 6)
+        this.scene.add(fontMesh)
+  
+  
+      }
 
     createYorbletStages() {
         let radius = RADIUS
