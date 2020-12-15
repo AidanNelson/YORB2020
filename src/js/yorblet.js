@@ -199,7 +199,7 @@ export class Yorblet {
       //alternate color0x787878
 
       let labelOffsetX = 2;
-      let labelOffsetY = 10;
+      let labelOffsetY = 13;
       let labelOffsetZ = 6;
 
 
@@ -632,7 +632,10 @@ export class Yorblet {
         /// Font for numbers
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
-        const text = projectIndex.toString()
+
+        const projectLetters = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        const index = YORBLET_INDEX.toString()
+        const text = index + projectLetters[projectIndex-1]
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
@@ -650,7 +653,7 @@ export class Yorblet {
         const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
         //alternate color0x787878
 
-        let fontOffsetX = 4
+        let fontOffsetX = 3
         let fontOffsetY = 8
         let fontOffsetZ = -3
         fontMesh.position.set(centerX, 0, centerZ)
