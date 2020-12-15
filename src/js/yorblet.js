@@ -109,7 +109,11 @@ export class Yorblet {
     parachuteIn() {
         // PARACHUTE IS BACK...
         // Start us up high on the Y axis and outside a circular Yorblet
-        this.camera.position.set(58, 100, 0)
+        var randX = 56 + Math.random() * 4
+        var randZ = -2 + Math.random() * 4
+        console.log(`our random pos vals are ${randX}, ${randZ}`)
+        // this.camera.position.set(randX, 100, 0)
+        this.camera.position.set(randX, 100, randZ)
         this.camera.lookAt(0, 0, 0)
       }
 
