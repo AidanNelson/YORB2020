@@ -10,25 +10,16 @@
  *
  */
 
-// Set these for your particular IP / Port
-PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=164'
-
-// For working locally
-PRODUCTION_IP = '192.168.0.107'
-PRODUCTION_PORT = '3000'
-
-// For deploying on YORB.itp.io
-// PRODUCTION_IP="142.93.6.195"
-// PRODUCTION_PORT="3040"
+require('dotenv').config({ path: process.cwd() + '/server/.env' })
 
 // Mediasoup configuration
 const config = require(process.cwd() + '/server/config.js')
-config.httpIp = PRODUCTION_IP
-config.httpPort = PRODUCTION_PORT
+config.httpIp = process.env.PRODUCTION_IP
+config.httpPort = process.env.PRODUCTION_PORT
 
 config.mediasoup.webRtcTransport.listenIps = [
     { ip: '127.0.0.1', announcedIp: null },
-    { ip: PRODUCTION_IP, announcedIp: null },
+    { ip: process.env.PRODUCTION_IP, announcedIp: null },
 ]
 
 // IMPORTS
@@ -61,8 +52,8 @@ const distFolder = process.cwd() + '/dist'
 console.log('Serving static files at ', distFolder)
 app.use(express.static(process.cwd() + '/dist'))
 
-server.listen(PRODUCTION_PORT)
-console.log(`Server listening on http://${PRODUCTION_IP}:${PRODUCTION_PORT}`)
+server.listen(process.env.PRODUCTION_PORT)
+console.log(`Server listening on http://${process.env.PRODUCTION_IP}:${process.env.PRODUCTION_PORT}`)
 
 const log = debugModule('YORBSERVER')
 const warn = debugModule('YORBSERVER:WARN')
@@ -216,7 +207,7 @@ main()
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 async function updateProjects() {
-    let url = PROJECT_DATABASE_URL
+    let url = process.env.PROJECT_DATABASE_URL
 
     https
         .get(url, (res) => {
@@ -227,16 +218,16 @@ async function updateProjects() {
             })
 
             res.on('end', function () {
-                var json
+                
                 try {
                     // TODO parse JSON so we render HTML text correctly?  i.e. so we don't end up with '</br>' or '&amp;' ...
-                    json = JSON.parse(body)
+                    const json = JSON.parse(body)
+                    projects = json
+                    log('Updated projects from database.')
+                    io.sockets.emit('projects', projects)
                 } catch (err) {
                     console.error('update projects error: ' + err)
                 }
-                projects = json
-                log('Updated projects from database.')
-                io.sockets.emit('projects', projects)
             })
         })
         .on('error', function (e) {
@@ -285,7 +276,7 @@ async function runSocketServer() {
 
         //Update everyone that the number of users has changed
         io.sockets.emit('newUserConnected', io.engine.clientsCount, socket.id, Object.keys(clients))
-        io.sockets.emit('projectionScreenUpdate', clients)// send initial screenshare info
+        io.sockets.emit('projectionScreenUpdate', clients) // send initial screenshare info
 
         socket.on('move', (data) => {
             let now = Date.now()
@@ -315,15 +306,14 @@ async function runSocketServer() {
         // Handle the disconnection
         socket.on('disconnect', () => {
             // release screen when someone leaves
-            if (clients[socket.id].projectionScreenId !== -1){
-                let data = {screenId: clients[socket.id].projectionScreenId}
+            if (clients[socket.id].projectionScreenId !== -1) {
+                let data = { screenId: clients[socket.id].projectionScreenId }
                 io.sockets.emit('releaseProjectionScreen', data)
             }
             //Delete this client from the object
             delete clients[socket.id]
             io.sockets.emit('userDisconnected', socket.id, Object.keys(clients))
             log('User ' + socket.id + ' diconnected, there are ' + io.engine.clientsCount + ' clients connected')
-            
         })
 
         //*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//*//
