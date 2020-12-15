@@ -128,7 +128,9 @@ export class Yorblet {
     parachuteIn() {
         // PARACHUTE IS BACK...
         // Start us up high on the Y axis and outside a circular Yorblet
-        this.camera.position.set(58, 100, 0)
+        var randX = 56 + Math.random() * 4
+        var randZ = -2 + Math.random() * 4
+        this.camera.position.set(randX, 100, randZ)
         this.camera.lookAt(0, 0, 0)
     }
 
@@ -193,10 +195,22 @@ export class Yorblet {
     createYorbletLabel() {
         let labelRadius = FENCE_RADIUS
 
-        // Draw Label in back of room on wall
-        const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
-        const font = new THREE.Font(fontJson)
-        const text = 'Yorblet  ' + YORBLET_INDEX.toString()
+
+      // Draw Label in back of room on wall
+      const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
+      const font = new THREE.Font(fontJson)
+      const text = "Yorblet " + YORBLET_INDEX.toString();
+
+      const fontGeometry = new THREE.TextBufferGeometry(text, {
+          font: font,
+          size: 2.5,
+          height: 0.01,
+          curveSegments: 11,
+          bevelEnabled: true,
+          bevelThickness: 0.1,
+          bevelSize: 0.1,
+          bevelSegments: 6,
+      })
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
@@ -209,27 +223,29 @@ export class Yorblet {
             bevelSegments: 6,
         })
 
-        const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
-        const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
-        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1, fontMaterial2])
-        //alternate color0x787878
 
-        let labelOffsetX = 0
-        let labelOffsetY = 10
-        let labelOffsetZ = 7
+      let labelOffsetX = 2;
+      let labelOffsetY = 13;
+      let labelOffsetZ = 6;
 
-        fontMesh.position.set(-labelRadius + labelOffsetX, labelOffsetY, labelOffsetZ)
-        //   fontMesh.lookAt(0, 2, 0)
-        fontMesh.rotateY(Math.PI / 2)
-        this.scene.add(fontMesh)
+
+        //let labelOffsetX = 0
+        //let labelOffsetY = 10
+        //let labelOffsetZ = 7
+
+
+      fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
+//       fontMesh.lookAt(0, 2, 6)
+       fontMesh.rotateY(Math.PI / 2)
+      this.scene.add(fontMesh)
 
         // add backdrop
-        let geo = new THREE.BoxBufferGeometry(1, 5, 20)
-        let mat = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR })
-        let highlightMat = new THREE.MeshBasicMaterial({ color: 0xf9f910 }) // yellow
-        let mesh = new THREE.Mesh(geo, [mat, highlightMat])
-        this.scene.add(mesh)
-        mesh.position.set(-labelRadius - 1, labelOffsetY + 1, 0)
+       //let geo = new THREE.BoxBufferGeometry(1, 5, 20)
+        //let mat = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR })
+        //let highlightMat = new THREE.MeshBasicMaterial({ color: 0xf9f910 }) // yellow
+        //let mesh = new THREE.Mesh(geo, [mat, highlightMat])
+        //this.scene.add(mesh)
+        //mesh.position.set(-labelRadius - 1, labelOffsetY + 1, 0)
     }
 
     createYorbletStages() {
@@ -623,8 +639,11 @@ export class Yorblet {
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
 
-        // const text = projectIndex.toString()
-        const text = ALPHABET.charAt(projectIndex - 1) // project index starts at 1
+
+        const projectLetters = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        const index = YORBLET_INDEX.toString()
+        const text = index + projectLetters[projectIndex-1]
+
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
@@ -642,7 +661,7 @@ export class Yorblet {
         const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1, fontMaterial2])
         //alternate color0x787878
 
-        let fontOffsetX = 4
+        let fontOffsetX = 3
         let fontOffsetY = 8
         let fontOffsetZ = -3
         fontMesh.position.set(centerX, 0, centerZ)
