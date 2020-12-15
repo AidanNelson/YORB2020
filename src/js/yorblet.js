@@ -33,6 +33,9 @@ if (hostname === 'yorblet1.itp.io') {
 } else if (hostname === 'yorblet10.itp.io') {
     YORBLET_INDEX = 10
 }
+console.log('hostname:', hostname);
+console.log('yorblet index:', YORBLET_INDEX);
+
 
 // The alphabet (for project labels)
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' // now i know by ABCs next time won't you sing with me
