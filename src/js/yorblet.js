@@ -180,7 +180,7 @@ export class Yorblet {
       // Draw Label in back of room on wall
       const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
       const font = new THREE.Font(fontJson)
-      const text = "Yorblet  " + YORBLET_INDEX.toString();
+      const text = "Yorblet " + YORBLET_INDEX.toString();
 
       const fontGeometry = new THREE.TextBufferGeometry(text, {
           font: font,
@@ -199,12 +199,12 @@ export class Yorblet {
       //alternate color0x787878
 
       let labelOffsetX = 2;
-      let labelOffsetY = 1.5;
-      let labelOffsetZ = 5;
+      let labelOffsetY = 10;
+      let labelOffsetZ = 6;
 
 
       fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
-      fontMesh.lookAt(0, 2, 0)
+      fontMesh.lookAt(0, 2, 6)
       this.scene.add(fontMesh)
 
     }
