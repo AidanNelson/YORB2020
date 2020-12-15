@@ -35,7 +35,7 @@ if (hostname === 'yorblet1.itp.io') {
 }
 
 // The alphabet (for project labels)
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" // now i know by ABCs next time won't you sing with me
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' // now i know by ABCs next time won't you sing with me
 // pick colors
 const OUTER_FENCE_COLOR = 0x232323 //0x232378
 const ENTRANCE_COLOR = 0xf9f910
@@ -620,9 +620,8 @@ export class Yorblet {
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
 
-
         // const text = projectIndex.toString()
-        const text = ALPHABET.charAt(projectIndex-1); // project index starts at 1
+        const text = ALPHABET.charAt(projectIndex - 1) // project index starts at 1
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
@@ -1404,6 +1403,23 @@ export class Yorblet {
             }
             console.log('Number of total projects: ', this.projects.length)
             // console.log('Number of unique projects: ', numUniqueProjects)
+
+            // sort the array of incoming projects by position_id:
+            console.log(this.projects)
+            try {
+                this.projects.sort((a, b) => {
+                    if (a.position_id < b.position_id) {
+                        return -1
+                    }
+                    if (a.position_id > b.position_id) {
+                        return 1
+                    }
+                })
+            } catch (e) {
+                console.error(e)
+            }
+            console.log('sorting')
+            console.log(this.projects)
 
             this.createProjectPodiums()
 
