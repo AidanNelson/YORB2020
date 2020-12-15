@@ -1683,7 +1683,7 @@ export class Yorblet {
             let link = this.scene.getObjectByName(this.hightlightedProjectId)
             if (link != null) {
                 this.generateProjectModal(link.userData.project)
-                hackToRemovePlayerTemporarily()
+                // hackToRemovePlayerTemporarily() // don't remove player in yorblets
 
                 // reset markers
                 this.activeProjectId = link.userData.project.project_id
