@@ -7,13 +7,32 @@ import { Portal } from './portals'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
+// set which YORBLET we're in based on hostname
+const hostname = window.location.hostname
 
-// set which YORBLET we're in
+let YORBLET_INDEX = 1
 
-// import { YORBLET_INDEX } from "./index";
-const YORBLET_INDEX = 1;
-
-// const YORBLET_INDEX = YORBLET_INDEX;
+if (hostname === 'yorblet1.itp.io') {
+    YORBLET_INDEX = 1
+} else if (hostname === 'yorblet2.itp.io') {
+    YORBLET_INDEX = 2
+} else if (hostname === 'yorblet3.itp.io') {
+    YORBLET_INDEX = 3
+} else if (hostname === 'yorblet4.itp.io') {
+    YORBLET_INDEX = 4
+} else if (hostname === 'yorblet5.itp.io') {
+    YORBLET_INDEX = 5
+} else if (hostname === 'yorblet6.itp.io') {
+    YORBLET_INDEX = 6
+} else if (hostname === 'yorblet7.itp.io') {
+    YORBLET_INDEX = 7
+} else if (hostname === 'yorblet8.itp.io') {
+    YORBLET_INDEX = 8
+} else if (hostname === 'yorblet9.itp.io') {
+    YORBLET_INDEX = 9
+} else if (hostname === 'yorblet10.itp.io') {
+    YORBLET_INDEX = 10
+}
 
 
 // pick colors
