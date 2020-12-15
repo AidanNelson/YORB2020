@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { projects } from '.'
 import { create3DText, createSimpleText } from './utils'
-import {hackToRemovePlayerTemporarily}  from "./index";
-import { Vector3 } from 'three';
+import { hackToRemovePlayerTemporarily } from './index'
+import { Vector3 } from 'three'
 import { Portal } from './portals'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
@@ -34,20 +34,18 @@ if (hostname === 'yorblet1.itp.io') {
     YORBLET_INDEX = 10
 }
 
-
 // pick colors
 const OUTER_FENCE_COLOR = 0x232323 //0x232378
 const ENTRANCE_COLOR = 0xf9f910
 const STAGE_COLOR = 0x232323
 const DOME_COLOR = 0x232323
-const PROJECT_NUMBER_COLOR = 0xffffff;
+const PROJECT_NUMBER_COLOR = 0xffffff
 
 //sky colors -- same as fences
-const SKY_COLOR_BLUE_ROOM = 0x1250CC;
-const SKY_COLOR_PINK_ROOM = 0xe49add;
-const SKY_COLOR_YELLOW_ROOM = 0xfd8f20;
-const SKY_COLOR_GREEN_ROOM = 0x18DD6C;
-
+const SKY_COLOR_BLUE_ROOM = 0x1250cc
+const SKY_COLOR_PINK_ROOM = 0xe49add
+const SKY_COLOR_YELLOW_ROOM = 0xfd8f20
+const SKY_COLOR_GREEN_ROOM = 0x18dd6c
 
 // other parameters:
 const NUMBER_OF_PROJECTS = 8
@@ -58,10 +56,10 @@ const FENCE_HEIGHT = 12
 export class Yorblet {
     constructor(scene, projectionScreenManager, mouse, camera, controls) {
         this.scene = scene
-        this.mouse = mouse;
-        this.camera = camera;
+        this.mouse = mouse
+        this.camera = camera
         this.projectionScreenManager = projectionScreenManager
-        this.controls = controls;
+        this.controls = controls
 
         //
         this.numProjects = NUMBER_OF_PROJECTS
@@ -70,7 +68,7 @@ export class Yorblet {
         this.raycaster = new THREE.Raycaster()
         this.textureLoader = new THREE.TextureLoader()
         this.textParser = new DOMParser()
-        this.activeProjectId = -1;
+        this.activeProjectId = -1
 
         // materials for the project podiums
         this.highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff1a })
@@ -91,7 +89,7 @@ export class Yorblet {
         this.setup()
 
         //add portal back to lobby -- change position (2nd param) TODO
-        this.portal = new Portal(this.scene, new Vector3(0, 0, 0), 0); //third param is index of lobby
+        this.portal = new Portal(this.scene, new Vector3(0, 0, 0), 0) //third param is index of lobby
     }
 
     setup() {
@@ -114,15 +112,12 @@ export class Yorblet {
         // this.createProjectPodiums()
 
         //style yorblet (sky and fence)
-        this.styleYorblet();
+        this.styleYorblet()
 
         //add yorblet label
-        this.createYorbletLabel();
+        this.createYorbletLabel()
 
-
-        this.parachuteIn();
-
-
+        this.parachuteIn()
     }
 
     parachuteIn() {
@@ -130,7 +125,7 @@ export class Yorblet {
         // Start us up high on the Y axis and outside a circular Yorblet
         this.camera.position.set(58, 100, 0)
         this.camera.lookAt(0, 0, 0)
-      }
+    }
 
     createYorbletExterior() {
         let fenceRadius = FENCE_RADIUS
@@ -190,42 +185,47 @@ export class Yorblet {
         this.scene.add(cylinder)
     }
 
-    createYorbletLabel(){
+    createYorbletLabel() {
+        let labelRadius = FENCE_RADIUS
 
-      let labelRadius = FENCE_RADIUS
+        // Draw Label in back of room on wall
+        const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
+        const font = new THREE.Font(fontJson)
+        const text = 'Yorblet  ' + YORBLET_INDEX.toString()
 
-      // Draw Label in back of room on wall
-      const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
-      const font = new THREE.Font(fontJson)
-      const text = "Yorblet  " + YORBLET_INDEX.toString();
+        const fontGeometry = new THREE.TextBufferGeometry(text, {
+            font: font,
+            size: 2.5,
+            height: 0.01,
+            curveSegments: 11,
+            bevelEnabled: true,
+            bevelThickness: 0.1,
+            bevelSize: 0.1,
+            bevelSegments: 6,
+        })
 
-      const fontGeometry = new THREE.TextBufferGeometry(text, {
-          font: font,
-          size: 2.5,
-          height: 0.01,
-          curveSegments: 11,
-          bevelEnabled: true,
-          bevelThickness: 0.1,
-          bevelSize: 0.1,
-          bevelSegments: 6,
-      })
+        const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
+        const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
+        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1, fontMaterial2])
+        //alternate color0x787878
 
-      const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
-      const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
-      const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
-      //alternate color0x787878
+        let labelOffsetX = 0
+        let labelOffsetY = 10
+        let labelOffsetZ = 7
 
-      let labelOffsetX = 2;
-      let labelOffsetY = 1.5;
-      let labelOffsetZ = 5;
+        fontMesh.position.set(-labelRadius + labelOffsetX, labelOffsetY, labelOffsetZ)
+        //   fontMesh.lookAt(0, 2, 0)
+        fontMesh.rotateY(Math.PI / 2)
+        this.scene.add(fontMesh)
 
-
-      fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
-      fontMesh.lookAt(0, 2, 0)
-      this.scene.add(fontMesh)
-
+        // add backdrop
+        let geo = new THREE.BoxBufferGeometry(1, 5, 20)
+        let mat = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR })
+        let highlightMat = new THREE.MeshBasicMaterial({ color: 0xf9f910 }) // yellow
+        let mesh = new THREE.Mesh(geo, [mat, highlightMat])
+        this.scene.add(mesh)
+        mesh.position.set(-labelRadius - 1, labelOffsetY + 1, 0)
     }
-
 
     createYorbletStages() {
         let radius = RADIUS
@@ -261,255 +261,225 @@ export class Yorblet {
         }
     }
 
+    createBoltFence(fenceColor) {
+        let radius = RADIUS
 
-    createBoltFence(fenceColor){
+        // set left side offsets
+        let xOffset = 0
+        let zOffset = 20
 
-      let radius = RADIUS
+        let projectIndex = 1
+        // make left side projects
+        for (let i = 0; i < this.numProjects * 2; i++) {
+            let theta = (Math.PI * 2) / this.numProjects
+            let angle = (theta * i) / 4
 
-      // set left side offsets
-      let xOffset = 0
-      let zOffset = 20
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            let scale = 1
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 2 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ)
 
-      let projectIndex = 1
-      // make left side projects
-      for (let i = 0; i < this.numProjects*2; i++) {
-          let theta = (Math.PI * 2) / (this.numProjects)
-          let angle = theta * i /4
+            projectIndex++
+        }
 
-          let centerX = radius * Math.cos(angle) + xOffset
-          let centerZ = radius * Math.sin(angle) + zOffset
-          let scale = 1;
-          let centerY = 0;
-          let offsetX = 0;// how far to the circle's right
-          let offsetY = 2;// how far to the circle's up-down
-          let offsetZ = -4;// how far to the circle's forward-backward
-          this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+        xOffset = 0
+        zOffset = -25
 
-          projectIndex++
-      }
+        // make right side projects
+        for (let i = this.numProjects / 2 - 1; i < (this.numProjects + 1) * 2; i++) {
+            let theta = (Math.PI * 2) / (this.numProjects - 2)
+            let angle = 2 + (theta * i) / 4
 
-      xOffset = 0
-      zOffset = -25
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
 
-      // make right side projects
-      for (let i = this.numProjects / 2 - 1; i < ((this.numProjects+1) * 2); i++) {
-          let theta = (Math.PI * 2) / (this.numProjects - 2)
-          let angle = (2 + (theta * i / 4))
+            let scale = 1
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 2 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ)
 
-          let centerX = radius * Math.cos(angle) + xOffset
-          let centerZ = radius * Math.sin(angle) + zOffset
-
-          let scale = 1;
-          let centerY = 0;
-          let offsetX = 0;// how far to the circle's right
-          let offsetY = 2;// how far to the circle's up-down
-          let offsetZ = -4;// how far to the circle's forward-backward
-          this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
-          projectIndex++
-      }
-
-
+            projectIndex++
+        }
     }
 
+    createTriFence(fenceColor) {
+        let radius = RADIUS
 
+        // set left side offsets
+        let xOffset = 0
+        let zOffset = 20
 
+        let projectIndex = 1
+        // make left side projects
+        for (let i = 0; i < this.numProjects * 2; i++) {
+            let theta = (Math.PI * 2) / this.numProjects
+            let angle = (theta * i) / 4
 
-    createTriFence(fenceColor){
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            let scale = 0.05
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 4 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            let lookAtX = 0
+            let lookAtY = 2
+            let lookAtZ = 0
 
-      let radius = RADIUS
+            this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, -1.5708)
 
-      // set left side offsets
-      let xOffset = 0
-      let zOffset = 20
+            projectIndex++
+        }
 
-      let projectIndex = 1
-      // make left side projects
-      for (let i = 0; i < this.numProjects*2; i++) {
-          let theta = (Math.PI * 2) / (this.numProjects)
-          let angle = theta * i /4
+        xOffset = 0
+        zOffset = -25
 
-          let centerX = radius * Math.cos(angle) + xOffset
-          let centerZ = radius * Math.sin(angle) + zOffset
-          let scale = .05;
-          let centerY = 0;
-          let offsetX = 0;// how far to the circle's right
-          let offsetY = 4;// how far to the circle's up-down
-          let offsetZ = -4;// how far to the circle's forward-backward
-          let lookAtX = 0;
-          let lookAtY = 2;
-          let lookAtZ = 0;
+        // make right side projects
+        for (let i = this.numProjects / 2 - 1; i < (this.numProjects + 1) * 2; i++) {
+            let theta = (Math.PI * 2) / (this.numProjects - 2)
+            let angle = 2 + (theta * i) / 4
 
-          this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, -1.5708);
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
 
+            let scale = 0.05
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 4 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            let lookAtX = 0
+            let lookAtY = 2
+            let lookAtZ = -1.5708
 
-          projectIndex++
-      }
+            this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, -1.5708)
 
-      xOffset = 0
-      zOffset = -25
-
-      // make right side projects
-      for (let i = this.numProjects / 2 - 1; i < ((this.numProjects+1) * 2); i++) {
-          let theta = (Math.PI * 2) / (this.numProjects - 2)
-          let angle = (2 + (theta * i / 4))
-
-          let centerX = radius * Math.cos(angle) + xOffset
-          let centerZ = radius * Math.sin(angle) + zOffset
-
-          let scale = .05;
-          let centerY = 0;
-          let offsetX = 0;// how far to the circle's right
-          let offsetY = 4;// how far to the circle's up-down
-          let offsetZ = -4;// how far to the circle's forward-backward
-          let lookAtX = 0;
-          let lookAtY = 2;
-          let lookAtZ = -1.5708;
-
-          this.drawTri(scale, scale, scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, -1.5708);
-
-
-          projectIndex++
-      }
-
+            projectIndex++
+        }
     }
 
+    createRectFence(fenceColor) {
+        let radius = RADIUS
 
+        // set left side offsets
+        let xOffset = 0
+        let zOffset = 20
 
+        let projectIndex = 1
+        // make left side projects
+        for (let i = 0; i < this.numProjects * 2; i++) {
+            let theta = (Math.PI * 2) / this.numProjects
+            let angle = (theta * i) / 4
 
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            let scale = 1
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 2 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            let lookAtX = 0
+            let lookAtZ = 0
 
+            let rHeight = 1.5
+            let rWidth = 1.5
+            this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-    createRectFence(fenceColor){
+            projectIndex++
+        }
 
-      let radius = RADIUS
+        xOffset = 0
+        zOffset = -25
 
-      // set left side offsets
-      let xOffset = 0
-      let zOffset = 20
+        // make right side projects
+        for (let i = this.numProjects / 2 - 1; i < (this.numProjects + 1) * 2; i++) {
+            let theta = (Math.PI * 2) / (this.numProjects - 2)
+            let angle = 2 + (theta * i) / 4
 
-      let projectIndex = 1
-      // make left side projects
-      for (let i = 0; i < this.numProjects*2; i++) {
-          let theta = (Math.PI * 2) / (this.numProjects)
-          let angle = theta * i /4
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            let scale = 1
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 2 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            let lookAtX = 0
+            let lookAtZ = 0
 
-          let centerX = radius * Math.cos(angle) + xOffset
-          let centerZ = radius * Math.sin(angle) + zOffset
-          let scale = 1;
-          let centerY = 0;
-          let offsetX = 0;// how far to the circle's right
-          let offsetY = 2;// how far to the circle's up-down
-          let offsetZ = -4;// how far to the circle's forward-backward
-          let lookAtX = 0;
-          let lookAtZ = 0;
+            let rHeight = 1.5
+            let rWidth = 1.5
+            this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-          let rHeight = 1.5;
-          let rWidth = 1.5;
-          this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
-          projectIndex++
-      }
-
-      xOffset = 0
-      zOffset = -25
-
-      // make right side projects
-      for (let i = this.numProjects / 2 - 1; i < ((this.numProjects+1) * 2); i++) {
-          let theta = (Math.PI * 2) / (this.numProjects - 2)
-          let angle = (2 + (theta * i / 4))
-
-          let centerX = radius * Math.cos(angle) + xOffset
-          let centerZ = radius * Math.sin(angle) + zOffset
-          let scale = 1;
-          let centerY = 0;
-          let offsetX = 0;// how far to the circle's right
-          let offsetY = 2;// how far to the circle's up-down
-          let offsetZ = -4;// how far to the circle's forward-backward
-          let lookAtX = 0;
-          let lookAtZ = 0;
-
-          let rHeight = 1.5;
-          let rWidth = 1.5;
-          this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
-          projectIndex++
-      }
-
-
+            projectIndex++
+        }
     }
 
+    createCircleFence(fenceColor) {
+        let radius = RADIUS
 
+        // set left side offsets
+        let xOffset = 0
+        let zOffset = 20
 
-    createCircleFence(fenceColor){
+        let projectIndex = 1
+        // make left side projects
+        for (let i = 0; i < this.numProjects * 2; i++) {
+            let theta = (Math.PI * 2) / this.numProjects
+            let angle = (theta * i) / 4
 
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            let scale = 1
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 2 // how far to the circle's up-down
+            let offsetZ = -4 // how far to the circle's forward-backward
+            let lookAtX = 0
+            let lookAtZ = 0
+            let cRadius = 1
+            //
+            // let rHeight = 1.5;
+            // let rWidth = 1.5;
+            // this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-            let radius = RADIUS
+            this.drawCircle(cRadius, 32, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-            // set left side offsets
-            let xOffset = 0
-            let zOffset = 20
+            projectIndex++
+        }
 
-            let projectIndex = 1
-            // make left side projects
-            for (let i = 0; i < this.numProjects*2; i++) {
-                let theta = (Math.PI * 2) / (this.numProjects)
-                let angle = theta * i /4
+        xOffset = 0
+        zOffset = -25
 
-                let centerX = radius * Math.cos(angle) + xOffset
-                let centerZ = radius * Math.sin(angle) + zOffset
-                let scale = 1;
-                let centerY = 0;
-                let offsetX = 0;// how far to the circle's right
-                let offsetY = 2;// how far to the circle's up-down
-                let offsetZ = -4;// how far to the circle's forward-backward
-                let lookAtX = 0;
-                let lookAtZ = 0;
-                let cRadius = 1;
-                //
-                // let rHeight = 1.5;
-                // let rWidth = 1.5;
-                // this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        // make right side projects
+        for (let i = this.numProjects / 2 - 1; i < (this.numProjects + 1) * 2; i++) {
+            let theta = (Math.PI * 2) / (this.numProjects - 2)
+            let angle = 2 + (theta * i) / 4
 
-                this.drawCircle(cRadius, 32, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+            let centerX = radius * Math.cos(angle) + xOffset
+            let centerZ = radius * Math.sin(angle) + zOffset
+            let scale = 1
+            let centerY = 0
+            let offsetX = 0 // how far to the circle's right
+            let offsetY = 2 // how far to the circle's up-down
+            let offsetZ = -4.9 // how far to the circle's forward-backward
+            let lookAtX = 0
+            let lookAtZ = 0
+            let cRadius = 1
 
+            // let rHeight = 1.5;
+            // let rWidth = 1.5;
+            // this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
+            this.drawCircle(cRadius, 32, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-                projectIndex++
-            }
-
-            xOffset = 0
-            zOffset = -25
-
-            // make right side projects
-            for (let i = this.numProjects / 2 - 1; i < ((this.numProjects+1) * 2); i++) {
-                let theta = (Math.PI * 2) / (this.numProjects - 2)
-                let angle = (2 + (theta * i / 4))
-
-                let centerX = radius * Math.cos(angle) + xOffset
-                let centerZ = radius * Math.sin(angle) + zOffset
-                let scale = 1;
-                let centerY = 0;
-                let offsetX = 0;// how far to the circle's right
-                let offsetY = 2;// how far to the circle's up-down
-                let offsetZ = -4.9;// how far to the circle's forward-backward
-                let lookAtX = 0;
-                let lookAtZ = 0;
-                let cRadius = 1;
-
-                // let rHeight = 1.5;
-                // let rWidth = 1.5;
-                // this.drawRect(rWidth, rHeight, 5, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
-                this.drawCircle(cRadius, 32, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ);
-
-
-                projectIndex++
-            }
-
+            projectIndex++
+        }
     }
-
-
-
 
     // this will update the project posters
     createProjectPodiums() {
@@ -560,36 +530,34 @@ export class Yorblet {
         }
     }
 
-
-    styleYorblet(){
-            // style the area according to which YORBLET we are in
-            if (YORBLET_INDEX === 1) {
-                // do styling for yorblet 1
-                this.addSky(SKY_COLOR_BLUE_ROOM);
-                this.createCircleFence(SKY_COLOR_BLUE_ROOM);
-            } else if (YORBLET_INDEX === 2) {
-                // do styling for yorblet 2
-                this.addSky(SKY_COLOR_PINK_ROOM);
-                this.createRectFence(SKY_COLOR_PINK_ROOM);
-            } else if (YORBLET_INDEX === 3) {
-                // do styling for yorblet 3
-                this.addSky(SKY_COLOR_YELLOW_ROOM);
-                this.createTriFence(SKY_COLOR_YELLOW_ROOM);
-            } else if (YORBLET_INDEX === 4) {
-                // do styling for yorblet 4
-                this.addSky(SKY_COLOR_GREEN_ROOM);
-                this.createBoltFence(SKY_COLOR_GREEN_ROOM);
-            } else if (YORBLET_INDEX === 5) {
-                // do styling for yorblet 5
-            } else if (YORBLET_INDEX === 6) {
-                // do styling for yorblet 6
-            } else if (YORBLET_INDEX === 7) {
-                // do styling for yorblet 7
-            } else if (YORBLET_INDEX === 8) {
-                // do styling for yorblet 8
-            }
+    styleYorblet() {
+        // style the area according to which YORBLET we are in
+        if (YORBLET_INDEX === 1) {
+            // do styling for yorblet 1
+            this.addSky(SKY_COLOR_BLUE_ROOM)
+            this.createCircleFence(SKY_COLOR_BLUE_ROOM)
+        } else if (YORBLET_INDEX === 2) {
+            // do styling for yorblet 2
+            this.addSky(SKY_COLOR_PINK_ROOM)
+            this.createRectFence(SKY_COLOR_PINK_ROOM)
+        } else if (YORBLET_INDEX === 3) {
+            // do styling for yorblet 3
+            this.addSky(SKY_COLOR_YELLOW_ROOM)
+            this.createTriFence(SKY_COLOR_YELLOW_ROOM)
+        } else if (YORBLET_INDEX === 4) {
+            // do styling for yorblet 4
+            this.addSky(SKY_COLOR_GREEN_ROOM)
+            this.createBoltFence(SKY_COLOR_GREEN_ROOM)
+        } else if (YORBLET_INDEX === 5) {
+            // do styling for yorblet 5
+        } else if (YORBLET_INDEX === 6) {
+            // do styling for yorblet 6
+        } else if (YORBLET_INDEX === 7) {
+            // do styling for yorblet 7
+        } else if (YORBLET_INDEX === 8) {
+            // do styling for yorblet 8
         }
-
+    }
 
     addPresentationStage(projectIndex, centerX, centerZ, lookAtX, lookAtZ, scaleFactor = 1, angle) {
         // add the stage itself
@@ -612,7 +580,7 @@ export class Yorblet {
             this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
         } else if (YORBLET_INDEX === 4) {
             // do styling for yorblet 4
-            this.addLightningRoom(centerX, centerZ);
+            this.addLightningRoom(centerX, centerZ)
         } else if (YORBLET_INDEX === 5) {
             // do styling for yorblet 5
         } else if (YORBLET_INDEX === 6) {
@@ -635,10 +603,10 @@ export class Yorblet {
         const thetaLength = Math.PI * 0.9
         const domeGeometry = new THREE.SphereBufferGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)
 
-        domeGeometry.scale(0.7, 0.7,0.7)
+        domeGeometry.scale(0.7, 0.7, 0.7)
         const domeMaterial = new THREE.MeshPhongMaterial({ color: DOME_COLOR, side: THREE.DoubleSide })
         const domeMesh = new THREE.Mesh(domeGeometry, domeMaterial)
-        domeMesh.position.set((centerX), 1, (centerZ))
+        domeMesh.position.set(centerX, 1, centerZ)
         domeMesh.lookAt(lookAtX, 2, lookAtZ)
         domeMesh.translateZ(3)
         //domeMesh.translateY(-1)
@@ -664,7 +632,7 @@ export class Yorblet {
 
         const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
         const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
-        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
+        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1, fontMaterial2])
         //alternate color0x787878
 
         let fontOffsetX = 4
@@ -677,7 +645,6 @@ export class Yorblet {
         fontMesh.translateY(fontOffsetY)
         fontMesh.translateZ(fontOffsetZ)
         this.scene.add(fontMesh)
-
 
         /// Font for back walls
 
@@ -700,21 +667,21 @@ export class Yorblet {
         let offsetX = 0 // how far to the circle's right
         let offsetY = 0 // how far to the circle's up-down
         let offsetZ = -4.2 // how far to the circle's forward-backward
-        let segments = 32;
-        let radius = 6;
+        let segments = 32
+        let radius = 6
 
         this.drawCircle(radius, segments, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = 5 // how far to the circle's right
         offsetY = 4.5 // how far to the circle's up-down
         offsetZ = -4.3 // how far to the circle's forward-backward
-        radius = 3;
+        radius = 3
         this.drawCircle(radius, segments, collightBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -6 // how far to the circle's right
-        offsetY = .5 // how far to the circle's up-down
+        offsetY = 0.5 // how far to the circle's up-down
         offsetZ = -4 // how far to the circle's forward-backward
-        radius = 2;
+        radius = 2
         this.drawCircle(radius, segments, collightBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -4 // how far to the circle's right
@@ -722,7 +689,6 @@ export class Yorblet {
         offsetZ = -4.1 // how far to the circle's forward-backward
         radius = 1
         this.drawCircle(radius, segments, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
 
         // //circle fence
         // offsetX = 8 // how far to the circle's right
@@ -749,8 +715,6 @@ export class Yorblet {
         // offsetZ = -3.5 // how far to the circle's forward-backward
         // radius = 1;
         // this.drawCircle(radius, segments, coldarkBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
-
     }
 
     addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle) {
@@ -772,10 +736,9 @@ export class Yorblet {
         let offsetX = 0 // how far to the circle's right
         let offsetY = 2 // how far to the circle's up-down
         let offsetZ = -4.5 // how far to the circle's forward-backward
-        let segments = 32;
-        let rHeight = 10;
-        let rWidth = 10;
-
+        let segments = 32
+        let rHeight = 10
+        let rWidth = 10
 
         //drawRect(height, width, faces, matColor, posX, posY, posZ, offsetX, offsetY, offsetZ, lookAtX, lookatZ)
 
@@ -784,29 +747,29 @@ export class Yorblet {
         offsetX = -8.5 // how far to the circle's right
         offsetY = 3 // how far to the circle's up-down
         offsetZ = -4.4 // how far to the circle's forward-backward
-        rHeight = 4;
-        rWidth = 4;
+        rHeight = 4
+        rWidth = 4
         this.drawRect(rWidth, rHeight, 5, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -7 // how far to the circle's right
         offsetY = 5 // how far to the circle's up-down
         offsetZ = -4.6 // how far to the circle's forward-backward
-        rHeight = 5;
-        rWidth = 5;
+        rHeight = 5
+        rWidth = 5
         // this.drawRect(rWidth, rHeight, 5, colmedPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = 6 // how far to the circle's right
         offsetY = 6 // how far to the circle's up-down
         offsetZ = -4.6 // how far to the circle's forward-backward
-        rHeight = 6;
-        rWidth = 8;
+        rHeight = 6
+        rWidth = 8
         this.drawRect(rWidth, rHeight, 5, colmedPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -6 // how far to the circle's right
         offsetY = 2 // how far to the circle's up-down
         offsetZ = -4.2 // how far to the circle's forward-backward
-        rHeight = 3;
-        rWidth = 3;
+        rHeight = 3
+        rWidth = 3
         this.drawRect(rWidth, rHeight, 5, colmainGreen, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         //
@@ -843,8 +806,6 @@ export class Yorblet {
         // this.drawRect(rWidth, rHeight, 5, coldarkPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
         //
         //
-
-
     }
 
     addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle) {
@@ -872,56 +833,51 @@ export class Yorblet {
         // let zshift_c0 = 30 * Math.sin(angle-.15);
         //this.drawTri(0.3, 0.3, 0.3, centerX, 4.5, centerZ, coldarkYellow, angle, 0)
 
-
         //center rectangle
         let offsetX = 2 // how far to the circle's right
         let offsetY = 6 // how far to the circle's up-down
         let offsetZ = -4.5 // how far to the circle's forward-backward
-        let scaleX = .15;
-        let scaleY = .15;
-        let scaleZ = .15;
-        let rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-
+        let scaleX = 0.15
+        let scaleY = 0.15
+        let scaleZ = 0.15
+        let rotateDegrees = -1.5708
+        this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees)
 
         offsetX = 2 // how far to the circle's right
         offsetY = 11 // how far to the circle's up-down
         offsetZ = -4.4 // how far to the circle's forward-backward
-        scaleX = .15;
-        scaleY = .15;
-        scaleZ = .15;
-        rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-
+        scaleX = 0.15
+        scaleY = 0.15
+        scaleZ = 0.15
+        rotateDegrees = -1.5708
+        this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees)
 
         offsetX = -4 // how far to the circle's right
         offsetY = 8 // how far to the circle's up-down
         offsetZ = -4.4 // how far to the circle's forward-backward
-        scaleX = .4;
-        scaleY = .4;
-        scaleZ = .4;
-        rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-
+        scaleX = 0.4
+        scaleY = 0.4
+        scaleZ = 0.4
+        rotateDegrees = -1.5708
+        this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees)
 
         offsetX = -5 // how far to the circle's right
         offsetY = 4 // how far to the circle's up-down
         offsetZ = -4.3 // how far to the circle's forward-backward
-        scaleX = .1;
-        scaleY = .1;
-        scaleZ = .1;
-        rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+        scaleX = 0.1
+        scaleY = 0.1
+        scaleZ = 0.1
+        rotateDegrees = -1.5708
+        this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees)
 
         offsetX = -6 // how far to the circle's right
         offsetY = 5 // how far to the circle's up-down
         offsetZ = -4.3 // how far to the circle's forward-backward
-        scaleX = .1;
-        scaleY = .1;
-        scaleZ = .1;
-        rotateDegrees = (-1.5708 * 3);
-        this.drawTri(scaleX, scaleY, scaleZ, colmainYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-
+        scaleX = 0.1
+        scaleY = 0.1
+        scaleZ = 0.1
+        rotateDegrees = -1.5708 * 3
+        this.drawTri(scaleX, scaleY, scaleZ, colmainYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees)
 
         //draw small fence
         //
@@ -961,129 +917,112 @@ export class Yorblet {
         // scaleZ = .05;
         // rotateDegrees = 0;
         // this.drawTri(scaleX, scaleY, scaleZ, colOrange, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-
     }
 
+    addLightningRoom(centerX, centerZ) {
+        // colorsssss //
+        var colBlack = 0x000000
+        var colWhite = 0xffffff
+        var colmainBlue = 0x4b4ff4
+        var coldarkBlue = 0x1250cc
+        var collightBlue = 0x05c1da
+        var colmainPink = 0xfc3691
+        var colmainGreen = 0x9be210
+        var colmainYellow = 0xffd810
 
-    addLightningRoom(centerX, centerZ){
+        var colmedPink = 0xfb69b9
+        var coldarkPink = 0xe49add
+        var coldarkYellow = 0xf4d01d
+        var colOrange = 0xfd8f20
 
+        var collightGreen = 0x18dd6c
+        var coldarkGreen = 0x64c5bb
+        var colsuperGreen = 0xbff98c
+        var accentYellow = 0xf9f912
+        var accentBlue = 0x67d6b5
+        var accentGreen = 0x77e424
 
-      // colorsssss //
-      var colBlack = 0x000000
-      var colWhite = 0xffffff
-      var colmainBlue = 0x4b4ff4
-      var coldarkBlue = 0x1250cc
-      var collightBlue = 0x05c1da
-      var colmainPink = 0xfc3691
-      var colmainGreen = 0x9be210
-      var colmainYellow = 0xffd810
+        let scale = 6
+        let centerY = 4
 
-      var colmedPink = 0xfb69b9
-      var coldarkPink = 0xe49add
-      var coldarkYellow = 0xf4d01d
-      var colOrange = 0xfd8f20
+        let offsetX = 3 // how far to the circle's right
+        let offsetY = 0 // how far to the circle's up-down
+        let offsetZ = -4.8 // how far to the circle's forward-backward
+        this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ)
 
-      var collightGreen = 0x18DD6C;
-      var coldarkGreen = 0x64C5BB;
-      var colsuperGreen = 0xBFF98C;
-      var accentYellow = 0xF9F912;
-      var accentBlue = 0x67D6B5;
-      var accentGreen = 0x77E424;
+        //two
+        scale = 2
+        centerY = 4
 
+        offsetX = 3 // how far to the circle's right
+        offsetY = 2 // how far to the circle's up-down
+        offsetZ = -4.5 // how far to the circle's forward-backward
+        this.drawLightning(scale, accentYellow, centerX, centerY, centerZ, offsetX, offsetY, offsetZ)
 
+        //three
+        scale = 5
+        centerY = 4
 
+        offsetX = -5 // how far to the circle's right
+        offsetY = -1 // how far to the circle's up-down
+        offsetZ = -4 // how far to the circle's forward-backward
+        this.drawLightning(scale, accentBlue, centerX, centerY, centerZ, offsetX, offsetY, offsetZ)
 
-      let scale = 6;
-      let centerY = 4;
+        //three
+        scale = 3
+        centerY = 4
 
-      let offsetX = 3;// how far to the circle's right
-      let offsetY = 0;// how far to the circle's up-down
-      let offsetZ = -4.8;// how far to the circle's forward-backward
-      this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+        offsetX = -6 // how far to the circle's right
+        offsetY = 3 // how far to the circle's up-down
+        offsetZ = -3.8 // how far to the circle's forward-backward
+        //this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
 
-
-      //two
-      scale = 2;
-      centerY = 4;
-
-      offsetX = 3;// how far to the circle's right
-      offsetY = 2;// how far to the circle's up-down
-      offsetZ = -4.5;// how far to the circle's forward-backward
-      this.drawLightning(scale, accentYellow, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
-
-      //three
-      scale = 5;
-      centerY = 4;
-
-      offsetX = -5;// how far to the circle's right
-      offsetY = -1;// how far to the circle's up-down
-      offsetZ = -4;// how far to the circle's forward-backward
-      this.drawLightning(scale, accentBlue, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
-
-      //three
-      scale = 3;
-      centerY = 4;
-
-      offsetX = -6;// how far to the circle's right
-      offsetY = 3;// how far to the circle's up-down
-      offsetZ = -3.8;// how far to the circle's forward-backward
-      //this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
-
-      // //SMALL FENCE
-      // //four
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 6;// how far to the circle's right
-      // offsetY = -3;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-      //
-      // //five
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 10;// how far to the circle's right
-      // offsetY = -3.5;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-      //
-      // //five
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 14;// how far to the circle's right
-      // offsetY = -3;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-      //
-      //
-      // //six
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 18;// how far to the circle's right
-      // offsetY = -3.5;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
-
-
+        // //SMALL FENCE
+        // //four
+        // scale = 1;
+        // centerY = 4;
+        //
+        // offsetX = 6;// how far to the circle's right
+        // offsetY = -3;// how far to the circle's up-down
+        // offsetZ = -4;// how far to the circle's forward-backward
+        // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+        //
+        // //five
+        // scale = 1;
+        // centerY = 4;
+        //
+        // offsetX = 10;// how far to the circle's right
+        // offsetY = -3.5;// how far to the circle's up-down
+        // offsetZ = -4;// how far to the circle's forward-backward
+        // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+        //
+        // //five
+        // scale = 1;
+        // centerY = 4;
+        //
+        // offsetX = 14;// how far to the circle's right
+        // offsetY = -3;// how far to the circle's up-down
+        // offsetZ = -4;// how far to the circle's forward-backward
+        // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+        //
+        //
+        // //six
+        // scale = 1;
+        // centerY = 4;
+        //
+        // offsetX = 18;// how far to the circle's right
+        // offsetY = -3.5;// how far to the circle's up-down
+        // offsetZ = -4;// how far to the circle's forward-backward
+        // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
     }
 
     addSky(skyColor) {
-
-
         //SKY
         const centerGeometry = new THREE.SphereGeometry(200, 32, 32)
         const centerMaterial = new THREE.MeshBasicMaterial({ color: skyColor, side: THREE.DoubleSide })
         const center = new THREE.Mesh(centerGeometry, centerMaterial)
         center.position.set(0, 0, 0)
         this.scene.add(center)
-
 
         //label (not enabled currently)
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
@@ -1148,14 +1087,12 @@ export class Yorblet {
         plane.translateY(offsetY)
         plane.translateZ(offsetZ)
 
-        console.log("planeX: " + plane.position.x)
-        console.log("planeY: " + plane.position.y)
-        console.log("planeZ: " + plane.position.z)
+        console.log('planeX: ' + plane.position.x)
+        console.log('planeY: ' + plane.position.y)
+        console.log('planeZ: ' + plane.position.z)
 
         this.scene.add(plane)
     }
-
-
 
     // Draw Triangles
     drawTri(scaleX, scaleY, scaleZ, matColor, posX, posY, posZ, offsetX, offsetY, offsetZ, lookAtX, lookatZ, rotateDegrees) {
@@ -1194,50 +1131,40 @@ export class Yorblet {
         this.scene.add(triangleMesh)
     }
 
+    drawLightning(scale, matcolor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ) {
+        //draw lightning
+        const x = 0,
+            y = 0
 
-    drawLightning(scale, matcolor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ){
+        const lightningBolt = new THREE.Shape()
 
-      //draw lightning
-      const x = 0, y = 0;
+        lightningBolt.moveTo(x, y)
+        lightningBolt.lineTo(x + 0.5, y)
+        lightningBolt.lineTo(x + 1.25, y + 1.25)
+        lightningBolt.lineTo(x + 0.75, y + 1.25)
+        lightningBolt.lineTo(x + 1.25, y + 2)
+        lightningBolt.lineTo(x + 0.5, y + 2)
+        lightningBolt.lineTo(x, y + 0.75)
+        lightningBolt.lineTo(x + 0.5, y + 0.75)
+        lightningBolt.lineTo(x + 0.1, y)
 
-      const lightningBolt = new THREE.Shape();
+        const geometry = new THREE.ShapeGeometry(lightningBolt)
+        const material = new THREE.MeshBasicMaterial({ color: matcolor })
+        const lightningMesh = new THREE.Mesh(geometry, material)
 
+        //set position and look at and rotate
+        lightningMesh.position.set(centerX, centerY, centerZ)
+        lightningMesh.lookAt(0, 2, 0)
 
-      lightningBolt.moveTo( x , y );
-      lightningBolt.lineTo(x+.5, y);
-      lightningBolt.lineTo(x+1.25, y+1.25);
-      lightningBolt.lineTo(x+.75, y+1.25);
-      lightningBolt.lineTo(x+1.25, y+2);
-      lightningBolt.lineTo(x+.5, y+2);
-      lightningBolt.lineTo(x, y+.75);
-      lightningBolt.lineTo(x+.5, y+.75);
-      lightningBolt.lineTo(x+.1,  y);
+        //offset in space
+        lightningMesh.translateX(offsetX)
+        lightningMesh.translateY(offsetY)
+        lightningMesh.translateZ(offsetZ)
 
+        lightningMesh.scale.set(scale, scale, scale)
 
-      const geometry = new THREE.ShapeGeometry( lightningBolt );
-      const material = new THREE.MeshBasicMaterial( { color: matcolor } );
-      const lightningMesh = new THREE.Mesh( geometry, material ) ;
-
-
-      //set position and look at and rotate
-      lightningMesh.position.set(centerX, centerY, centerZ)
-      lightningMesh.lookAt(0, 2, 0)
-
-      //offset in space
-      lightningMesh.translateX(offsetX)
-      lightningMesh.translateY(offsetY)
-      lightningMesh.translateZ(offsetZ)
-
-      lightningMesh.scale.set(scale, scale, scale);
-
-      this.scene.add( lightningMesh );
-
-
-      }
-
-
-
-
+        this.scene.add(lightningMesh)
+    }
 
     //lay out some random big objects in the distance
     addOuterDecoration() {
@@ -1265,58 +1192,50 @@ export class Yorblet {
         // mesh.position.set(-30, 0, -90)
         // mesh.rotateY(3);
 
-
         //cone
-        const coneGeometry = new THREE.ConeBufferGeometry( 30, 40, 6 );
-        const coneEdges = new THREE.EdgesGeometry( coneGeometry );
-        const coneLine = new THREE.LineSegments( coneEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+        const coneGeometry = new THREE.ConeBufferGeometry(30, 40, 6)
+        const coneEdges = new THREE.EdgesGeometry(coneGeometry)
+        const coneLine = new THREE.LineSegments(coneEdges, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1, linecap: 'round' }))
 
-        coneLine.position.set(80, 60, -100);
-        coneLine.rotateY(3);
-        this.scene.add( coneLine );
-
+        coneLine.position.set(80, 60, -100)
+        coneLine.rotateY(3)
+        this.scene.add(coneLine)
 
         //octahedron
-        const octGeometry = new THREE.OctahedronBufferGeometry( 15 );
-        const octEdges = new THREE.EdgesGeometry( octGeometry );
-        const octLine = new THREE.LineSegments( octEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+        const octGeometry = new THREE.OctahedronBufferGeometry(15)
+        const octEdges = new THREE.EdgesGeometry(octGeometry)
+        const octLine = new THREE.LineSegments(octEdges, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1, linecap: 'round' }))
 
-        octLine.position.set(-30, 50, -90);
-        octLine.rotateZ(6);
-        this.scene.add( octLine );
-
+        octLine.position.set(-30, 50, -90)
+        octLine.rotateZ(6)
+        this.scene.add(octLine)
 
         //box
-        const boxGeometry = new THREE.BoxBufferGeometry( 120, 30, 30 );
-        const boxEdges = new THREE.EdgesGeometry( boxGeometry );
-        const boxLine = new THREE.LineSegments( boxEdges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
+        const boxGeometry = new THREE.BoxBufferGeometry(120, 30, 30)
+        const boxEdges = new THREE.EdgesGeometry(boxGeometry)
+        const boxLine = new THREE.LineSegments(boxEdges, new THREE.LineBasicMaterial({ color: 0xffffff }))
 
-        boxLine.position.set(-70, 60, 120);
-        boxLine.rotateZ(3);
-        boxLine.rotateX(3);
-        this.scene.add( boxLine );
-
+        boxLine.position.set(-70, 60, 120)
+        boxLine.rotateZ(3)
+        boxLine.rotateX(3)
+        this.scene.add(boxLine)
 
         //cyllinder
-        const cylGeometry = new THREE.CylinderBufferGeometry( 20, 20, 3, 9 );
-        const cylEdges = new THREE.EdgesGeometry( cylGeometry );
-        const cylLine = new THREE.LineSegments( cylEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+        const cylGeometry = new THREE.CylinderBufferGeometry(20, 20, 3, 9)
+        const cylEdges = new THREE.EdgesGeometry(cylGeometry)
+        const cylLine = new THREE.LineSegments(cylEdges, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1, linecap: 'round' }))
 
-        cylLine.position.set(70, 60, 90);
-        this.scene.add( cylLine );
-
+        cylLine.position.set(70, 60, 90)
+        this.scene.add(cylLine)
 
         //ring
-          const ringGeometry = new THREE.RingBufferGeometry( 20, 10, 32 );
-          const ringEdges = new THREE.EdgesGeometry( ringGeometry );
-          const ringLine = new THREE.LineSegments( ringEdges, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1, linecap: 'round' } ) );
+        const ringGeometry = new THREE.RingBufferGeometry(20, 10, 32)
+        const ringEdges = new THREE.EdgesGeometry(ringGeometry)
+        const ringLine = new THREE.LineSegments(ringEdges, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1, linecap: 'round' }))
 
-          ringLine.position.set(-100, 50, 0);
-          ringLine.rotateX(2);
-          this.scene.add( ringLine );
-
-
-
+        ringLine.position.set(-100, 50, 0)
+        ringLine.rotateX(2)
+        this.scene.add(ringLine)
     }
 
     addFloor() {
@@ -1425,11 +1344,11 @@ export class Yorblet {
 
         imageSign.name = _project.project_id
 
-        imageSign.lookAt(lookAtX, 1.5, lookAtZ);
-        imageSign.rotateY(-Math.PI/2);
-        imageSign.translateZ(2);
-        imageSign.translateX(7);
-        imageSign.translateY(0.25);
+        imageSign.lookAt(lookAtX, 1.5, lookAtZ)
+        imageSign.rotateY(-Math.PI / 2)
+        imageSign.translateZ(2)
+        imageSign.translateX(7)
+        imageSign.translateY(0.25)
         return imageSign
     }
 
@@ -1481,7 +1400,7 @@ export class Yorblet {
             console.log('Number of total projects: ', this.projects.length)
             // console.log('Number of unique projects: ', numUniqueProjects)
 
-            this.createProjectPodiums();
+            this.createProjectPodiums()
 
             // then plae all of the unique projects
             // for (let i = 0; i < uniqueProjects.length; i++) {
