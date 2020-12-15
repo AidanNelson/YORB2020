@@ -27,6 +27,10 @@ const err = debugModule('YORB:ERROR')
 // load p5 for self view
 const p5 = require('p5')
 
+
+const WEB_SOCKET_SERVER = false;
+const INSTANCE_PATH = false;
+
 // For running against local server
 // const WEB_SOCKET_SERVER = 'localhost:3000'
 // const INSTANCE_PATH = '/socket.io'
