@@ -12,17 +12,6 @@
 
 require('dotenv').config({ path: process.cwd() + '/server/.env' })
 
-// Set these for your particular IP / Port
-// process.env.PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=164&room_id=1'
-
-// For working locally
-// process.env.PRODUCTION_IP = '192.168.0.107'
-// process.env.PRODUCTION_PORT = '3000'
-
-// For deploying on YORB.itp.io
-// process.env.PRODUCTION_IP="142.93.6.195"
-// process.env.PRODUCTION_PORT="3040"
-
 // Mediasoup configuration
 const config = require(process.cwd() + '/server/config.js')
 config.httpIp = process.env.PRODUCTION_IP
