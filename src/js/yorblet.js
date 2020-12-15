@@ -34,6 +34,8 @@ if (hostname === 'yorblet1.itp.io') {
     YORBLET_INDEX = 10
 }
 
+// The alphabet (for project labels)
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" // now i know by ABCs next time won't you sing with me
 // pick colors
 const OUTER_FENCE_COLOR = 0x232323 //0x232378
 const ENTRANCE_COLOR = 0xf9f910
@@ -617,7 +619,10 @@ export class Yorblet {
         /// Font for numbers
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
-        const text = projectIndex.toString()
+
+
+        // const text = projectIndex.toString()
+        const text = ALPHABET.charAt(projectIndex-1); // project index starts at 1
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
