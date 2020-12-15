@@ -72,7 +72,7 @@ export class Yorblet {
         this.setup()
 
         //add portal back to lobby -- change position (2nd param) TODO
-        this.portal = new Portal(this.scene, new Vector3(0, 0, 5), 0); //third param is index of lobby
+        this.portal = new Portal(this.scene, new Vector3(0, 0, 0), 0); //third param is index of lobby
     }
 
     setup() {
