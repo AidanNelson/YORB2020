@@ -23,6 +23,7 @@ import debugModule from 'debug'
 const log = debugModule('YORB')
 const warn = debugModule('YORB:WARN')
 const err = debugModule('YORB:ERROR')
+const info = debugModule('YORB:INFO')
 
 // load p5 for self view
 const p5 = require('p5')
@@ -104,7 +105,7 @@ let localMediaConstraints = {
 // start with user interaction with the DOM so we can auto-play audio/video from
 // now on...
 window.onload = async () => {
-    console.log('Window loaded.')
+    info('Window loaded.')
 
     createScene()
     createMiniMap()
@@ -150,7 +151,7 @@ async function init() {
 }
 
 export function shareScreen(screenId) {
-    console.log('Starting screenshare to screen with ID ', screenId)
+    info('Starting screenshare to screen with ID ', screenId)
     startScreenshare(screenId)
 }
 
@@ -162,7 +163,7 @@ export function shareScreen(screenId) {
 // uses promise to ensure that we receive our so
 function initSocketConnection() {
     return new Promise((resolve) => {
-        console.log('Initializing socket.io...')
+        info('Initializing socket.io...')
         if (WEB_SOCKET_SERVER && INSTANCE_PATH) {
             socket = io(WEB_SOCKET_SERVER, {
                 path: INSTANCE_PATH,
@@ -178,7 +179,7 @@ function initSocketConnection() {
         //On connection server sends the client his ID and a list of all keys
         socket.on('introduction', (_id, _ids) => {
             // keep a local copy of my ID:
-            console.log('My socket ID is: ' + _id)
+            info('My socket ID is: ' + _id)
             mySocketID = _id
 
             // for each existing user, add them as a client and add tracks to their peer connection
@@ -192,18 +193,18 @@ function initSocketConnection() {
 
         // when a new user has entered the server
         socket.on('newUserConnected', (clientCount, _id, _ids) => {
-            console.log(clientCount + ' clients connected')
+            info(clientCount + ' clients connected')
 
             if (!(_id in clients)) {
                 if (_id != mySocketID) {
-                    console.log('A new user connected with the id: ' + _id)
+                    info('A new user connected with the id: ' + _id)
                     addClient(_id)
                 }
             }
         })
 
         socket.on('projects', (_projects) => {
-            console.log('Received project list from server.')
+            info('Received project list from server.')
             updateProjects(_projects)
         })
 
@@ -212,9 +213,9 @@ function initSocketConnection() {
 
             if (_id in clients) {
                 if (_id == mySocketID) {
-                    console.log('Uh oh!  The server thinks we disconnected!')
+                    info('Uh oh!  The server thinks we disconnected!')
                 } else {
-                    console.log('A user disconnected with the id: ' + _id)
+                    info('A user disconnected with the id: ' + _id)
                     yorbScene.removeClient(_id)
                     removeClientDOMElements(_id)
                     delete clients[_id]
@@ -233,7 +234,7 @@ function initSocketConnection() {
 
         // listen for projection screen changes:
         socket.on('releaseProjectionScreen', (data) => {
-            console.log('Releasing screen with id', data.screenId)
+            info('Releasing screen with id', data.screenId)
             yorbScene.releaseProjectionScreen(data.screenId)
         })
     })
@@ -245,7 +246,7 @@ function initSocketConnection() {
 
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
 async function addClient(_id) {
-    console.log('Adding client with id ' + _id)
+    info('Adding client with id ' + _id)
     clients[_id] = {}
     yorbScene.addClient(_id)
 }
@@ -266,7 +267,7 @@ function onPlayerMove() {
 }
 
 export function hackToRemovePlayerTemporarily() {
-    console.log('removing user temporarily')
+    info('removing user temporarily')
     let pos = [0, 10000, 0]
     let rotation = [0, 0, 0]
     socket.emit('move', [pos, rotation])
@@ -278,7 +279,7 @@ export function hackToRemovePlayerTemporarily() {
 
 function createScene() {
     // initialize three.js scene
-    console.log('Creating three.js scene...')
+    info('Creating three.js scene...')
 
     yorbScene = new Yorb(onPlayerMove, clients, mySocketID)
 
@@ -321,7 +322,7 @@ function setupControls() {
             }
             if (e.keyCode == 80) {
                 // 'p'
-                console.log(yorbScene.getPlayerPosition()[0])
+                info(yorbScene.getPlayerPosition()[0])
             }
         },
         false
@@ -480,7 +481,7 @@ async function createMiniMap() {
 
 // remove <video> element and corresponding <canvas> using client ID
 function removeClientDOMElements(_id) {
-    console.log('Removing DOM elements for client with ID: ' + _id)
+    info('Removing DOM elements for client with ID: ' + _id)
 
     let videoEl = document.getElementById(_id + '_video')
     if (videoEl != null) {
@@ -627,7 +628,7 @@ export async function startScreenshare(screenId) {
             document.body.appendChild(audioEl)
         }
 
-        console.log('Adding local screenshare <audio> source object')
+        info('Adding local screenshare <audio> source object')
         let audioTrack = localScreen.getAudioTracks()[0]
         if (audioTrack) {
             let audioStream = new MediaStream([audioTrack])
@@ -642,7 +643,7 @@ export async function startScreenshare(screenId) {
             .play()
             .then(() => {})
             .catch((e) => {
-                console.log('Play audio error: ' + e)
+                info('Play audio error: ' + e)
                 err(e)
             })
 
@@ -666,7 +667,7 @@ export async function startScreenshare(screenId) {
         screenVideoProducer.track.onended = async () => {
             log('screen share stopped')
             try {
-                console.log('releasing', screenId)
+                info('releasing', screenId)
                 socket.emit('releaseProjectionScreen', {
                     screenId: screenId,
                 })
@@ -1230,7 +1231,7 @@ function addVideoAudio(consumer, peerId, mediaTag) {
 
     const isScreenshare = mediaTag == 'screen-video'
     const isScreenshareAudio = mediaTag == 'screen-audio'
-    console.log('MediaTag: ', mediaTag, ' / isScreenshare: ', isScreenshare)
+    info('MediaTag: ', mediaTag, ' / isScreenshare: ', isScreenshare)
 
     let elementID = `${peerId}_${consumer.kind}`
     if (isScreenshare) {
@@ -1246,7 +1247,7 @@ function addVideoAudio(consumer, peerId, mediaTag) {
     // capturing from the mic/camera
     if (consumer.kind === 'video') {
         if (el == null) {
-            console.log('Creating video element for user with ID: ' + peerId)
+            info('Creating video element for user with ID: ' + peerId)
             el = document.createElement('video')
             el.id = `${peerId}_${consumer.kind}`
             if (isScreenshare) {
@@ -1261,7 +1262,7 @@ function addVideoAudio(consumer, peerId, mediaTag) {
         }
 
         // TODO: do i need to update video width and height? or is that based on stream...?
-        console.log('Updating video source for user with ID: ' + peerId)
+        info('Updating video source for user with ID: ' + peerId)
 
         let trackClone = consumer.track.clone()
         let sourceStream = new MediaStream([trackClone])
@@ -1274,14 +1275,14 @@ function addVideoAudio(consumer, peerId, mediaTag) {
         el.play()
             .then(() => {})
             .catch((e) => {
-                console.log('Play video error: ' + e)
+                info('Play video error: ' + e)
                 err(e)
             })
     } else {
         // Positional Audio Works in Firefox:
         // Global Audio:
         if (el == null) {
-            console.log('Creating audio element for user with ID: ' + peerId)
+            info('Creating audio element for user with ID: ' + peerId)
             el = document.createElement('audio')
             el.id = `${peerId}_${consumer.kind}`
             if (isScreenshareAudio) {
@@ -1292,7 +1293,7 @@ function addVideoAudio(consumer, peerId, mediaTag) {
             el.setAttribute('autoplay', true)
         }
 
-        console.log('Updating <audio> source object for client with ID: ' + peerId)
+        info('Updating <audio> source object for client with ID: ' + peerId)
         el.srcObject = new MediaStream([consumer.track.clone()])
         el.consumer = consumer
         el.volume = 0 // start at 0 and let the three.js scene take over from here...
@@ -1306,7 +1307,7 @@ function addVideoAudio(consumer, peerId, mediaTag) {
         el.play()
             .then(() => {})
             .catch((e) => {
-                console.log('Play audio error: ' + e)
+                info('Play audio error: ' + e)
                 err(e)
             })
     }

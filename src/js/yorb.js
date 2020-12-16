@@ -24,6 +24,11 @@ const Stats = require('./libs/stats.min.js')
 
 const MODE = 'YORBLET'
 
+import debugModule from 'debug'
+
+const log = debugModule('YORB:YorbScene')
+
+
 
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
@@ -188,7 +193,7 @@ export class Yorb {
     // update projects:
     updateProjects(projects) {
         if (this.show) {
-            console.log('yorb received', projects.length, 'show projects')
+            log('yorb received', projects.length, 'show projects')
             this.show.updateProjects(projects)
         }
         if (this.yorblet) {
@@ -266,7 +271,7 @@ export class Yorb {
         // add group to scene
         this.scene.add(group)
 
-        console.log('Adding client to scene: ' + _id)
+        log('Adding client to scene: ' + _id)
 
         this.clients[_id].group = group
         this.clients[_id].texture = videoTexture
@@ -464,7 +469,7 @@ export class Yorb {
     createOrUpdatePositionalAudio(_id) {
         let audioElement = document.getElementById(_id + '_audio')
         if (audioElement == null) {
-            console.log('No audio element found for user with ID: ' + _id)
+            log('No audio element found for user with ID: ' + _id)
             return
         }
         this.clients[_id].audioElement = audioElement

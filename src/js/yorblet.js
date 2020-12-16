@@ -12,6 +12,9 @@ const hostname = window.location.hostname
 
 let YORBLET_INDEX = 1
 
+import debugModule from 'debug'
+const log = debugModule('YORB:Yorblet')
+
 
 if (hostname === 'yorblet1.itp.io') {
     YORBLET_INDEX = 1
@@ -36,8 +39,8 @@ if (hostname === 'yorblet1.itp.io') {
 } else if (hostname === 'yorblet11.itp.io') {
     YORBLET_INDEX = 11
 }
-console.log('hostname:', hostname)
-console.log('yorblet index:', YORBLET_INDEX)
+log('hostname:', hostname)
+log('yorblet index:', YORBLET_INDEX)
 
 // The alphabet (for project labels)
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' // now i know by ABCs next time won't you sing with me
@@ -1026,7 +1029,7 @@ export class Yorblet {
         var normal = triangle.normal()
 
         // An example of getting the area from the Triangle class
-        //console.log( 'Area of triangle is: '+ triangle.area() );
+        //log( 'Area of triangle is: '+ triangle.area() );
 
         triangleGeometry.vertices.push(triangle.a)
         triangleGeometry.vertices.push(triangle.b)
@@ -1326,7 +1329,7 @@ export class Yorblet {
                     let project_id = proj.project_id
 
                     if (dupeCheck[project_id]) {
-                        // console.log('Duplicate with ID: ', proj.project_id);
+                        // log('Duplicate with ID: ', proj.project_id);
                     } else {
                         dupeCheck[project_id] = true
                         numUniqueProjects++
@@ -1334,11 +1337,11 @@ export class Yorblet {
                     }
                 }
             }
-            console.log('Number of total projects: ', this.projects.length)
-            // console.log('Number of unique projects: ', numUniqueProjects)
+            log('Number of total projects: ', this.projects.length)
+            // log('Number of unique projects: ', numUniqueProjects)
 
             // sort the array of incoming projects by position_id:
-            console.log(this.projects)
+            log(this.projects)
             try {
                 this.projects.sort((a, b) => {
                     if (a.position_id < b.position_id) {
@@ -1351,8 +1354,8 @@ export class Yorblet {
             } catch (e) {
                 console.error(e)
             }
-            console.log('sorting')
-            console.log(this.projects)
+            log('sorting')
+            log(this.projects)
 
             this.createProjectPodiums()
 
@@ -1366,7 +1369,7 @@ export class Yorblet {
             //     this.scene.add(hyperlink)
             // }
 
-            // console.log("We've placed ", endIndex, ' projects so far.')
+            // log("We've placed ", endIndex, ' projects so far.')
         }
     }
 
@@ -1545,7 +1548,7 @@ export class Yorblet {
         let thresholdDist = 5
         let now = Date.now()
 
-        // console.log(this.hyperlinkedObjects);
+        // log(this.hyperlinkedObjects);
 
         // store reference to last highlighted project id
         let lastHighlightedProjectId = this.hightlightedProjectId
@@ -1604,7 +1607,7 @@ export class Yorblet {
         } else {
             mat = this.linkMaterial
         }
-        // console.log(link);
+        // log(link);
         link.children[0].material = mat
     }
 
