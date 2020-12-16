@@ -28,12 +28,12 @@ const err = debugModule('YORB:ERROR')
 const p5 = require('p5')
 
 // For running against local server
-// const WEB_SOCKET_SERVER = 'localhost:3000'
-// const INSTANCE_PATH = '/socket.io'
+const WEB_SOCKET_SERVER = 'localhost:3000'
+const INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-const WEB_SOCKET_SERVER = "https://yorb.itp.io";
-const INSTANCE_PATH = "/experimental/socket.io";
+// const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+// const INSTANCE_PATH = "/experimental/socket.io";
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
@@ -74,6 +74,9 @@ export let mySocketID,
 
 window.clients = {} // array of connected clients for three.js scene
 window.lastPollSyncData = {}
+
+//just for hacky hat button 'h'
+let hatIndex = 0
 
 // adding constraints, VIDEO_CONSTRAINTS is video quality levels
 // localMediaCOnstraints is passed to the getUserMedia object to request a lower video quality than the maximum
@@ -168,15 +171,35 @@ function initSocketConnection() {
         socket.on('connect', () => {})
 
         //On connection server sends the client his ID and a list of all keys
-        socket.on('introduction', (_id, _ids) => {
+        // socket.on('introduction', (_id, _ids) => {
+        socket.on('introduction', (_id, _clients) => { //changing second param to clients not just ids
+        
             // keep a local copy of my ID:
             console.log('My socket ID is: ' + _id)
             mySocketID = _id
+            yorbScene.initSelf(mySocketID); //just for setting up id???
+
+            // // for each existing user, add them as a client and add tracks to their peer connection
+            // for (let i = 0; i < _ids.length; i++) {
+            //     if (_ids[i] != mySocketID) {
+            //         //checking for existing accessories
+            //         if(_ids[i].accessories != undefined) {
+            //             this.clients[_ids[i]].accessories = _ids[i].accessories 
+            //         }
+            //         //then add as normal
+            //         addClient(_ids[i])
+            //     }
+            // }
 
             // for each existing user, add them as a client and add tracks to their peer connection
-            for (let i = 0; i < _ids.length; i++) {
-                if (_ids[i] != mySocketID) {
-                    addClient(_ids[i])
+            for (let [key, value] of Object.entries(_clients)){ //key is client id, value is client object
+                if(key != mySocketID){
+                    //checking for existing accessories
+                    if(value.accessories != undefined) {
+                        clients[key].accessories = value.accessories 
+                    }
+                    //now adding id + object for accessories
+                    addClient(key, clients[key])
                 }
             }
             resolve()
@@ -189,7 +212,7 @@ function initSocketConnection() {
             if (!(_id in clients)) {
                 if (_id != mySocketID) {
                     console.log('A new user connected with the id: ' + _id)
-                    addClient(_id)
+                    addClient(_id, {}) //functionally useless to have object here...
                 }
             }
         })
@@ -228,6 +251,12 @@ function initSocketConnection() {
             console.log('Releasing screen with id', data.screenId)
             yorbScene.releaseProjectionScreen(data.screenId)
         })
+
+        //listen for new accessories on avatars
+        socket.on('updateAccessories', (data) => {
+            console.log('someone\'s feeling fancy! new accessory')
+            yorbScene.updateAccessories(data)
+        })
     })
 }
 
@@ -236,10 +265,10 @@ function initSocketConnection() {
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 
 // Adds client object with THREE.js object, DOM video object and and an RTC peer connection for each :
-async function addClient(_id) {
+async function addClient(_id, _client) {
     console.log('Adding client with id ' + _id)
     clients[_id] = {}
-    yorbScene.addClient(_id)
+    yorbScene.addClient(_id, _client)
 }
 
 function updateProjects(_projects) {
@@ -271,7 +300,7 @@ export function hackToRemovePlayerTemporarily() {
 function createScene() {
     // initialize three.js scene
     console.log('Creating three.js scene...')
-
+    // console.log(mySocketID); //this wasn't actually assigning mySocketID
     yorbScene = new Yorb(onPlayerMove, clients, mySocketID)
 
     yorbScene.updateProjects(projects)
@@ -314,6 +343,17 @@ function setupControls() {
             if (e.keyCode == 80) {
                 // 'p'
                 console.log(yorbScene.getPlayerPosition()[0])
+            }
+            //just adding hat trigger here to test
+            if (e.keyCode == 72) {
+                // 'h'
+                // console.log('pressing hat key')
+                socket.emit('addAccessories', {hat: hatIndex})
+                if(hatIndex < 3) {
+                    hatIndex++
+                } else {
+                    hatIndex = 0
+                }
             }
         },
         false
@@ -453,14 +493,16 @@ async function createMiniMap() {
                 sketch.image(mapImg, 0, 0, mapImg.width, mapImg.height)
             }
             for (let id in clients) {
-                let pos = clients[id].group.position // [x,y,z] array of position
-                let yPos = sketch.map(pos.x, 0, 32, 0, -225, false)
-                let xPos = sketch.map(pos.z, 0, 32, 0, 225, false)
-                sketch.push()
-                sketch.fill(100, 100, 255)
-                sketch.translate(xPos, yPos)
-                sketch.ellipse(0, 0, 5, 5)
-                sketch.pop()
+                if (id != mySocketID) {
+                    let pos = clients[id].group.position // [x,y,z] array of position
+                    let yPos = sketch.map(pos.x, 0, 32, 0, -225, false)
+                    let xPos = sketch.map(pos.z, 0, 32, 0, 225, false)
+                    sketch.push()
+                    sketch.fill(100, 100, 255)
+                    sketch.translate(xPos, yPos)
+                    sketch.ellipse(0, 0, 5, 5)
+                    sketch.pop()
+                }
             }
             sketch.pop()
             sketch.pop()

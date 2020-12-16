@@ -5,7 +5,7 @@
  *
  */
 
-import { hackToRemovePlayerTemporarily, pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
+import { hackToRemovePlayerTemporarily, mySocketID, pauseAllConsumersForPeer, resumeAllConsumersForPeer } from './index.js'
 
 import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils'
 
@@ -18,8 +18,12 @@ import { YorbControls2 } from './yorbControls2.js'
 import { Yorblet } from './yorblet.js'
 
 import * as THREE from 'three'
+import { Vector3 } from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 const Stats = require('./libs/stats.min.js')
+const HatModels = require('../assets/models/accessories/hats/*.glb');
+
 
 const MODE = "YORBLET";
 export const YORBLET_INDEX = 1;
@@ -100,6 +104,9 @@ export class Yorb {
         this.loadBackground()
 
         this.addYORBParts()
+
+        //adding self here just for accessories
+        // this.addSelf()
 
         //Push the canvas to the DOM
         domElement.append(this.renderer.domElement)
@@ -212,33 +219,98 @@ export class Yorb {
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // Clients 👫
+    // now adding accessories in addSelf() and addClient() -- August
+
+    //mySocketID wasn't actually being passed into constructor of YORB because of position above initSocketConnection in index.js
+    initSelf(_mySocketID){
+        this.mySocketID = _mySocketID
+        this.clients[this.mySocketID] = {}
+    }
 
     addSelf() {
-        let _body = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshNormalMaterial())
+        // let _body = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshNormalMaterial())
 
-        let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial('local')
+        // let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial('local')
 
-        let _head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), videoMaterial)
+        // let _head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), videoMaterial)
 
-        _head.visible = false // for first person
+        // _head.visible = false // for first person        
 
         // set position of head before adding to parent object
-        _body.position.set(0, 0, 0)
-        _head.position.set(0, 1, 0)
+        // _body.position.set(0, 0, 0)
+        // _head.position.set(0, 1, 0)
 
         // https://threejs.org/docs/index.html#api/en/objects/Group
         this.playerGroup = new THREE.Group()
         this.playerGroup.position.set(0, 0.5, 0)
-        this.playerGroup.add(_body)
-        this.playerGroup.add(_head)
-        this.playerVideoTexture = videoTexture
+        // this.playerGroup.add(_body)
+        // this.playerGroup.add(_head)
+        // this.playerVideoTexture = videoTexture
+
+        //check for accessories
+        // if (this.clients[mySocketID] != undefined) { //not sure better way to do this
+            if (this.clients[this.mySocketID].accessories != undefined) {
+                let accessories = this.clients[this.mySocketID].accessories;
+                for(let [key, value] of Object.entries(accessories)){
+                    if (key == 'hat') {
+                        let hatModel;
+                        let hatScale; //TODO scale at model not here
+                        let hatPosition = [0,1.5,0]
+                        if(value == 0){
+                            hatModel = HatModels['hat-cowboy'];
+                            hatScale = [0.2, 0.2, 0.2];
+                        } else if (value == 1){
+                            hatModel = HatModels['hat-santa'];
+                            hatScale = [8, 8, 8];
+                            hatPosition = [0,2,0]
+                        } else if (value == 2){
+                            hatModel = HatModels['hat-top'];
+                            hatScale = [.8, .8, .8];
+                        } else if (value == 3){
+                            hatModel = HatModels['hat-wizard']; 
+                            hatScale = [0.2, 0.2, 0.2];
+                        }
+                        let hatLoader = new GLTFLoader();
+                        hatLoader.load(hatModel, 
+                        (gltf) => {
+                            let hatScene = gltf.scene
+                            hatScene.position.set(hatPosition[0], hatPosition[1], hatPosition[2])
+                            hatScene.scale.set(hatScale[0], hatScale[1], hatScale[2])
+                            hatScene.traverse((child) => {
+                                if (child.isMesh) {
+                                    // child.material = _material
+                                    child.castShadow = true
+                                    child.receiveShadow = true
+                                }
+                            })
+                            this.playerGroup.add(hatScene)
+                        },
+                        undefined,
+                        function(e) {
+                            console.log('hat load error');
+                            console.log(e)
+                        })
+                        // let _hat = new THREE.Mesh(new THREE.BoxGeometry(.2, .2, .2), new THREE.MeshNormalMaterial())
+                        // _hat.position.set (0, 2, 0); //offset just to check
+                        // this.playerGroup.add(_hat)
+                    }
+                }
+            }
+        // }
 
         // add group to scene
         this.scene.add(this.playerGroup)
     }
 
     // add a client meshes, a video element and  canvas for three.js video texture
-    addClient(_id) {
+    addClient(_id, _client) { //adding second param for accessories
+        //updating client here -- feels wrong to do it here...
+        if(this.clients[_id].accessories != undefined){
+            for(let [key, value] of Object.entries(_client.accessories)){
+                this.clients[_id].accessories[key] = value;
+            }
+        }
+
         let _body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 0.5), new THREE.MeshNormalMaterial())
 
         let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id)
@@ -254,6 +326,65 @@ export class Yorb {
         group.add(_body)
         group.add(_head)
 
+        //check for accessories
+        // if (this.clients[_id].accessories != undefined) {
+        //     let accessories = this.clients[_id].accessories;
+        //     for(let [key, value] of Object.entries(accessories)){
+        //         if (key == 'hat') {
+        //             let _hat = new THREE.Mesh(new THREE.BoxGeometry(.2, .2, .2), new THREE.MeshNormalMaterial())
+        //             _hat.position.set (0, 1.7, 0); //offset just to check
+        //             this.playerGroup.add(_hat)
+        //         }
+        //     }
+        // }
+        if (this.clients[_id].accessories != undefined) {
+            let accessories = this.clients[_id].accessories;
+            for(let [key, value] of Object.entries(accessories)){
+                if (key == 'hat') {
+                    let hatModel;
+                    let hatScale; //TODO scale at model not here
+                    let hatPosition = [0,1.5,0]
+                    if(value == 0){
+                        hatModel = HatModels['hat-cowboy'];
+                        hatScale = [0.2, 0.2, 0.2];
+                    } else if (value == 1){
+                        hatModel = HatModels['hat-santa'];
+                        hatScale = [8, 8, 8];
+                        hatPosition = [0,2,0]
+                    } else if (value == 2){
+                        hatModel = HatModels['hat-top'];
+                        hatScale = [.8, .8, .8];
+                    } else if (value == 3){
+                        hatModel = HatModels['hat-wizard']; 
+                        hatScale = [0.2, 0.2, 0.2];
+                    }
+                    let hatLoader = new GLTFLoader();
+                    hatLoader.load(hatModel, 
+                    (gltf) => {
+                        let hatScene = gltf.scene
+                        hatScene.position.set(hatPosition[0], hatPosition[1], hatPosition[2])
+                        hatScene.scale.set(hatScale[0], hatScale[1], hatScale[2])
+                        hatScene.traverse((child) => {
+                            if (child.isMesh) {
+                                // child.material = _material
+                                child.castShadow = true
+                                child.receiveShadow = true
+                            }
+                        })
+                        group.add(hatScene)
+                    },
+                    undefined,
+                    function(e) {
+                        console.log('hat load error');
+                        console.log(e)
+                    })
+                    // let _hat = new THREE.Mesh(new THREE.BoxGeometry(.2, .2, .2), new THREE.MeshNormalMaterial())
+                    // _hat.position.set (0, 2, 0); //offset just to check
+                    // this.playerGroup.add(_hat)
+                }
+            }
+        }
+
         // add group to scene
         this.scene.add(group)
 
@@ -267,7 +398,11 @@ export class Yorb {
     }
 
     removeClient(_id) {
-        this.scene.remove(this.clients[_id].group)
+        if(_id != this.mySocketID) {
+            this.scene.remove(this.clients[_id].group)
+        } else {
+            this.scene.remove(this.playerGroup);
+        }
     }
 
     // overloaded function can deal with new info or not
@@ -295,6 +430,33 @@ export class Yorb {
             if (projectionScreenId !== -1 && projectionScreenId !== undefined) {
                 this.projectionScreens.assignProjectionScreen(projectionScreenId, _id)
             }
+        }
+    }
+
+    //update accessories by reseting that user's avatar
+    updateAccessories(data){
+        //same as on server, need to check individual accessories so no overwrite
+        console.log(this.clients[data.id]);
+        this.removeClient(data.id) //to reset
+        //doing below in addClient now, but keeping here for self...
+        if(clients[data.id].accessories == undefined){
+            clients[data.id].accessories = {}
+        }
+        for(let [key, value] of Object.entries(data.accessories)){
+            this.clients[data.id].accessories[key] = value;
+        }
+        if (data.id == this.mySocketID) {
+            this.addSelf();
+        } else {
+            this.addClient(data.id, data);
+        }
+    }
+
+    moveHat(){ //silly we need this, but need to move self group now
+        if(this.playerGroup != undefined){
+            let myPos = this.getPlayerPosition()[0];
+            let userVec3 = new Vector3(myPos[0], myPos[1], myPos[2]);
+            this.playerGroup.position.lerp(userVec3, 0.8); //don't really need to lerp but w/e it's consistent
         }
     }
 
@@ -355,6 +517,8 @@ export class Yorb {
                 this.updateClientVolumes()
                 this.projectionScreens.updatePositionalAudio()
                 this.movementCallback()
+                this.moveHat()
+
                 if (this.show) {
                     this.show.update()
                     for(let portal of this.show.portals){ //originally had this in framecount % 50, might want to move there if too slow
@@ -430,9 +594,11 @@ export class Yorb {
     getClosestPeers() {
         let peerIDs = []
         for (let _id in this.clients) {
-            let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position)
-            if (distSquared <= this.distanceThresholdSquared) {
-                peerIDs.push(_id)
+            if(_id != this.mySocketID) {
+                let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position)
+                if (distSquared <= this.distanceThresholdSquared) {
+                    peerIDs.push(_id)
+                }
             }
         }
         return peerIDs
@@ -440,11 +606,13 @@ export class Yorb {
 
     selectivelyPauseAndResumeConsumers() {
         for (let _id in this.clients) {
-            let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position)
-            if (distSquared > this.distanceThresholdSquared) {
-                pauseAllConsumersForPeer(_id)
-            } else {
-                resumeAllConsumersForPeer(_id)
+            if(_id != this.mySocketID) {
+                let distSquared = this.camera.position.distanceToSquared(this.clients[_id].group.position)
+                if (distSquared > this.distanceThresholdSquared) {
+                    pauseAllConsumersForPeer(_id)
+                } else {
+                    resumeAllConsumersForPeer(_id)
+                }
             }
         }
     }
