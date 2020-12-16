@@ -72,6 +72,7 @@ export class WinterShow2020 {
         this.addPortals()
         this.addDecals();
         var signage = new Signage(this.scene);
+        this.addArrowSigns();
     }
 
 
@@ -142,6 +143,38 @@ export class WinterShow2020 {
 
 
       }
+
+      addArrowSigns() {
+
+        const ArrowImages = require('../assets/images/arrow_signs/*.png')
+        const arrowImageObjects = [
+            {file:ArrowImages['MainProjArea_Forward'], w:5, h:3.5, x:-12, y:0.01, z:-12, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
+            {file:ArrowImages['Yorblet1-5_Left'], w:5, h:2.5, x:-18, y:0.01, z:4, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
+            {file:ArrowImages['Yorblet6-11_Right'], w:5.5, h:2.5, x:-18, y:0.01, z:-42, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
+            {file:ArrowImages['Yorblet6-11_Right'], w:5.5, h:2.5, x:-13, y:0.01, z:-70, rotateX:-Math.PI / 2, rotateY:Math.PI / 2}
+        ]
+       
+        arrowImageObjects.forEach((img) =>{
+
+            const imgTxture = new THREE.TextureLoader().load(img.file);
+
+            imgTxture.wrapS = THREE.RepeatWrapping
+            imgTxture.wrapT = THREE.RepeatWrapping
+            imgTxture.repeat.set(1, 1)
+    
+            const imgGeometry = new THREE.PlaneBufferGeometry(img.w, img.h, 1, 1)
+            const imgMaterial = new THREE.MeshBasicMaterial({ map: imgTxture, transparent: true, side: THREE.DoubleSide })
+            const imgPlane = new THREE.Mesh(imgGeometry, imgMaterial)
+
+            imgPlane.position.set(img.x, img.y, img.z)
+    
+            imgPlane.rotateY(img.rotateY)
+            imgPlane.rotateX(img.rotateX)
+            // if (rotateZ) {imgPlane.rotateZ(rotateZ)}
+    
+            this.scene.add(imgPlane)
+        })
+    }
 
 
     /*
