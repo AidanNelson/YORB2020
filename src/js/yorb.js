@@ -321,7 +321,7 @@ export class Yorb {
     updatePositions() {
         // PARACHUTE IS BACK...
         // While landing, let's look at the middle of the area
-        if (this.camera.position.y > 5) {
+        if (this.camera.position.y > 8) {
             let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
             this.camera.lookAt(lookMiddle)
         }
