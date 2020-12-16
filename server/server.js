@@ -267,7 +267,10 @@ async function runSocketServer() {
             projectionScreenId: -1,
         }
 
-        socket.emit('introduction', socket.id, Object.keys(clients))
+        //changed second param so also includes accessory data
+        socket.emit('introduction', socket.id, clients)
+        // socket.emit('introduction', socket.id, Object.keys(clients))
+        
         // also give the client all existing clients positions:
         socket.emit('userPositions', clients)
 
@@ -301,6 +304,23 @@ async function runSocketServer() {
             }
             console.log('release', data.screenId)
             io.sockets.emit('releaseProjectionScreen', data)
+        })
+
+        //for hats and other accessories
+        socket.on('addAccessories', (data) => {
+            if (clients[socket.id]){
+                //update each accessory (tried to make robust so could assign all at once or one at a time without overwriting other accessories)
+                //updating server clients so that users who join later will still get this info when displaying the other users
+                if(clients[socket.id].accessories == undefined){
+                    clients[socket.id].accessories = {}
+                }
+                for(let [key, value] of Object.entries(data)){
+                    clients[socket.id].accessories[key] = value;
+                }
+                //using new emit because need to reset the scene group for this user
+                let changeling = {id: socket.id, accessories: data}
+                io.sockets.emit('updateAccessories', changeling)
+            }
         })
 
         // Handle the disconnection
