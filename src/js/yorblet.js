@@ -11,7 +11,7 @@ const project_thumbnails = require('../assets/images/project_thumbnails/winterSh
 // set which YORBLET we're in
 
 // import { YORBLET_INDEX } from "./index";
-const YORBLET_INDEX = 4;
+const YORBLET_INDEX = 1;
 
 // const YORBLET_INDEX = YORBLET_INDEX;
 
@@ -294,7 +294,7 @@ export class Yorblet {
           let offsetX = 0;// how far to the circle's right
           let offsetY = 2;// how far to the circle's up-down
           let offsetZ = -4;// how far to the circle's forward-backward
-          this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+          this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, xOffset, zOffset);
 
           projectIndex++
       }
@@ -315,7 +315,7 @@ export class Yorblet {
           let offsetX = 0;// how far to the circle's right
           let offsetY = 2;// how far to the circle's up-down
           let offsetZ = -4;// how far to the circle's forward-backward
-          this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+          this.drawLightning(scale, fenceColor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, xOffset, zOffset);
 
           projectIndex++
       }
@@ -635,7 +635,7 @@ export class Yorblet {
             this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE)
         } else if (YORBLET_INDEX === 4) { // GREEN BOLT
             // do styling for yorblet 4
-            this.addLightningRoom(centerX, centerZ, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW)
+            this.addLightningRoom(centerX, centerZ, lookAtX, lookAtZ, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW)
         } else if (YORBLET_INDEX === 5) { // PINK CIRCLE
             // do styling for yorblet 5
             this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN)
@@ -647,7 +647,7 @@ export class Yorblet {
             this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW)
         } else if (YORBLET_INDEX === 8) { // PINK BOLT
             // do styling for yorblet 8
-            this.addLightningRoom(centerX, centerZ, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN);
+            this.addLightningRoom(centerX, centerZ, lookAtX, lookAtZ, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN);
         } else if (YORBLET_INDEX === 9) { // YELLOW CIRCLE
             // do styling for yorblet 8
             this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE )
@@ -858,7 +858,7 @@ export class Yorblet {
     }
 
 
-    addLightningRoom(centerX, centerZ, color1, color2, color3){
+    addLightningRoom(centerX, centerZ, lookAtX, lookAtZ, color1, color2, color3){
 
 
       let scale = 6;
@@ -867,7 +867,7 @@ export class Yorblet {
       let offsetX = 3;// how far to the circle's right
       let offsetY = 0;// how far to the circle's up-down
       let offsetZ = -4.8;// how far to the circle's forward-backward
-      this.drawLightning(scale, color2, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      this.drawLightning(scale, color2, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ);
 
 
       //two
@@ -877,7 +877,7 @@ export class Yorblet {
       offsetX = 3;// how far to the circle's right
       offsetY = 2;// how far to the circle's up-down
       offsetZ = -4.5;// how far to the circle's forward-backward
-      this.drawLightning(scale, color3, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      this.drawLightning(scale, color3, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ);
 
 
       //three
@@ -887,17 +887,17 @@ export class Yorblet {
       offsetX = -5;// how far to the circle's right
       offsetY = -1;// how far to the circle's up-down
       offsetZ = -4;// how far to the circle's forward-backward
-      this.drawLightning(scale, color1, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      this.drawLightning(scale, color1, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ);
 
 
       //three
-      scale = 3;
-      centerY = 4;
-
-      offsetX = -6;// how far to the circle's right
-      offsetY = 3;// how far to the circle's up-down
-      offsetZ = -3.8;// how far to the circle's forward-backward
-      //this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      // scale = 3;
+      // centerY = 4;
+      //
+      // offsetX = -6;// how far to the circle's right
+      // offsetY = 3;// how far to the circle's up-down
+      // offsetZ = -3.8;// how far to the circle's forward-backward
+      //this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ);
 
 
     }
@@ -969,16 +969,12 @@ export class Yorblet {
 
         //set position and lookat
         plane.position.set(posX, posY, posZ)
-        plane.lookAt(0, 2, 0)
+        plane.lookAt(lookAtX, 0, lookatZ)
 
         //offset in space
         plane.translateX(offsetX)
         plane.translateY(offsetY)
         plane.translateZ(offsetZ)
-
-        console.log("planeX: " + plane.position.x)
-        console.log("planeY: " + plane.position.y)
-        console.log("planeZ: " + plane.position.z)
 
         this.scene.add(plane)
     }
@@ -986,7 +982,7 @@ export class Yorblet {
 
 
     // Draw Triangles
-    drawTri(scaleX, scaleY, scaleZ, matColor, posX, posY, posZ, offsetX, offsetY, offsetZ, lookAtX, lookatZ, rotateDegrees) {
+    drawTri(scaleX, scaleY, scaleZ, matColor, posX, posY, posZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees) {
         var triangleGeometry = new THREE.Geometry()
         var v1 = new THREE.Vector3(0, 0, 0)
         var v2 = new THREE.Vector3(30, 0, 0)
@@ -1010,7 +1006,7 @@ export class Yorblet {
 
         //set position and look at and rotate
         triangleMesh.position.set(posX, posY, posZ)
-        triangleMesh.lookAt(0, 2, 0)
+        triangleMesh.lookAt(lookAtX, 0, lookAtZ)
 
         //offset in space
         triangleMesh.translateX(offsetX)
@@ -1023,7 +1019,7 @@ export class Yorblet {
     }
 
 
-    drawLightning(scale, matcolor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ){
+    drawLightning(scale, matcolor, centerX, centerY, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ){
 
       //draw lightning
       const x = 0, y = 0;
