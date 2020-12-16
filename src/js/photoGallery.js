@@ -11,7 +11,6 @@ export class PhotoGallery {
     }
 
     addImages() {
-        console.log('Adding photo gallery')
         let startIndex = 0
         let endIndex = 12
         for (let i = startIndex; i < endIndex; i++) {
@@ -121,7 +120,6 @@ export class PhotoGallery {
         endIndex = endIndex + 11
         for (let i = startIndex; i < endIndex; i++) {
             let fileName = i
-            console.log(i)
 
             let mesh = this.makeImageMesh(fileName)
             if (mesh) {
@@ -181,7 +179,6 @@ export class PhotoGallery {
 
     makeImageMesh(imageName) {
         if (photos[imageName]) {
-            console.log('creating photo mesh')
             let geo = new THREE.BoxBufferGeometry(1.6, 0.9, 0.01)
 
             let tex = this.textureLoader.load(photos[imageName])
