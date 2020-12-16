@@ -4,8 +4,13 @@ import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
 import { Vector3 } from 'three'
 import { Portal } from './portals'
+import { Signage } from './signage'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
+
+import debugModule from 'debug'
+
+const log = debugModule('YORB:WinterShow')
 
 const yorbletPortalReference = [
     //for portal creation, needs scene, position, and index
@@ -66,6 +71,7 @@ export class WinterShow2020 {
         this._updateProjects()
         this.addPortals()
         this.addDecals();
+        var signage = new Signage(this.scene);
     }
 
 
@@ -174,7 +180,7 @@ export class WinterShow2020 {
                     let project_id = proj.project_id
 
                     if (dupeCheck[project_id]) {
-                        // console.log('Duplicate with ID: ', proj.project_id);
+                        // log('Duplicate with ID: ', proj.project_id);
                     } else {
                         dupeCheck[project_id] = true
                         numUniqueProjects++
@@ -182,8 +188,8 @@ export class WinterShow2020 {
                     }
                 }
             }
-            console.log('Number of total projects: ', this.projects.length)
-            console.log('Number of unique projects: ', numUniqueProjects)
+            log('Number of total projects: ', this.projects.length)
+            log('Number of unique projects: ', numUniqueProjects)
 
             if (numUniqueProjects > 0) {
                 // if the projects have been updated
@@ -356,7 +362,7 @@ export class WinterShow2020 {
                 //     this.scene.add(hyperlink)
                 // }
 
-                console.log("We've placed ", endIndex, ' projects so far.')
+                log("We've placed ", endIndex, ' projects so far.')
             }
         }
     }
@@ -364,7 +370,7 @@ export class WinterShow2020 {
     addPortals() {
         //goes through all yorblets except 0 (lobby) and makes portal
         for (let i = 1; i < yorbletPortalReference.length; i++) {
-            console.log(yorbletPortalReference[i])
+            log(yorbletPortalReference[i])
             this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
         }
     }
@@ -699,7 +705,7 @@ export class WinterShow2020 {
         } else {
             mat = this.linkMaterial
         }
-        // console.log(link);
+        // log(link);
         link.children[0].material = mat
     }
 

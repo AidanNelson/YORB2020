@@ -29,7 +29,7 @@ export function createSimpleText(message, fontColor, fontSize, font) {
 
 // this function returns 3D text object
 // from https://threejs.org/examples/?q=text#webgl_geometry_text
-export function create3DText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, font) {
+export function create3DText(text, size, height, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, font, outerColor=0xffffff, innerColor=0x57068c) {
     let textGeo = new THREE.TextGeometry(text, {
         font: font,
 
@@ -48,8 +48,8 @@ export function create3DText(text, size, height, curveSegments, bevelThickness, 
     var triangle = new THREE.Triangle()
 
     let materials = [
-        new THREE.MeshPhongMaterial({ color: 0x57068c, flatShading: true }), // front
-        new THREE.MeshPhongMaterial({ color: 0xffffff }), // side
+        new THREE.MeshPhongMaterial({ color: innerColor, flatShading: true }), // front
+        new THREE.MeshPhongMaterial({ color: outerColor }) // side
     ]
 
     // "fix" side normals by removing z-component of normals for side faces

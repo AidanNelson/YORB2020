@@ -2,6 +2,9 @@ import * as THREE from 'three'
 import { makeVideoTextureAndMaterial, redrawVideoCanvas } from './utils'
 import { mySocketID, shareScreen } from './index'
 
+import debugModule from 'debug'
+const log = debugModule('YORB:ProjectionScreens')
+
 export class ProjectionScreens {
     constructor(scene, camera, mouse) {
         this.scene = scene
@@ -35,7 +38,7 @@ export class ProjectionScreens {
 
         blankScreenVideo.setAttribute('style', 'visibility: hidden;')
         document.body.appendChild(blankScreenVideo)
-        blankScreenVideo.src = require('../assets/images/screensaver8.mp4')
+        blankScreenVideo.src = require('../assets/images/logo_withoutfade_small_invert.mp4')
         blankScreenVideo.loop = true
         blankScreenVideo.muted = true // this is necessary so it is able to auto play
         blankScreenVideo.play()
@@ -134,7 +137,7 @@ export class ProjectionScreens {
 
         let dims = { width: 1920, height: 1080 }
         let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
-        console.log(scaleFactor)
+        log(scaleFactor)
         let screen = new THREE.Mesh(new THREE.BoxGeometry(5 * scaleFactor, (5 * scaleFactor * 9) / 16, 0.01), videoMaterial)
 
         screen.position.set(centerX, centerY, centerZ)
@@ -152,18 +155,18 @@ export class ProjectionScreens {
     }
 
     projectToScreen(screenId) {
-        console.log("I'm going to project to screen " + screenId)
+        log("I'm going to project to screen " + screenId)
         shareScreen(screenId)
         // this.projectionScreens[screenId].userData.activeUserId = mySocketID
     }
 
     assignProjectionScreen(screenId, clientId) {
-        console.log('Assigning projection screen: ' + screenId + ' with to user ' + clientId)
+        log('Assigning projection screen: ' + screenId + ' with to user ' + clientId)
         this.projectionScreens[screenId].userData.activeUserId = clientId
     }
 
     releaseProjectionScreen(screenId) {
-        console.log('Releasing projection screen: ', screenId)
+        log('Releasing projection screen: ', screenId)
         this.projectionScreens[screenId].userData.activeUserId = 'default'
     }
 

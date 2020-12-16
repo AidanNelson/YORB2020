@@ -5,6 +5,9 @@ import * as THREE from 'three'
 import { Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+import debugModule from 'debug'
+const log = debugModule('YORB:Portals')
+
 const PortalModels = require('../assets/models/portals/*.glb');
 //this reference holds all info about which portal goes to where, used by both yorblet.js and winterShow2020.js
 const yorbletReference = [
@@ -36,7 +39,7 @@ export class Portal {
         this.label = yorbletReference[destination_index].label; //a label object that contains the text, color, size, rotation Y, x/y/z position offset of the label (do we need more?)
 
         this.portalLoader = new GLTFLoader();
-        console.log(this.model);
+        log(this.model);
         this.loadPortalModel(this.model);
     }
 
@@ -82,7 +85,7 @@ export class Portal {
             },
             undefined,
             function (e) {
-                console.log('trying to load portal');
+                log('trying to load portal');
                 console.error(e)
             }
         )
@@ -92,11 +95,11 @@ export class Portal {
         //needed to convert because getPlayerPosition doesn't return a vec3
         let userVec3 = new Vector3(userPosition[0], userPosition[1], userPosition[2]);
 
-        // console.log(this.position.distanceTo(userVec3));
+        // log(this.position.distanceTo(userVec3));
         
 
         if (this.position.distanceTo(userVec3) <= this.radius) {
-            console.log('teleporting');
+            log('teleporting');
             //if doing modal, would need to do so here, but would have to change the return timing
             // window.open(this.destination);
             location.href = this.destination; //suggestion from shawn/billy so that it doesn't open new window
