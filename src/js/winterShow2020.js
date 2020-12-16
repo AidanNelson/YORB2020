@@ -9,11 +9,11 @@ const project_thumbnails = require('../assets/images/project_thumbnails/winterSh
 
 const yorbletPortalReference = [ //for portal creation, needs scene, position, and index
     null, //skips 0 because that's lobby
-    {position: new Vector3(-8, 0, 30)}, //yorblet 1 -- these 5 are in north studio (more cramped?)
-    {position: new Vector3(-11, 0, 30)},
+    {position: new Vector3(-11, 0, 30)}, //yorblet 1 -- these 5 are in north studio (more cramped?)
     {position: new Vector3(-14, 0, 30)},
     {position: new Vector3(-17, 0, 30)},
     {position: new Vector3(-20, 0, 30)},
+    {position: new Vector3(-23, 0, 30)},
     {position: new Vector3(-23, 0, -96)}, //these five are in south studio
     {position: new Vector3(-18, 0, -96)},
     {position: new Vector3(-23, 0, -105)},
