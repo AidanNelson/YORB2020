@@ -325,7 +325,6 @@ export class Yorblet {
 
 
 
-
     createTriFence(fenceColor){
 
       let radius = RADIUS
@@ -384,10 +383,6 @@ export class Yorblet {
       }
 
     }
-
-
-
-
 
 
     createRectFence(fenceColor){
@@ -590,15 +585,32 @@ export class Yorblet {
                 // do styling for yorblet 4
                 this.addSky(SKY_COLOR_GREEN_ROOM);
                 this.createBoltFence(SKY_COLOR_GREEN_ROOM);
-            } else if (YORBLET_INDEX === 5) {
+            } else if (YORBLET_INDEX === 5) { //PINK CIRCLE
                 // do styling for yorblet 5
-            } else if (YORBLET_INDEX === 6) {
+                this.addSky(SKY_COLOR_PINK_ROOM);
+                this.createCircleFence(SKY_COLOR_PINK_ROOM);
+            } else if (YORBLET_INDEX === 6) { // YELLOW SQUARE
                 // do styling for yorblet 6
-            } else if (YORBLET_INDEX === 7) {
+                this.addSky(SKY_COLOR_YELLOW_ROOM);
+                this.createRectFence(SKY_COLOR_YELLOW_ROOM);
+            } else if (YORBLET_INDEX === 7) { // GREEN TRIANGLE
                 // do styling for yorblet 7
-            } else if (YORBLET_INDEX === 8) {
+                this.addSky(SKY_COLOR_GREEN_ROOM);
+                this.createTriFence(SKY_COLOR_GREEN_ROOM);
+            } else if (YORBLET_INDEX === 8) { // PINK BOLT
                 // do styling for yorblet 8
+                this.addSky(SKY_COLOR_PINK_ROOM);
+                this.createBoltFence(SKY_COLOR_PINK_ROOM);
+            } else if (YORBLET_INDEX === 9) { // YELLOW CIRCLE
+                // do styling for yorblet 8
+                this.addSky(SKY_COLOR_YELLOW_ROOM);
+                this.createCircleFence(SKY_COLOR_YELLOW_ROOM);
+            } else if (YORBLET_INDEX === 10) { // BLUE SQUARE
+                // do styling for yorblet 8
+                this.addSky(SKY_COLOR_BLUE_ROOM);
+                this.createRectFence(SKY_COLOR_BLUE_ROOM);
             }
+
         }
 
 
@@ -612,26 +624,36 @@ export class Yorblet {
 
         // style the area according to which YORBLET we are in
 
-        if (YORBLET_INDEX === 1) {
+        if (YORBLET_INDEX === 1) { // BLUE CIRCLE
             // do styling for yorblet 1
             this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_BLUE, COL_SECOND_BLUE,COL_MAIN_PINK )
-        } else if (YORBLET_INDEX === 2) {
+        } else if (YORBLET_INDEX === 2) { // PINK SQUARE
             // do styling for yorblet 2
             this.addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN)
-        } else if (YORBLET_INDEX === 3) {
+        } else if (YORBLET_INDEX === 3) { // YELLOW TRIANGLE
             // do styling for yorblet 3
             this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE)
-        } else if (YORBLET_INDEX === 4) {
+        } else if (YORBLET_INDEX === 4) { // GREEN BOLT
             // do styling for yorblet 4
-            this.addLightningRoom(centerX, centerZ, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW);
-        } else if (YORBLET_INDEX === 5) {
+            this.addLightningRoom(centerX, centerZ, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW)
+        } else if (YORBLET_INDEX === 5) { // PINK CIRCLE
             // do styling for yorblet 5
-        } else if (YORBLET_INDEX === 6) {
+            this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN)
+        } else if (YORBLET_INDEX === 6) { // YELLOW SQUARE
             // do styling for yorblet 6
-        } else if (YORBLET_INDEX === 7) {
+            this.addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE)
+        } else if (YORBLET_INDEX === 7) { // GREEN TRIANGLE
             // do styling for yorblet 7
-        } else if (YORBLET_INDEX === 8) {
+            this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW)
+        } else if (YORBLET_INDEX === 8) { // PINK BOLT
             // do styling for yorblet 8
+            this.addLightningRoom(centerX, centerZ, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN);
+        } else if (YORBLET_INDEX === 9) { // YELLOW CIRCLE
+            // do styling for yorblet 8
+            this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE )
+        } else if (YORBLET_INDEX === 10) { // BLUE SQUARE
+            // do styling for yorblet 8
+            this.addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_BLUE, COL_SECOND_BLUE,COL_MAIN_PINK )
         }
 
         // making a mini dome
@@ -699,8 +721,7 @@ export class Yorblet {
     }
 
     //circle version of fence
-    addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, color1, color2, color3) {
-        console.log('adding circle')
+    addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, color1, color2, color3) {
 
         //draw the circles
         //center circle
@@ -709,7 +730,6 @@ export class Yorblet {
         let offsetZ = -4.2 // how far to the circle's forward-backward
         let segments = 32;
         let radius = 6;
-
         this.drawCircle(radius, segments, color1, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = 5 // how far to the circle's right
