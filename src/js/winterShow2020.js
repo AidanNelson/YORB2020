@@ -413,6 +413,9 @@ export class WinterShow2020 {
         }
 
         imageSign.name = _project.project_id
+
+        
+
         return imageSign
     }
 

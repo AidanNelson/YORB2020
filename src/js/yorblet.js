@@ -33,9 +33,8 @@ if (hostname === 'yorblet1.itp.io') {
 } else if (hostname === 'yorblet10.itp.io') {
     YORBLET_INDEX = 10
 }
-console.log('hostname:', hostname);
-console.log('yorblet index:', YORBLET_INDEX);
-
+console.log('hostname:', hostname)
+console.log('yorblet index:', YORBLET_INDEX)
 
 // The alphabet (for project labels)
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' // now i know by ABCs next time won't you sing with me
@@ -192,18 +191,14 @@ export class Yorblet {
         this.scene.add(cylinder)
     }
 
-    createYorbletLabel(){
-
-
+    createYorbletLabel() {
         let labelRadius = FENCE_RADIUS
-  
-  
+
         // Draw Label in back of room on wall
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
-        const text = "Yorblet " + YORBLET_INDEX.toString();
-  
-  
+        const text = 'Yorblet ' + YORBLET_INDEX.toString()
+
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
             size: 2.5,
@@ -214,27 +209,20 @@ export class Yorblet {
             bevelSize: 0.1,
             bevelSegments: 6,
         })
-  
-  
+
         const fontMaterial1 = new THREE.MeshBasicMaterial({ color: PROJECT_NUMBER_COLOR, flatShading: true })
         const fontMaterial2 = new THREE.MeshBasicMaterial({ color: OUTER_FENCE_COLOR, flatShading: true })
-        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1,fontMaterial2])
+        const fontMesh = new THREE.Mesh(fontGeometry, [fontMaterial1, fontMaterial2])
         //alternate color0x787878
-  
-  
-        let labelOffsetX = 2;
-        let labelOffsetY = 13;
-        let labelOffsetZ = 6;
-  
-  
-  
-  
-        fontMesh.position.set((-labelRadius+labelOffsetX), labelOffsetY, labelOffsetZ)
+
+        let labelOffsetX = 2
+        let labelOffsetY = 13
+        let labelOffsetZ = 6
+
+        fontMesh.position.set(-labelRadius + labelOffsetX, labelOffsetY, labelOffsetZ)
         fontMesh.lookAt(0, 2, 6)
         this.scene.add(fontMesh)
-  
-  
-      }
+    }
 
     createYorbletStages() {
         let radius = RADIUS
@@ -627,11 +615,9 @@ export class Yorblet {
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
 
-
-        const projectLetters = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        const projectLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
         const index = YORBLET_INDEX.toString()
-        const text = index + projectLetters[projectIndex-1]
-
+        const text = index + projectLetters[projectIndex - 1]
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,
@@ -1363,6 +1349,22 @@ export class Yorblet {
         imageSign.translateZ(2)
         imageSign.translateX(7)
         imageSign.translateY(0.25)
+
+        let pedestalGeo = new THREE.CylinderBufferGeometry(0.5, 0.65, 1, 12)
+        let pedestalMat = new THREE.MeshBasicMaterial({ color: 0x232323, flatShading: true, side: THREE.DoubleSide })
+        let pedestalMesh = new THREE.Mesh(pedestalGeo, pedestalMat)
+        let pedestalGeoBigger = new THREE.CylinderBufferGeometry(0.5 + 0.01, 0.65+ 0.01, 1+ 0.01, 12)
+        const wireframe = new THREE.WireframeGeometry(pedestalGeoBigger)
+        const line = new THREE.LineSegments(wireframe)
+
+        line.material.depthTest = true
+        line.material.opacity = 0.25
+        line.material.transparent = false
+
+        imageSign.add(pedestalMesh)
+        pedestalMesh.add(line);
+        pedestalMesh.position.set(0, -1.5, 0)
+
         return imageSign
     }
 
