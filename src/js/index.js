@@ -28,8 +28,8 @@ const err = debugModule('YORB:ERROR')
 const p5 = require('p5')
 
 
-const WEB_SOCKET_SERVER = false;
-const INSTANCE_PATH = false;
+let WEB_SOCKET_SERVER = false;
+let INSTANCE_PATH = false;
 
 // For running against local server
 // WEB_SOCKET_SERVER = 'localhost:3000'
