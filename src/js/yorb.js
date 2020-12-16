@@ -26,7 +26,6 @@ const HatModels = require('../assets/models/accessories/hats/*.glb');
 
 
 const MODE = "YORBLET";
-export const YORBLET_INDEX = 1;
 
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {

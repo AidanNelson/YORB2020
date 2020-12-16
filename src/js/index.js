@@ -27,13 +27,17 @@ const err = debugModule('YORB:ERROR')
 // load p5 for self view
 const p5 = require('p5')
 
+
+const WEB_SOCKET_SERVER = false;
+const INSTANCE_PATH = false;
+
 // For running against local server
 // const WEB_SOCKET_SERVER = 'localhost:3000'
 // const INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-const WEB_SOCKET_SERVER = "https://yorb.itp.io";
-const INSTANCE_PATH = "/experimental/socket.io";
+// const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+// const INSTANCE_PATH = "/experimental/socket.io";
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
@@ -162,9 +166,13 @@ export function shareScreen(screenId) {
 function initSocketConnection() {
     return new Promise((resolve) => {
         console.log('Initializing socket.io...')
-        socket = io(WEB_SOCKET_SERVER, {
-            path: INSTANCE_PATH,
-        })
+        if (WEB_SOCKET_SERVER && INSTANCE_PATH) {
+            socket = io(WEB_SOCKET_SERVER, {
+                path: INSTANCE_PATH,
+            })
+        } else {
+            socket = io()
+        }
         window.socket = socket
         socket.request = socketPromise(socket)
 
@@ -361,7 +369,7 @@ function setupControls() {
 }
 
 function turnGravityOn() {
-  yorbScene.controls.turnGravityOn()
+    yorbScene.controls.turnGravityOn()
 }
 
 function toggleWebcamImage() {
@@ -627,10 +635,10 @@ export async function startScreenshare(screenId) {
         localScreen = await navigator.mediaDevices.getDisplayMedia({
             video: true,
             audio: {
-                     autoGainControl: false, // seems to make it mono if true
-                     echoCancellation: false,
-                     noiseSupression: false,
-                   },
+                autoGainControl: false, // seems to make it mono if true
+                echoCancellation: false,
+                noiseSupression: false,
+            },
         })
 
         // also make a local video Element to hold the stream
