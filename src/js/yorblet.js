@@ -32,6 +32,8 @@ if (hostname === 'yorblet1.itp.io') {
     YORBLET_INDEX = 9
 } else if (hostname === 'yorblet10.itp.io') {
     YORBLET_INDEX = 10
+} else if (hostname === 'yorblet11.itp.io') {
+    YORBLET_INDEX = 11
 }
 console.log('hostname:', hostname)
 console.log('yorblet index:', YORBLET_INDEX)
