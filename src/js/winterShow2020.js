@@ -4,6 +4,7 @@ import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
 import { Vector3 } from 'three'
 import { Portal } from './portals'
+import { Signage } from './signage'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
@@ -65,6 +66,8 @@ export class WinterShow2020 {
         this.font = loader.parse(fontJSON)
         this._updateProjects()
         this.addPortals()
+        var signage = new Signage(this.scene);
+
     }
 
     /*
