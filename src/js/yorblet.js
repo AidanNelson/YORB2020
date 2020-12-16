@@ -11,7 +11,7 @@ const project_thumbnails = require('../assets/images/project_thumbnails/winterSh
 // set which YORBLET we're in
 
 // import { YORBLET_INDEX } from "./index";
-const YORBLET_INDEX = 1;
+const YORBLET_INDEX = 4;
 
 // const YORBLET_INDEX = YORBLET_INDEX;
 
@@ -29,6 +29,34 @@ const SKY_COLOR_PINK_ROOM = 0xe49add;
 const SKY_COLOR_YELLOW_ROOM = 0xfd8f20;
 const SKY_COLOR_GREEN_ROOM = 0x18DD6C;
 
+//room colors
+//all have two colors plus one accent color. all use accen colors that are main colors from other rooms except the greenn room
+//blue
+const COL_MAIN_BLUE = 0x4b4ff4
+const COL_SECOND_BLUE = 0x05c1da
+//accent: colmainPink = 0xfc3691
+//COL_MAIN_BLUE, COL_SECOND_BLUE, COL_MAIN_PINK
+
+//pink rooms
+const COL_MAIN_PINK = 0xfc3691
+const COL_SECOND_PINK = 0xfb69b9
+const COL_MAIN_GREEN = 0x9be210
+//accent: colmainGreen = 0x9be210
+// COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN
+
+//yellow rooms
+const COL_MAIN_YELLOW = 0xffd810
+const COL_SECOND_YELLOW = 0xf4d01d
+// accent: const colmainBlue = 0x4b4ff4
+//COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE
+
+
+//green rooms
+const COL_ACCENT_BLUE = 0x67D6B5;
+const COL_SECOND_GREEN = 0x77E424;
+const COL_ACCENT_YELLOW = 0xF9F912;
+//
+// COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW
 
 // other parameters:
 const NUMBER_OF_PROJECTS = 8
@@ -586,16 +614,16 @@ export class Yorblet {
 
         if (YORBLET_INDEX === 1) {
             // do styling for yorblet 1
-            this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
+            this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_BLUE, COL_SECOND_BLUE,COL_MAIN_PINK )
         } else if (YORBLET_INDEX === 2) {
             // do styling for yorblet 2
-            this.addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
+            this.addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_PINK, COL_SECOND_PINK, COL_MAIN_GREEN)
         } else if (YORBLET_INDEX === 3) {
             // do styling for yorblet 3
-            this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle)
+            this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_YELLOW, COL_SECOND_YELLOW, COL_MAIN_BLUE)
         } else if (YORBLET_INDEX === 4) {
             // do styling for yorblet 4
-            this.addLightningRoom(centerX, centerZ);
+            this.addLightningRoom(centerX, centerZ, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW);
         } else if (YORBLET_INDEX === 5) {
             // do styling for yorblet 5
         } else if (YORBLET_INDEX === 6) {
@@ -671,15 +699,8 @@ export class Yorblet {
     }
 
     //circle version of fence
-    addCircleRoom(centerX, centerZ, lookAtX, lookAtZ) {
+    addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, color1, color2, color3) {
         console.log('adding circle')
-        // colorsssss //
-        var colBlack = 0x000000
-        var colWhite = 0xffffff
-        var colmainBlue = 0x4b4ff4
-        var coldarkBlue = 0x1250cc
-        var collightBlue = 0x05c1da
-        var colmainPink = 0xfc3691
 
         //draw the circles
         //center circle
@@ -689,68 +710,30 @@ export class Yorblet {
         let segments = 32;
         let radius = 6;
 
-        this.drawCircle(radius, segments, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawCircle(radius, segments, color1, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = 5 // how far to the circle's right
         offsetY = 4.5 // how far to the circle's up-down
         offsetZ = -4.3 // how far to the circle's forward-backward
         radius = 3;
-        this.drawCircle(radius, segments, collightBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawCircle(radius, segments, color2, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -6 // how far to the circle's right
         offsetY = .5 // how far to the circle's up-down
         offsetZ = -4 // how far to the circle's forward-backward
         radius = 2;
-        this.drawCircle(radius, segments, collightBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawCircle(radius, segments, color2, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -4 // how far to the circle's right
         offsetY = 2 // how far to the circle's up-down
         offsetZ = -4.1 // how far to the circle's forward-backward
         radius = 1
-        this.drawCircle(radius, segments, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
-
-        // //circle fence
-        // offsetX = 8 // how far to the circle's right
-        // offsetY = -3 // how far to the circle's up-down
-        // offsetZ = -4.3 // how far to the circle's forward-backward
-        // radius = 1;
-        // this.drawCircle(radius, segments, coldarkBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        // offsetX = 12 // how far to the circle's right
-        // offsetY = -2.5 // how far to the circle's up-down
-        // offsetZ = -4.2 // how far to the circle's forward-backward
-        // radius = 1;
-        // this.drawCircle(radius, segments, coldarkBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        //
-        // offsetX = 16 // how far to the circle's right
-        // offsetY = -3 // how far to the circle's up-down
-        // offsetZ = -4.1 // how far to the circle's forward-backward
-        // radius = 1;
-        // this.drawCircle(radius, segments, coldarkBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        // offsetX = 20 // how far to the circle's right
-        // offsetY = -2.5 // how far to the circle's up-down
-        // offsetZ = -3.5 // how far to the circle's forward-backward
-        // radius = 1;
-        // this.drawCircle(radius, segments, coldarkBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-
+        this.drawCircle(radius, segments, color3, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
     }
 
-    addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle) {
-        // colorsssss //
-        var colBlack = 0x000000
-        var colWhite = 0xffffff
-        var colmainBlue = 0x4b4ff4
-        var coldarkBlue = 0x1250cc
-        var collightBlue = 0x05c1da
-        var colmainPink = 0xfc3691
-        var colmainGreen = 0x9be210
+    addRectRoom(centerX, centerZ, lookAtX, lookAtZ, angle, color1, color2, color3) {
 
-        var colmedPink = 0xfb69b9
-        var coldarkPink = 0xe49add
 
         //draw the rectangles
 
@@ -765,14 +748,14 @@ export class Yorblet {
 
         //drawRect(height, width, faces, matColor, posX, posY, posZ, offsetX, offsetY, offsetZ, lookAtX, lookatZ)
 
-        this.drawRect(rWidth, rHeight, 5, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawRect(rWidth, rHeight, 5, color1, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -8.5 // how far to the circle's right
         offsetY = 3 // how far to the circle's up-down
         offsetZ = -4.4 // how far to the circle's forward-backward
         rHeight = 4;
         rWidth = 4;
-        this.drawRect(rWidth, rHeight, 5, colmainPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawRect(rWidth, rHeight, 5, color1, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -7 // how far to the circle's right
         offsetY = 5 // how far to the circle's up-down
@@ -786,80 +769,24 @@ export class Yorblet {
         offsetZ = -4.6 // how far to the circle's forward-backward
         rHeight = 6;
         rWidth = 8;
-        this.drawRect(rWidth, rHeight, 5, colmedPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawRect(rWidth, rHeight, 5, color2, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
         offsetX = -6 // how far to the circle's right
         offsetY = 2 // how far to the circle's up-down
         offsetZ = -4.2 // how far to the circle's forward-backward
         rHeight = 3;
         rWidth = 3;
-        this.drawRect(rWidth, rHeight, 5, colmainGreen, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
+        this.drawRect(rWidth, rHeight, 5, color3, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
 
-        //
-        // //little fence
-        // offsetX = 6 // how far to the circle's right
-        // offsetY = -2 // how far to the circle's up-down
-        // offsetZ = -4.2 // how far to the circle's forward-backward
-        // rHeight = 1.5;
-        // rWidth = 1.5;
-        // this.drawRect(rWidth, rHeight, 5, coldarkPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        //
-        // offsetX = 10 // how far to the circle's right
-        // offsetY = -2.5 // how far to the circle's up-down
-        // offsetZ = -4.2 // how far to the circle's forward-backward
-        // rHeight = 1.5;
-        // rWidth = 1.5;
-        // this.drawRect(rWidth, rHeight, 5, coldarkPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        //
-        // offsetX = 14 // how far to the circle's right
-        // offsetY = -2 // how wefar to the circle's up-down
-        // offsetZ = -4.2 // how far to the circle's forward-backward
-        // rHeight = 1.5;
-        // rWidth = 1.5;
-        // this.drawRect(rWidth, rHeight, 5, coldarkPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        //
-        // offsetX = 18 // how far to the circle's right
-        // offsetY = -2.5 // how far to the circle's up-down
-        // offsetZ = -4.2 // how far to the circle's forward-backward
-        // rHeight = 1.5;
-        // rWidth = 1.5;
-        // this.drawRect(rWidth, rHeight, 5, coldarkPink, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ)
-        //
-        //
 
 
     }
 
-    addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle) {
+    addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, color1, color2, color3) {
         //  drawTri(scaleX, scaleY, scaleZ, posX, posY, posZ, triColor, angle, rotateDegrees){
 
-        // colorsssss //
-        var colBlack = 0x000000
-        var colWhite = 0xffffff
-        var colmainBlue = 0x4b4ff4
-        var coldarkBlue = 0x1250cc
-        var collightBlue = 0x05c1da
-        var colmainPink = 0xfc3691
-        var colmainGreen = 0x9be210
-        var colmainYellow = 0xffd810
 
-        var colmedPink = 0xfb69b9
-        var coldarkPink = 0xe49add
-        var coldarkYellow = 0xf4d01d
-        var colOrange = 0xfd8f20
-
-        //draw the triangles
-
-        //center circle
-        // let xshift_c0 = 30 * Math.cos(angle-0.15);
-        // let zshift_c0 = 30 * Math.sin(angle-.15);
-        //this.drawTri(0.3, 0.3, 0.3, centerX, 4.5, centerZ, coldarkYellow, angle, 0)
-
-
-        //center rectangle
+        //center triangle
         let offsetX = 2 // how far to the circle's right
         let offsetY = 6 // how far to the circle's up-down
         let offsetZ = -4.5 // how far to the circle's forward-backward
@@ -867,7 +794,7 @@ export class Yorblet {
         let scaleY = .15;
         let scaleZ = .15;
         let rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+        this.drawTri(scaleX, scaleY, scaleZ, color2, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
 
         offsetX = 2 // how far to the circle's right
@@ -877,7 +804,7 @@ export class Yorblet {
         scaleY = .15;
         scaleZ = .15;
         rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+        this.drawTri(scaleX, scaleY, scaleZ, color3, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
 
         offsetX = -4 // how far to the circle's right
@@ -887,7 +814,7 @@ export class Yorblet {
         scaleY = .4;
         scaleZ = .4;
         rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, coldarkYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+        this.drawTri(scaleX, scaleY, scaleZ, color2, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
 
         offsetX = -5 // how far to the circle's right
@@ -897,7 +824,7 @@ export class Yorblet {
         scaleY = .1;
         scaleZ = .1;
         rotateDegrees = -1.5708;
-        this.drawTri(scaleX, scaleY, scaleZ, colmainBlue, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+        this.drawTri(scaleX, scaleY, scaleZ, color3, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
         offsetX = -6 // how far to the circle's right
         offsetY = 5 // how far to the circle's up-down
@@ -906,77 +833,12 @@ export class Yorblet {
         scaleY = .1;
         scaleZ = .1;
         rotateDegrees = (-1.5708 * 3);
-        this.drawTri(scaleX, scaleY, scaleZ, colmainYellow, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-
-
-        //draw small fence
-        //
-        // offsetX = 6 // how far to the circle's right
-        // offsetY = -2 // how far to the circle's up-down
-        // offsetZ = -4.4 // how far to the circle's forward-backward
-        // scaleX = .05;
-        // scaleY = .05;
-        // scaleZ = .05;
-        // rotateDegrees = 0;
-        // this.drawTri(scaleX, scaleY, scaleZ, colOrange, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-        //
-        // offsetX = 10 // how far to the circle's right
-        // offsetY = -2 // how far to the circle's up-down
-        // offsetZ = -4.4 // how far to the circle's forward-backward
-        // scaleX = .05;
-        // scaleY = .05;
-        // scaleZ = .05;
-        // rotateDegrees = 0;
-        // this.drawTri(scaleX, scaleY, scaleZ, colOrange, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-        //
-        // offsetX = 14 // how far to the circle's right
-        // offsetY = -2 // how far to the circle's up-down
-        // offsetZ = -4.4 // how far to the circle's forward-backward
-        // scaleX = .05;
-        // scaleY = .05;
-        // scaleZ = .05;
-        // rotateDegrees = 0;
-        // this.drawTri(scaleX, scaleY, scaleZ, colOrange, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
-        //
-        //
-        // offsetX = 18 // how far to the circle's right
-        // offsetY = -2 // how far to the circle's up-down
-        // offsetZ = -4.4 // how far to the circle's forward-backward
-        // scaleX = .05;
-        // scaleY = .05;
-        // scaleZ = .05;
-        // rotateDegrees = 0;
-        // this.drawTri(scaleX, scaleY, scaleZ, colOrange, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
+        this.drawTri(scaleX, scaleY, scaleZ, color1, centerX, 4.5, centerZ, offsetX, offsetY, offsetZ, lookAtX, lookAtZ, rotateDegrees);
 
     }
 
 
-    addLightningRoom(centerX, centerZ){
-
-
-      // colorsssss //
-      var colBlack = 0x000000
-      var colWhite = 0xffffff
-      var colmainBlue = 0x4b4ff4
-      var coldarkBlue = 0x1250cc
-      var collightBlue = 0x05c1da
-      var colmainPink = 0xfc3691
-      var colmainGreen = 0x9be210
-      var colmainYellow = 0xffd810
-
-      var colmedPink = 0xfb69b9
-      var coldarkPink = 0xe49add
-      var coldarkYellow = 0xf4d01d
-      var colOrange = 0xfd8f20
-
-      var collightGreen = 0x18DD6C;
-      var coldarkGreen = 0x64C5BB;
-      var colsuperGreen = 0xBFF98C;
-      var accentYellow = 0xF9F912;
-      var accentBlue = 0x67D6B5;
-      var accentGreen = 0x77E424;
-
-
+    addLightningRoom(centerX, centerZ, color1, color2, color3){
 
 
       let scale = 6;
@@ -985,7 +847,7 @@ export class Yorblet {
       let offsetX = 3;// how far to the circle's right
       let offsetY = 0;// how far to the circle's up-down
       let offsetZ = -4.8;// how far to the circle's forward-backward
-      this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      this.drawLightning(scale, color2, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
 
 
       //two
@@ -995,7 +857,7 @@ export class Yorblet {
       offsetX = 3;// how far to the circle's right
       offsetY = 2;// how far to the circle's up-down
       offsetZ = -4.5;// how far to the circle's forward-backward
-      this.drawLightning(scale, accentYellow, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      this.drawLightning(scale, color3, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
 
 
       //three
@@ -1005,7 +867,7 @@ export class Yorblet {
       offsetX = -5;// how far to the circle's right
       offsetY = -1;// how far to the circle's up-down
       offsetZ = -4;// how far to the circle's forward-backward
-      this.drawLightning(scale, accentBlue, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
+      this.drawLightning(scale, color1, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
 
 
       //three
@@ -1016,46 +878,6 @@ export class Yorblet {
       offsetY = 3;// how far to the circle's up-down
       offsetZ = -3.8;// how far to the circle's forward-backward
       //this.drawLightning(scale, accentGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
-
-      // //SMALL FENCE
-      // //four
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 6;// how far to the circle's right
-      // offsetY = -3;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-      //
-      // //five
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 10;// how far to the circle's right
-      // offsetY = -3.5;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-      //
-      // //five
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 14;// how far to the circle's right
-      // offsetY = -3;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-      //
-      //
-      // //six
-      // scale = 1;
-      // centerY = 4;
-      //
-      // offsetX = 18;// how far to the circle's right
-      // offsetY = -3.5;// how far to the circle's up-down
-      // offsetZ = -4;// how far to the circle's forward-backward
-      // this.drawLightning(scale, collightGreen, centerX, centerY, centerZ, offsetX, offsetY, offsetZ);
-
 
 
     }
