@@ -22,7 +22,12 @@ import * as THREE from 'three'
 
 const Stats = require('./libs/stats.min.js')
 
-const MODE = 'YORBLET'
+// set whether we are a YORBLET or YORB based on hostname:
+const hostname = window.location.hostname
+let MODE = 'YORBLET'
+if (hostname === "yorb.itp.io"){
+    MODE = "YORB";
+}
 
 import debugModule from 'debug'
 
