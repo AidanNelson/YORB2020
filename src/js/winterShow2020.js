@@ -65,7 +65,78 @@ export class WinterShow2020 {
         this.font = loader.parse(fontJSON)
         this._updateProjects()
         this.addPortals()
+        this.addDecals();
     }
+
+
+    addDecals(){
+
+      //add welcome sign
+        const welcomeTexture = new THREE.TextureLoader().load(require('../assets/images/decals/welcome_sign_export_4x.png'));
+        const tipsTexture = new THREE.TextureLoader().load(require('../assets/images/decals/tips_export_4x.png'));
+        const mapTexture = new THREE.TextureLoader().load(require('../assets/images/decals/full_map_export_1x.png'));
+
+        //add welcome poster
+        let posterX = -6.5
+        let posterY = 1.6
+        let posterZ = -7.25
+
+        let posterRotation = 1.5708*2
+
+        welcomeTexture.wrapS = THREE.RepeatWrapping
+        welcomeTexture.wrapT = THREE.RepeatWrapping
+        welcomeTexture.repeat.set(1, 1)
+
+        const signGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1)
+        const signMaterial = new THREE.MeshBasicMaterial({ map: welcomeTexture, transparent: true})
+        const signPlane = new THREE.Mesh(signGeometry, signMaterial)
+        //plane.lookAt(0, 1, 0)
+        signPlane.position.set(posterX, posterY, posterZ)
+        signPlane.rotateY(posterRotation)
+        this.scene.add(signPlane)
+
+        //add tips poster
+        posterX = -9.5
+        posterY = 1.65
+        posterZ = -7.25
+
+        posterRotation = 1.5708*2
+
+        tipsTexture.wrapS = THREE.RepeatWrapping
+        tipsTexture.wrapT = THREE.RepeatWrapping
+        tipsTexture.repeat.set(1, 1)
+
+        const tipsGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1)
+        const tipsMaterial = new THREE.MeshBasicMaterial({ map: tipsTexture, transparent: true})
+        const tipsPlane = new THREE.Mesh(tipsGeometry, tipsMaterial)
+        //plane.lookAt(0, 1, 0)
+        tipsPlane.position.set(posterX, posterY, posterZ)
+        tipsPlane.rotateY(posterRotation)
+        this.scene.add(tipsPlane)
+
+
+        //add map
+        posterX = -3.5
+        posterY = 1.65
+        posterZ = -10.25
+
+        posterRotation = 1.5708*3
+
+        mapTexture.wrapS = THREE.RepeatWrapping
+        mapTexture.wrapT = THREE.RepeatWrapping
+        mapTexture.repeat.set(1, 1)
+
+        const mapGeometry = new THREE.PlaneBufferGeometry(4.25, 2.5, 1, 1)
+        const mapMaterial = new THREE.MeshBasicMaterial({ map: mapTexture, transparent: true})
+        const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial)
+        //plane.lookAt(0, 1, 0)
+        mapPlane.position.set(posterX, posterY, posterZ)
+        mapPlane.rotateY(posterRotation)
+        this.scene.add(mapPlane)
+
+
+      }
+
 
     /*
      * updateProjects(projects)
