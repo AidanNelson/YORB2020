@@ -14,11 +14,12 @@ const yorbletPortalReference = [ //for portal creation, needs scene, position, a
     {position: new Vector3(-14, 0, 30)},
     {position: new Vector3(-17, 0, 30)},
     {position: new Vector3(-20, 0, 30)},
-    {position: new Vector3(-21, 0, -105)}, //these five are in south studio
-    {position: new Vector3(-16, 0, -105)},
-    {position: new Vector3(-11, 0, -105)},
-    {position: new Vector3(-6, 0, -105)},
-    {position: new Vector3(-1, 0, -105)},
+    {position: new Vector3(-23, 0, -96)}, //these five are in south studio
+    {position: new Vector3(-18, 0, -96)},
+    {position: new Vector3(-23, 0, -105)},
+    {position: new Vector3(-18, 0, -105)},
+    {position: new Vector3(-13, 0, -105)},
+    {position: new Vector3(-8, 0, -105)},
 ]
 
 export class WinterShow2020 {

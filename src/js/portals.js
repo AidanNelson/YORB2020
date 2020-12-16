@@ -9,16 +9,17 @@ const PortalModels = require('../assets/models/portals/*.glb');
 //this reference holds all info about which portal goes to where, used by both yorblet.js and winterShow2020.js
 const yorbletReference = [
     {url: "https://yorb.itp.io", model: PortalModels['tacobell'], label: {text:"Return to Lobby", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:2}}, //lobby
-    {url: 'https://yorblet1.itp.io', model: PortalModels['sphBlue'], label: {text:"Go to Yorblet 1", color:0x4b4ff4, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet2.itp.io', model: PortalModels['cubPink'], label: {text:"Go to Yorblet 2", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet3.itp.io', model: PortalModels['pyrYellow'], label: {text:"Go to Yorblet 3", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet4.itp.io', model:PortalModels ['ligGreen'], label: {text:"Go to Yorblet 4", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet5.itp.io', model: PortalModels['sphPink'], label: {text:"Go to Yorblet 5", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet6.itp.io', model: PortalModels['cubYellow'], label: {text:"Go to Yorblet 6", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet7.itp.io', model: PortalModels['pyrGreene'], label: {text:"Go to Yorblet 7", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet8.itp.io', model: PortalModels['ligPink'], label: {text:"Go to Yorblet 8", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet9.itp.io', model: PortalModels['sphYellow'], label: {text:"Go to Yorblet 9", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet10.itp.io', model: PortalModels['cubBlue'], label: {text:"Go to Yorblet 10", color:0x4b4ff4, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet1.itp.io', model: PortalModels['sphBlue'], label: {text:"   Go to\nYorblet 1", color:0x4b4ff4, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet2.itp.io', model: PortalModels['cubPink'], label: {text:"   Go to\nYorblet 2", color:0xfc3691, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet3.itp.io', model: PortalModels['pyrYellow'], label: {text:"   Go to\nYorblet 3", color:0xf4d010, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet4.itp.io', model:PortalModels ['ligGreen'], label: {text:"   Go to\nYorblet 4", color:0x9be210, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet5.itp.io', model: PortalModels['sphPink'], label: {text:"   Go to\nYorblet 5", color:0xfc3691, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet6.itp.io', model: PortalModels['cubYellow'], label: {text:"   Go to\nYorblet 6", color:0xf4d010, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet7.itp.io', model: PortalModels['pyrGreene'], label: {text:"   Go to\nYorblet 7", color:0x9be210, size:0.25, rotateY:Math.PI, xOff:0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet8.itp.io', model: PortalModels['ligPink'], label: {text:"   Go to\nYorblet 8", color:0xfc3691, size:0.25, rotateY:0, xOff:-0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet9.itp.io', model: PortalModels['sphYellow'], label: {text:"   Go to\nYorblet 9", color:0xf4d010, size:0.25, rotateY:0, xOff:-0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet10.itp.io', model: PortalModels['cubBlue'], label: {text:"   Go to\nYorblet 10", color:0x4b4ff4, size:0.25, rotateY:0, xOff:-0.65, yOff:3, zOff:0}},
+    {url: 'https://yorblet11.itp.io', model: PortalModels['sphBlue'], label: {text:"   Go to\nYorblet 11", color:0x4b4ff4, size:0.25, rotateY:0, xOff:-0.65, yOff:3, zOff:0}},
 ]
 
 //yorblet.js uses yorblet_index, which gets passed here to
@@ -97,7 +98,8 @@ export class Portal {
         if (this.position.distanceTo(userVec3) <= this.radius) {
             console.log('teleporting');
             //if doing modal, would need to do so here, but would have to change the return timing
-            window.open(this.destination);
+            // window.open(this.destination);
+            location.href = this.destination; //suggestion from shawn/billy so that it doesn't open new window
             return true; //for the trigger that removes the user from this yorblet
         }
         return false;
