@@ -35,8 +35,7 @@ export class ProjectionScreens {
 
         blankScreenVideo.setAttribute('style', 'visibility: hidden;')
         document.body.appendChild(blankScreenVideo)
-
-        blankScreenVideo.src = require('../assets/images/old-television.mp4')
+        blankScreenVideo.src = require('../assets/images/screensaver8.mp4')
         blankScreenVideo.loop = true
         blankScreenVideo.muted = true // this is necessary so it is able to auto play
         blankScreenVideo.play()
