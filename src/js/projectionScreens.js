@@ -32,6 +32,8 @@ export class ProjectionScreens {
     createBlankScreenVideo() {
         let blankScreenVideo = document.createElement('video')
         blankScreenVideo.setAttribute('id', 'default_screenshare')
+
+        blankScreenVideo.setAttribute('style', 'visibility: hidden;')
         document.body.appendChild(blankScreenVideo)
         blankScreenVideo.src = require('../assets/images/screensaver8.mp4')
         blankScreenVideo.loop = true
