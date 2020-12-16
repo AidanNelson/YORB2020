@@ -22,7 +22,7 @@ export class YorbControls2 {
         // variables for drag controls
         this.onPointerDownPointerX = 0
         this.onPointerDownPointerY = 0
-        this.lon = 0
+        this.lon = 180
         this.lat = 0
         this.phi = 0
         this.theta = 0

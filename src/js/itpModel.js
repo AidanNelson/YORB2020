@@ -10,6 +10,8 @@ export class ITPModel {
         this.loadFloorModel()
 
         this.collidableMeshList = []
+        this.floorModelParts = []
+
     }
 
     getCollidableMeshList() {
@@ -72,7 +74,7 @@ export class ITPModel {
         })
     }
 
-    loadModel(_file, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {
+    loadModel(_file, _name, _material, _scale, _castShadow, _receiveShadow, _collidable = false) {
         this.GLTFLoader.load(
             _file,
             (gltf) => {
@@ -92,8 +94,7 @@ export class ITPModel {
                     }
                 })
                 this.scene.add(scene)
-                let name = _file.slice(11, _file.indexOf('.'))
-                scene.name = name
+                scene.name = _name
                 this.floorModelParts.push(scene)
             },
             undefined,
@@ -106,21 +107,20 @@ export class ITPModel {
 
     loadFloorModel() {
         let scaleFactor = 1.25
-        this.floorModelParts = []
         this.matMode = 0
 
-        this.loadModel(require('../assets/models/itp/ceiling.glb'), this.ceilingMaterial, scaleFactor, true, false)
-        this.loadModel(require('../assets/models/itp/floor.glb'), this.floorMaterial, scaleFactor, false, true, true)
-        this.loadModel(require('../assets/models/itp/glass-fixturing.glb'), this.glassFixturingMaterial, scaleFactor, true, false)
-        this.loadModel(require('../assets/models/itp/glass.glb'), this.glassMaterial, scaleFactor, false, false, true)
-        this.loadModel(require('../assets/models/itp/granite-bar.glb'), this.graniteBarMaterial, scaleFactor, true, false, true)
-        this.loadModel(require('../assets/models/itp/ibeam.glb'), this.paintedMetalMaterial, scaleFactor, true, false, true)
-        // this.loadModel(require('../assets/models/itp/light-diffuser.glb'), this.lightDiffuserMaterial, scaleFactor, false, false);
-        // this.loadModel(require('../assets/models/itp/light-housing.glb'), this.lightHousingMaterial, scaleFactor, false, false);
-        // this.loadModel(require('../assets/models/itp/lighting-grid.glb'), this.wallMaterial, scaleFactor, false, false);
-        this.loadModel(require('../assets/models/itp/walls.glb'), this.wallMaterial, scaleFactor, true, false, true)
-        this.loadModel(require('../assets/models/itp/window-shelf.glb'), this.windowShelfMaterial, scaleFactor, true, false)
-        this.loadModel(require('../assets/models/itp/wooden-bar.glb'), this.floorMaterial, scaleFactor, true, true, true)
+        this.loadModel(require('../assets/models/itp/ceiling.glb'), "ceiling", this.ceilingMaterial, scaleFactor, true, false)
+        this.loadModel(require('../assets/models/itp/floor.glb'), "floor", this.floorMaterial, scaleFactor, false, true, true)
+        this.loadModel(require('../assets/models/itp/glass-fixturing.glb'), "glass-fixturing", this.glassFixturingMaterial, scaleFactor, true, false)
+        this.loadModel(require('../assets/models/itp/glass.glb'), "glass", this.glassMaterial, scaleFactor, false, false, true)
+        this.loadModel(require('../assets/models/itp/granite-bar.glb'), "granite-bar", this.graniteBarMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../assets/models/itp/ibeam.glb'), "ibeam", this.paintedMetalMaterial, scaleFactor, true, false, true)
+        // this.loadModel(require('../assets/models/itp/light-diffuser.glb'), "light-diffuser", this.lightDiffuserMaterial, scaleFactor, false, false);
+        // this.loadModel(require('../assets/models/itp/light-housing.glb'), "light-housing", this.lightHousingMaterial, scaleFactor, false, false);
+        // this.loadModel(require('../assets/models/itp/lighting-grid.glb'), "lighting-grid", this.wallMaterial, scaleFactor, false, false);
+        this.loadModel(require('../assets/models/itp/walls.glb'), "walls", this.wallMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../assets/models/itp/window-shelf.glb'), "window-shelf", this.windowShelfMaterial, scaleFactor, true, false)
+        this.loadModel(require('../assets/models/itp/wooden-bar.glb'), "wooden-bar", this.floorMaterial, scaleFactor, true, true, true)
     }
 
     swapMaterials() {
@@ -175,7 +175,6 @@ export class ITPModel {
                                     color: col,
                                     reflectivity: 0.4,
                                     shininess: 1,
-                                    envMap: this.envMap,
                                 })
                                 child.material = mat
                             }

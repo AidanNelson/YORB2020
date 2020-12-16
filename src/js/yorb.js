@@ -22,7 +22,6 @@ import * as THREE from 'three'
 const Stats = require('./libs/stats.min.js')
 
 const MODE = "YORBLET";
-export const YORBLET_INDEX = 1;
 
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
@@ -193,20 +192,26 @@ export class Yorb {
         }
     }
 
+    swapMaterials(){
+        if (MODE === "YORB"){
+            this.itpModel.swapMaterials();
+        }
+    }
+
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // Model 🏗
 
     loadBackground() {
         this.envMap = new THREE.CubeTextureLoader().load([
-            require('../assets/images/Park2/posx.jpg'),
-            require('../assets/images/Park2/negx.jpg'),
-            require('../assets/images/Park2/posy.jpg'),
-            require('../assets/images/Park2/negy.jpg'),
-            require('../assets/images/Park2/posz.jpg'),
-            require('../assets/images/Park2/negz.jpg'),
+            require('../assets/images/backgrounds/night/px.jpg'),
+            require('../assets/images/backgrounds/night/nx.jpg'),
+            require('../assets/images/backgrounds/night/py.jpg'),
+            require('../assets/images/backgrounds/night/ny.jpg'),
+            require('../assets/images/backgrounds/night/pz.jpg'),
+            require('../assets/images/backgrounds/night/nz.jpg'),
         ])
-        //this.scene.background = this.envMap
+        this.scene.background = this.envMap
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
