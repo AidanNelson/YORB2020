@@ -96,7 +96,8 @@ export class Portal {
         if (this.position.distanceTo(userVec3) <= this.radius) {
             console.log('teleporting');
             //if doing modal, would need to do so here, but would have to change the return timing
-            window.open(this.destination);
+//             window.open(this.destination);
+            location.href = this.destination; //suggestion from shawn/billy so that it doesn't open new window
             return true; //for the trigger that removes the user from this yorblet
         }
         return false;
