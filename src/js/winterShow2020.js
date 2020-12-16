@@ -458,7 +458,7 @@ export class WinterShow2020 {
             let pitch = project.elevator_pitch
             let description = project.description
             let link = project.zoom_link
-            // let room_status = this.zoomStatusDecoder(project.zoom_status)
+            let room_status = this.zoomStatusDecoder(project.zoom_status);
 
             let modalEl = document.createElement('div')
             modalEl.className = 'project-modal'
@@ -518,7 +518,7 @@ export class WinterShow2020 {
 
             let talkToCreatorDiv = document.createElement('div')
             talkToCreatorDiv.className = 'project-modal-links-header'
-            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator In The Zoom Room:'
+            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator:'
 
             let linksDiv = document.createElement('div')
             linksDiv.className = 'project-modal-link-container'
@@ -535,7 +535,7 @@ export class WinterShow2020 {
             zoomLinkEl.href = link
             // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
             zoomLinkEl.innerHTML = "Talk to the Creator!"
-            zoomLinkEl.target = '_blank'
+            zoomLinkEl.target = '_self'
             zoomLinkEl.rel = 'noopener noreferrer'
 
             linksDiv.appendChild(projectLinkEl)
