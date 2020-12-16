@@ -16,12 +16,14 @@ import { Sketches } from './p5Sketches'
 import { ProjectionScreens } from './projectionScreens'
 import { YorbControls2 } from './yorbControls2.js'
 import { Yorblet } from './yorblet.js'
+import { PhotoGallery } from './photoGallery'
 
 import * as THREE from 'three'
 
 const Stats = require('./libs/stats.min.js')
 
-const MODE = "YORBLET";
+const MODE = 'YORBLET'
+
 
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
@@ -69,8 +71,8 @@ export class Yorb {
         // Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
 
         // In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
-        let randX = this.randomRange(-7,-16)
-        let randZ = this.randomRange(-13,-8)
+        let randX = this.randomRange(-7, -16)
+        let randZ = this.randomRange(-13, -8)
         this.camera.position.set(randX, this.cameraHeight, randZ)
 
         // PARACHUTE IS BACK...
@@ -135,6 +137,8 @@ export class Yorb {
             this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse)
             this.show.setup()
             this.itpModel = new ITPModel(this.scene)
+
+            this.photoGallery = new PhotoGallery(this.scene);
         }
 
         // this.sketches = new Sketches(this.scene)
@@ -192,9 +196,9 @@ export class Yorb {
         }
     }
 
-    swapMaterials(){
-        if (MODE === "YORB"){
-            this.itpModel.swapMaterials();
+    swapMaterials() {
+        if (MODE === 'YORB') {
+            this.itpModel.swapMaterials()
         }
     }
 
@@ -305,13 +309,12 @@ export class Yorb {
 
     // TODO make this simpler...? more performant?
     updatePositions() {
-
-      // PARACHUTE IS BACK...
-      // While landing, let's look at the middle of the area
-      if (this.camera.position.y > 5) {
-          let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
-          this.camera.lookAt(lookMiddle)
-      }
+        // PARACHUTE IS BACK...
+        // While landing, let's look at the middle of the area
+        if (this.camera.position.y > 5) {
+            let lookMiddle = new THREE.Vector3(0, this.cameraHeight, 0)
+            this.camera.lookAt(lookMiddle)
+        }
 
         let snapDistance = 0.5
         // let snapAngle = 0.2; // radians
@@ -362,15 +365,17 @@ export class Yorb {
                 this.movementCallback()
                 if (this.show) {
                     this.show.update()
-                    for(let portal of this.show.portals){ //originally had this in framecount % 50, might want to move there if too slow
-                        if(portal.teleportCheck(this.getPlayerPosition()[0])){
+                    for (let portal of this.show.portals) {
+                        //originally had this in framecount % 50, might want to move there if too slow
+                        if (portal.teleportCheck(this.getPlayerPosition()[0])) {
                             hackToRemovePlayerTemporarily()
                         }
                     }
                 }
                 if (this.yorblet) {
                     this.yorblet.update()
-                    if(this.yorblet.portal.teleportCheck(this.getPlayerPosition()[0])){ //for portal trigger
+                    if (this.yorblet.portal.teleportCheck(this.getPlayerPosition()[0])) {
+                        //for portal trigger
                         //if returns true, remove user from this yorblet
                         hackToRemovePlayerTemporarily()
                     }
