@@ -32,12 +32,12 @@ const WEB_SOCKET_SERVER = false;
 const INSTANCE_PATH = false;
 
 // For running against local server
-// const WEB_SOCKET_SERVER = 'localhost:3000'
-// const INSTANCE_PATH = '/socket.io'
+// WEB_SOCKET_SERVER = 'localhost:3000'
+// INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-// const WEB_SOCKET_SERVER = "https://yorb.itp.io";
-// const INSTANCE_PATH = "/experimental/socket.io";
+// WEB_SOCKET_SERVER = "https://yorb.itp.io";
+// INSTANCE_PATH = "/experimental/socket.io";
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:

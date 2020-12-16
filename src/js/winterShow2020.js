@@ -9,16 +9,17 @@ const project_thumbnails = require('../assets/images/project_thumbnails/winterSh
 
 const yorbletPortalReference = [ //for portal creation, needs scene, position, and index
     null, //skips 0 because that's lobby
-    {position: new Vector3(-8, 0, 30)}, //yorblet 1 -- these 5 are in north studio (more cramped?)
-    {position: new Vector3(-11, 0, 30)},
+    {position: new Vector3(-11, 0, 30)}, //yorblet 1 -- these 5 are in north studio (more cramped?)
     {position: new Vector3(-14, 0, 30)},
     {position: new Vector3(-17, 0, 30)},
     {position: new Vector3(-20, 0, 30)},
-    {position: new Vector3(-21, 0, 105)}, //these five are in south studio
-    {position: new Vector3(-16, 0, 105)},
-    {position: new Vector3(-11, 0, 105)},
-    {position: new Vector3(-6, 0, 105)},
-    {position: new Vector3(-1, 0, 105)},
+    {position: new Vector3(-23, 0, 30)},
+    {position: new Vector3(-23, 0, -96)}, //these five are in south studio
+    {position: new Vector3(-18, 0, -96)},
+    {position: new Vector3(-23, 0, -105)},
+    {position: new Vector3(-18, 0, -105)},
+    {position: new Vector3(-13, 0, -105)},
+    {position: new Vector3(-8, 0, -105)},
 ]
 
 export class WinterShow2020 {
@@ -292,6 +293,7 @@ export class WinterShow2020 {
     addPortals(){
         //goes through all yorblets except 0 (lobby) and makes portal
         for (let i = 1; i < yorbletPortalReference.length; i++){
+            console.log(yorbletPortalReference[i]);
             this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
         }
     }
@@ -385,23 +387,23 @@ export class WinterShow2020 {
         imageSign.add(textSign)
 
         // parse zoom room status
-        var status_code = _project.zoom_status
-        let status = ''
-        // status_code = 1;
-        if (status_code == '1') {
-            var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
-            var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
-            status = 'Live now!'
-            var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
-            statusTextMesh.position.x += linkDepth / 2 + 0.01
-            statusTextMesh.position.y -= 0.0625
-            statusTextMesh.rotateY(Math.PI / 2)
-            statusSign.add(statusTextMesh)
-            statusSign.position.y += 0.25
-            statusSign.position.x += 0.01
+        // var status_code = _project.zoom_status
+        // let status = ''
+        // // status_code = 1;
+        // if (status_code == '1') {
+        //     var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
+        //     var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
+        //     status = 'Live now!'
+        //     var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
+        //     statusTextMesh.position.x += linkDepth / 2 + 0.01
+        //     statusTextMesh.position.y -= 0.0625
+        //     statusTextMesh.rotateY(Math.PI / 2)
+        //     statusSign.add(statusTextMesh)
+        //     statusSign.position.y += 0.25
+        //     statusSign.position.x += 0.01
 
-            imageSign.add(statusSign)
-        }
+        //     imageSign.add(statusSign)
+        // }
 
         // https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
         let now = Date.now()
@@ -411,6 +413,9 @@ export class WinterShow2020 {
         }
 
         imageSign.name = _project.project_id
+
+        
+
         return imageSign
     }
 
@@ -456,7 +461,7 @@ export class WinterShow2020 {
             let pitch = project.elevator_pitch
             let description = project.description
             let link = project.zoom_link
-            // let room_status = this.zoomStatusDecoder(project.zoom_status)
+            let room_status = this.zoomStatusDecoder(project.zoom_status);
 
             let modalEl = document.createElement('div')
             modalEl.className = 'project-modal'
@@ -516,7 +521,7 @@ export class WinterShow2020 {
 
             let talkToCreatorDiv = document.createElement('div')
             talkToCreatorDiv.className = 'project-modal-links-header'
-            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator In The Zoom Room:'
+            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator:'
 
             let linksDiv = document.createElement('div')
             linksDiv.className = 'project-modal-link-container'
@@ -533,7 +538,7 @@ export class WinterShow2020 {
             zoomLinkEl.href = link
             // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
             zoomLinkEl.innerHTML = "Talk to the Creator!"
-            zoomLinkEl.target = '_blank'
+            zoomLinkEl.target = '_self'
             zoomLinkEl.rel = 'noopener noreferrer'
 
             linksDiv.appendChild(projectLinkEl)
