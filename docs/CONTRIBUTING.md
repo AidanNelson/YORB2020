@@ -1,65 +1,57 @@
 ## YORB 2020 could use **your** help!  *Mine?*  Yes, yours!  
 
-YORB 2020 is built in javascript and node.js from a number of different tools.
+If you want to run the code locally, you can do so against either the ITP Yorb server or a local server.  If you want to change things on the "front end" (i.e. the style, objects in the space, the way people are shown in the space, the way the floor is laid out, etc.) but don't need to do any "server-side development," you can do so by following the first set of instructions here:
 
-## Components:
-
-* [THREE.js](https://threejs.org/) is a javascript library for 3D rendering. YORB uses three.js for all 3D rendering, player controls, and interactions between users and 3D objects.
-
-* [Socket.io](https://socket.io/) is a javascript library for *"real-time, bidirectional and event-based communication."*  YORB uses socket.io for the following purposes:
-    * Creating a multiplayer environment: each client uses sockets to share the following information: when they enter and leave the space and the position and rotation of their character in 3D space
-      
-    * Allowing audio/video communication by managing [Mediasoup signaling](https://mediasoup.org/documentation/v3/communication-between-client-and-server): each client uses sockets to set up communication between their [Mediasoup Device](https://mediasoup.org/documentation/v3/mediasoup-client/api/#Device) and the Mediasoup [Router](https://mediasoup.org/documentation/v3/mediasoup/api/#Router) on the server
-
-* [Mediasoup](https://mediasoup.org/) is a *Selective Forwarding Unit* (SFU). This allows more participants to connect to one another than would be possible with direct peer-to-peer connections.  More specifically, *[an SFU](https://webrtcglossary.com/sfu/) is capable of receiving multiple media streams and then decide which of these media streams should be sent to which participants.*   Also, because Mediasoup is a C++ based SFU with node.js bindings and a javascript client side API, we are able to do all of our programming in Javascript and Node.js.
-
-## Files:
-
-Server-side:
-
-* [server.js](/server.js): this file contains all of the server logic
-* [config.js](/config.js): this file contains Mediasoup Router configuration settings
-
-Client-side:
-
-* [index.js](/src/index.js): this file contains all of the client side socket setup and Mediasoup signaling
-* [scene.js](/src/scene.js): this file exposes the `Scene` class which contains all of the three.js scene logic (interaction in the 3D space)
-
-## Local Developement Setup:
-
+## Local Developement Setup (Front End)
 
 1. Clone or fork the repository and download a local copy:
     ```bash
     git clone https://github.com/AidanNelson/YORB2020.git
     ```
-2. Navigate into the repository and install dependencies (note that it may take some time to build Mediasoup):
+2. Navigate into the repository and install dependencies:
     ```bash
     cd YORB2020
     npm install
     ```
-3. YORB relies on a secure (HTTPS) server, and as such requires that you set up certificates.  On MacOS, you can run the following commands to generate self-signed certificates.  These certificates will work for local development:
-    ```bash
-    mkdir certs
-    openssl req  -nodes -new -x509  -keyout certs/privkey.pem -out certs/fullchain.pem
-    ```
-4. Create a `.env` file following the `example.env` example:
-    ```
-   PRODUCTION_IP="YOUR.LOCAL.NETWORK.IP" 
-   PRODUCTION_PORT="3000"
-   DEBUG = "demo-app*"
-   ```
-   If you'd like to connect to the yorb.itp.io backend, use this `.env` configuration:
-    ```
-   PRODUCTION_IP="yorb.itp.io" 
-   PRODUCTION_PORT="443"
-   DEBUG = "demo-app*"
-   ```
-5. Create a new branch with a unique name and start developing:
+3. Create a new branch with a unique name and start developing:
     ```bash
     git checkout -b add-cool-feature
     ```
-    
-6. Start the build system and node server:
+4. Start the build system which includes a local development server:
+    ```bash
+    npm run watch
     ```
-    sudo npm start
+5. Navigate your browser window to http://localhost:1234
+6. Note that you may need to restart this local development server / build system from time to time to ensure that your changes are being reflected in the browser!
+
+
+## Local Development Setup (Server-Side Development)
+
+1. Follow steps 1 - 3  from above, 
+2. Change the following variables in the `src/js/index.js` file to point to your local development server like this:
+    ```js
+    // For running against local server
+    const WEB_SOCKET_SERVER = "localhost:3000";
+    const INSTANCE_PATH = "/socket.io";
+
+    // For running against ITP server
+    // const WEB_SOCKET_SERVER = "https://yorb.itp.io";
+    // const INSTANCE_PATH = "/experimental/socket.io";
     ```
+
+3. Change directory in your terminal into the `/server` folder and install all required dependencies:
+    ```bash
+    cd server
+    npm install
+    ```
+4. Change directory again back to the root directory of the project and start the server:
+    ```bash
+    cd ..
+    npm run start-server
+    ```
+5. In a separate terminal window (in the root directory of the project), start the build system (same as step #4 from above):
+    ```bash
+    npm run watch
+    ```
+6. Navigate your browser window to http://localhost:1234.  This page should now connect to your backend server at http://localhost:3000.
+7. Note that you may need to restart this local development server / build system from time to time to ensure that your changes are being reflected in the browser!

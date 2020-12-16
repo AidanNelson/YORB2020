@@ -1,65 +1,26 @@
 {
-  "name": "yorb2020",
+  "name": "yorb-2020",
   "version": "1.0.0",
   "description": "Repo for YORB2020, a virtual version of the fourth floor of 370 Jay Street.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify src/index.js -o ./public/js/bundle.js",
-    "watch": "watchify --debug src/index.js -o public/js/bundle.js -v",
-    "start": "concurrently \"nodemon server.js\" \"watchify src/index.js -o public/js/bundle.js -v\"",
-    "production": "export NODE_ENV=production && browserify src/index.js -o ./public/js/bundle.js && forever start server.js"
+    "build": "parcel build src/index.html --public-url ./",
+    "watch": "parcel src/index.html",
+    "start-server": "node server/server.js",
+    "production": "export NODE_ENV=PRODUCTION && parcel build src/index.html --public-url ./ && forever start server/server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "debug": "^4.1.1",
-    "deep-equal": "^2.0.2",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "mediasoup": "^3.5.8",
     "mediasoup-client": "^3.6.5",
     "p5": "^1.0.0",
-    "simple-peer": "^9.6.2",
-    "socket.io": "^2.3.0",
-    "three": "^0.115.0",
-    "twilio": "^3.40.0"
+    "socket.io-client": "^3.0.3",
+    "three": "^0.115.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.9.0",
-    "@babel/plugin-transform-runtime": "^7.9.0",
-    "@babel/preset-env": "^7.9.5",
-    "babel-core": "^6.26.3",
-    "babel-polyfill": "^6.26.0",
-    "babelify": "^10.0.0",
-    "browserify": "^15.2.0",
-    "concurrently": "^3.5.1",
-    "nodemon": "^1.14.12",
-    "uglify-js": "^3.3.9",
-    "watchify": "^3.10.0"
-  },
-  "browserify": {
-    "transform": [
-      [
-        "babelify",
-        {
-          "only": [
-            "./src/*.js",
-            "./node_modules/three/build/three.module.js",
-            "./node_modules/three/examples/jsm/*"
-          ],
-          "global": true,
-          "sourceType": "unambiguous",
-          "presets": [
-            "@babel/preset-env"
-          ],
-          "plugins": [
-            "@babel/plugin-transform-modules-commonjs",
-            "@babel/plugin-transform-runtime"
-          ]
-        }
-      ]
-    ]
+    "cssnano": "^4.1.10",
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^2.2.1"
   }
 }

@@ -1,0 +1,7 @@
+.DS_Store
+*.mp3
+.env
+certs/
+node_modules
+public/js/bundle.js
+images/project_thumbnails 
