@@ -1317,23 +1317,23 @@ export class Yorblet {
         imageSign.add(textSign)
 
         // parse zoom room status
-        var status_code = _project.zoom_status
-        let status = ''
-        // status_code = 1;
-        if (status_code == '1') {
-            var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
-            var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
-            status = 'Live now!'
-            var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
-            statusTextMesh.position.x += linkDepth / 2 + 0.01
-            statusTextMesh.position.y -= 0.0625
-            statusTextMesh.rotateY(Math.PI / 2)
-            statusSign.add(statusTextMesh)
-            statusSign.position.y += 0.25
-            statusSign.position.x += 0.01
+        // var status_code = _project.zoom_status
+        // let status = ''
+        // // status_code = 1;
+        // if (status_code == '1') {
+        //     var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
+        //     var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
+        //     status = 'Live now!'
+        //     var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
+        //     statusTextMesh.position.x += linkDepth / 2 + 0.01
+        //     statusTextMesh.position.y -= 0.0625
+        //     statusTextMesh.rotateY(Math.PI / 2)
+        //     statusSign.add(statusTextMesh)
+        //     statusSign.position.y += 0.25
+        //     statusSign.position.x += 0.01
 
-            imageSign.add(statusSign)
-        }
+        //     imageSign.add(statusSign)
+        // }
 
         // https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
         let now = Date.now()
@@ -1353,16 +1353,16 @@ export class Yorblet {
         let pedestalGeo = new THREE.CylinderBufferGeometry(0.5, 0.65, 1, 12)
         let pedestalMat = new THREE.MeshBasicMaterial({ color: 0x232323, flatShading: true, side: THREE.DoubleSide })
         let pedestalMesh = new THREE.Mesh(pedestalGeo, pedestalMat)
-        let pedestalGeoBigger = new THREE.CylinderBufferGeometry(0.5 + 0.01, 0.65+ 0.01, 1+ 0.01, 12)
-        const wireframe = new THREE.WireframeGeometry(pedestalGeoBigger)
-        const line = new THREE.LineSegments(wireframe)
+        // let pedestalGeoBigger = new THREE.CylinderBufferGeometry(0.5 + 0.01, 0.65+ 0.01, 1+ 0.01, 12)
+        // const wireframe = new THREE.WireframeGeometry(pedestalGeoBigger)
+        // const line = new THREE.LineSegments(wireframe)
 
-        line.material.depthTest = true
-        line.material.opacity = 0.25
-        line.material.transparent = false
+        // line.material.depthTest = true
+        // line.material.opacity = 0.25
+        // line.material.transparent = false
 
         imageSign.add(pedestalMesh)
-        pedestalMesh.add(line);
+        // pedestalMesh.add(line);
         pedestalMesh.position.set(0, -1.5, 0)
 
         return imageSign
@@ -1573,7 +1573,7 @@ export class Yorblet {
 
             let talkToCreatorDiv = document.createElement('div')
             talkToCreatorDiv.className = 'project-modal-links-header'
-            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator In The Zoom Room:'
+            talkToCreatorDiv.innerHTML = 'Learn more about the project:'
 
             let linksDiv = document.createElement('div')
             linksDiv.className = 'project-modal-link-container'
@@ -1585,16 +1585,16 @@ export class Yorblet {
             projectLinkEl.target = '_blank'
             projectLinkEl.rel = 'noopener noreferrer'
 
-            let zoomLinkEl = document.createElement('a')
+            // let zoomLinkEl = document.createElement('a')
+            // // zoomLinkEl.href = link
             // zoomLinkEl.href = link
-            zoomLinkEl.href = link
-            zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
-            zoomLinkEl.target = '_blank'
-            zoomLinkEl.rel = 'noopener noreferrer'
+            // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
+            // zoomLinkEl.target = '_blank'
+            // zoomLinkEl.rel = 'noopener noreferrer'
 
             linksDiv.appendChild(projectLinkEl)
-            linksDiv.innerHTML += '&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;'
-            linksDiv.appendChild(zoomLinkEl)
+            // linksDiv.innerHTML += '&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;'
+            // linksDiv.appendChild(zoomLinkEl)
 
             contentEl.appendChild(closeButton)
             contentEl.appendChild(projectImageEl)

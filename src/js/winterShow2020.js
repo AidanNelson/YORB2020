@@ -387,23 +387,23 @@ export class WinterShow2020 {
         imageSign.add(textSign)
 
         // parse zoom room status
-        var status_code = _project.zoom_status
-        let status = ''
-        // status_code = 1;
-        if (status_code == '1') {
-            var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
-            var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
-            status = 'Live now!'
-            var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
-            statusTextMesh.position.x += linkDepth / 2 + 0.01
-            statusTextMesh.position.y -= 0.0625
-            statusTextMesh.rotateY(Math.PI / 2)
-            statusSign.add(statusTextMesh)
-            statusSign.position.y += 0.25
-            statusSign.position.x += 0.01
+        // var status_code = _project.zoom_status
+        // let status = ''
+        // // status_code = 1;
+        // if (status_code == '1') {
+        //     var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
+        //     var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
+        //     status = 'Live now!'
+        //     var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
+        //     statusTextMesh.position.x += linkDepth / 2 + 0.01
+        //     statusTextMesh.position.y -= 0.0625
+        //     statusTextMesh.rotateY(Math.PI / 2)
+        //     statusSign.add(statusTextMesh)
+        //     statusSign.position.y += 0.25
+        //     statusSign.position.x += 0.01
 
-            imageSign.add(statusSign)
-        }
+        //     imageSign.add(statusSign)
+        // }
 
         // https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
         let now = Date.now()
