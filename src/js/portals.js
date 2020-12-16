@@ -15,7 +15,7 @@ const yorbletReference = [
     {url: 'https://yorblet4.itp.io', model:PortalModels ['ligGreen'], label: {text:"Go to Yorblet 4", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet5.itp.io', model: PortalModels['sphPink'], label: {text:"Go to Yorblet 5", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet6.itp.io', model: PortalModels['cubYellow'], label: {text:"Go to Yorblet 6", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
-    {url: 'https://yorblet7.itp.io', model: PortalModels['pyrGreen'], label: {text:"Go to Yorblet 7", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
+    {url: 'https://yorblet7.itp.io', model: PortalModels['pyrGreene'], label: {text:"Go to Yorblet 7", color:0x9be210, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet8.itp.io', model: PortalModels['ligPink'], label: {text:"Go to Yorblet 8", color:0xfc3691, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet9.itp.io', model: PortalModels['sphYellow'], label: {text:"Go to Yorblet 9", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
     {url: 'https://yorblet10.itp.io', model: PortalModels['cubBlue'], label: {text:"Go to Yorblet 10", color:0x4b4ff4, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:3}},
@@ -35,6 +35,7 @@ export class Portal {
         this.label = yorbletReference[destination_index].label; //a label object that contains the text, color, size, rotation Y, x/y/z position offset of the label (do we need more?)
 
         this.portalLoader = new GLTFLoader();
+        console.log(this.model);
         this.loadPortalModel(this.model);
     }
 

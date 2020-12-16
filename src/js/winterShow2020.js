@@ -14,11 +14,11 @@ const yorbletPortalReference = [ //for portal creation, needs scene, position, a
     {position: new Vector3(-14, 0, 30)},
     {position: new Vector3(-17, 0, 30)},
     {position: new Vector3(-20, 0, 30)},
-    {position: new Vector3(-21, 0, 105)}, //these five are in south studio
-    {position: new Vector3(-16, 0, 105)},
-    {position: new Vector3(-11, 0, 105)},
-    {position: new Vector3(-6, 0, 105)},
-    {position: new Vector3(-1, 0, 105)},
+    {position: new Vector3(-21, 0, -105)}, //these five are in south studio
+    {position: new Vector3(-16, 0, -105)},
+    {position: new Vector3(-11, 0, -105)},
+    {position: new Vector3(-6, 0, -105)},
+    {position: new Vector3(-1, 0, -105)},
 ]
 
 export class WinterShow2020 {
@@ -292,6 +292,7 @@ export class WinterShow2020 {
     addPortals(){
         //goes through all yorblets except 0 (lobby) and makes portal
         for (let i = 1; i < yorbletPortalReference.length; i++){
+            console.log(yorbletPortalReference[i]);
             this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
         }
     }

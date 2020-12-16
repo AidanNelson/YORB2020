@@ -21,7 +21,7 @@ import * as THREE from 'three'
 
 const Stats = require('./libs/stats.min.js')
 
-const MODE = "YORBLET";
+const MODE = "YORB";
 
 export class Yorb {
     constructor(_movementCallback, _clients, mySocketID) {
