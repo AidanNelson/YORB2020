@@ -612,7 +612,7 @@ export class Yorblet {
                 this.createTriFence(SKY_COLOR_BLUE_ROOM);
             }
 
-        
+
     }
 
     addPresentationStage(projectIndex, centerX, centerZ, lookAtX, lookAtZ, scaleFactor = 1, angle) {
@@ -712,7 +712,17 @@ export class Yorblet {
         let fontOffsetY = 8
         let fontOffsetZ = -3
         fontMesh.position.set(centerX, 0, centerZ)
-        fontMesh.rotateY(angle)
+
+        // Check if this is the first stage in the group
+        let firstStageCheck = projectIndex == 1 || projectIndex == this.numProjects/2 + 1
+        // Check if this Yorblet is a bolt
+        let yorbletBoltCheck = YORBLET_INDEX == 8 || YORBLET_INDEX == 4
+        
+        if (firstStageCheck && yorbletBoltCheck) {
+          fontOffsetX = 5
+          fontOffsetZ = 2
+        }
+
         fontMesh.lookAt(lookAtX, 0, lookAtZ)
         fontMesh.translateX(fontOffsetX)
         fontMesh.translateY(fontOffsetY)
