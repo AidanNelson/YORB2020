@@ -7,19 +7,20 @@ import { Portal } from './portals'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
-const yorbletPortalReference = [ //for portal creation, needs scene, position, and index
+const yorbletPortalReference = [
+    //for portal creation, needs scene, position, and index
     null, //skips 0 because that's lobby
-    {position: new Vector3(-11, 0, 30)}, //yorblet 1 -- these 5 are in north studio (more cramped?)
-    {position: new Vector3(-14, 0, 30)},
-    {position: new Vector3(-17, 0, 30)},
-    {position: new Vector3(-20, 0, 30)},
-    {position: new Vector3(-23, 0, 30)},
-    {position: new Vector3(-23, 0, -96)}, //these five are in south studio
-    {position: new Vector3(-18, 0, -96)},
-    {position: new Vector3(-23, 0, -105)},
-    {position: new Vector3(-18, 0, -105)},
-    {position: new Vector3(-13, 0, -105)},
-    {position: new Vector3(-8, 0, -105)},
+    { position: new Vector3(-11, 0, 30) }, //yorblet 1 -- these 5 are in north studio (more cramped?)
+    { position: new Vector3(-14, 0, 30) },
+    { position: new Vector3(-17, 0, 30) },
+    { position: new Vector3(-20, 0, 30) },
+    { position: new Vector3(-23, 0, 30) },
+    { position: new Vector3(-23, 0, -96) }, //these five are in south studio
+    { position: new Vector3(-18, 0, -96) },
+    { position: new Vector3(-23, 0, -105) },
+    { position: new Vector3(-18, 0, -105) },
+    { position: new Vector3(-13, 0, -105) },
+    { position: new Vector3(-8, 0, -105) },
 ]
 
 export class WinterShow2020 {
@@ -29,8 +30,8 @@ export class WinterShow2020 {
         this.controls = controls
         this.mouse = mouse
 
-        this.hightlightedProjectId = -1;
-        this.activeProjectId = -1; // will change to project ID if a project is active
+        this.hightlightedProjectId = -1
+        this.activeProjectId = -1 // will change to project ID if a project is active
 
         // we need some stuff to operate:
         this.raycaster = new THREE.Raycaster()
@@ -47,8 +48,8 @@ export class WinterShow2020 {
         this.projects = []
         this.hyperlinkedObjects = []
         this.linkMaterials = {}
-        
-        this.portals = [];
+
+        this.portals = []
 
         // let domElement = document.getElementById('scene-container')
         window.addEventListener('click', (e) => this.onMouseClick(e), false)
@@ -127,7 +128,7 @@ export class WinterShow2020 {
                 }
 
                 startIndex = endIndex
-                endIndex = uniqueProjects.length;
+                endIndex = uniqueProjects.length
                 for (let i = startIndex; i < endIndex; i++) {
                     let proj = uniqueProjects[i]
                     let locX = -14
@@ -217,7 +218,6 @@ export class WinterShow2020 {
                 //     this.scene.add(hyperlink)
                 // }
 
-
                 // startIndex = endIndex
                 // endIndex = endIndex + 11
                 // for (let i = startIndex; i < endIndex; i++) {
@@ -290,10 +290,10 @@ export class WinterShow2020 {
         }
     }
 
-    addPortals(){
+    addPortals() {
         //goes through all yorblets except 0 (lobby) and makes portal
-        for (let i = 1; i < yorbletPortalReference.length; i++){
-            console.log(yorbletPortalReference[i]);
+        for (let i = 1; i < yorbletPortalReference.length; i++) {
+            console.log(yorbletPortalReference[i])
             this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
         }
     }
@@ -349,15 +349,15 @@ export class WinterShow2020 {
             textBoxMat = this.linkMaterial
         }
 
-        let tex;
+        let tex
         if (project_thumbnails[_project.project_id]) {
             tex = this.textureLoader.load(project_thumbnails[_project.project_id])
         } else {
-            tex = this.textureLoader.load(project_thumbnails["0000"]); // default texture
+            tex = this.textureLoader.load(project_thumbnails['0000']) // default texture
         }
         tex.wrapS = THREE.RepeatWrapping
-            tex.wrapT = THREE.RepeatWrapping
-            tex.repeat.set(1, 1)
+        tex.wrapT = THREE.RepeatWrapping
+        tex.repeat.set(1, 1)
 
         let imageMat = new THREE.MeshLambertMaterial({
             color: 0xffffff,
@@ -414,8 +414,6 @@ export class WinterShow2020 {
 
         imageSign.name = _project.project_id
 
-        
-
         return imageSign
     }
 
@@ -452,8 +450,7 @@ export class WinterShow2020 {
         // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
         if (!document.getElementsByClassName('project-modal')[0]) {
-
-            this.controls.pause();
+            this.controls.pause()
             localStorage.setItem(project.project_id, 'visited')
 
             let id = project.project_id
@@ -461,7 +458,7 @@ export class WinterShow2020 {
             let pitch = project.elevator_pitch
             let description = project.description
             let link = project.zoom_link
-            let room_status = this.zoomStatusDecoder(project.zoom_status);
+            let room_status = this.zoomStatusDecoder(project.zoom_status)
 
             let modalEl = document.createElement('div')
             modalEl.className = 'project-modal'
@@ -477,11 +474,10 @@ export class WinterShow2020 {
                 let now = Date.now()
                 let link = this.scene.getObjectByName(id)
                 link.userData.lastVisitedTime = now
-                this.controls.resume();
+                this.controls.resume()
                 setTimeout(() => {
-                    this.activeProjectId = -1;
-                }, 100); // this helps reset without reopening the modal
-                
+                    this.activeProjectId = -1
+                }, 100) // this helps reset without reopening the modal
             })
             closeButton.innerHTML = 'X'
 
@@ -537,13 +533,15 @@ export class WinterShow2020 {
             // zoomLinkEl.href = link
             zoomLinkEl.href = link
             // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
-            zoomLinkEl.innerHTML = "Talk to the Creator!"
+            zoomLinkEl.innerHTML = 'Talk to the Creator!'
             zoomLinkEl.target = '_self'
             zoomLinkEl.rel = 'noopener noreferrer'
 
             linksDiv.appendChild(projectLinkEl)
             linksDiv.innerHTML += '&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;'
-            linksDiv.appendChild(zoomLinkEl)
+            if (project.zoom_status === 1) {
+                linksDiv.appendChild(zoomLinkEl)
+            }
 
             contentEl.appendChild(closeButton)
             contentEl.appendChild(projectImageEl)
@@ -642,13 +640,13 @@ export class WinterShow2020 {
                 hackToRemovePlayerTemporarily()
 
                 // reset markers
-                this.activeProjectId = link.userData.project.project_id;
+                this.activeProjectId = link.userData.project.project_id
             }
         }
     }
 
     update() {
-        if (this.activeProjectId == -1){
+        if (this.activeProjectId == -1) {
             this.highlightHyperlinks()
         }
     }
