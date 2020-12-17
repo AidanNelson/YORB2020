@@ -141,6 +141,11 @@ export class WinterShow2020 {
         mapPlane.rotateY(posterRotation)
         this.scene.add(mapPlane)
 
+        const mapPlane2 = new THREE.Mesh(mapGeometry, mapMaterial);
+        mapPlane2.position.set(15,1.75,2.15);
+        mapPlane2.rotateY(Math.PI);
+        this.scene.add(mapPlane2);
+
 
       }
 
