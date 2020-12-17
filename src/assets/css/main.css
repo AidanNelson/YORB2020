@@ -155,7 +155,7 @@ body {
     color: black;
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    /* flex-wrap: nowrap; */
     /* Then we define how is distributed the remaining space */
     justify-content: space-around;
     padding: 0;
@@ -201,7 +201,7 @@ body {
     color: yellow;
 }
 .box-content > a:hover {
-    background-color: rgba(0, 0, 0, 1);
+    background-color: rgba(50, 50, 50, 1);
     color: yellow;
 }
 
@@ -245,6 +245,17 @@ body {
     -webkit-animation: scroll 20s linear infinite;
     -moz-animation: scroll 20s linear infinite;
     animation: scroll 20s linear infinite;
+}
+
+#html-project-list {
+  text-align: left;
+  overflow: scrollable;
+  white-space: nowrap;
+  overflow-y: auto;
+  overflow-x: auto;
+  /* -webkit-animation: scroll 60s linear infinite;
+  -moz-animation: scroll 60s linear infinite;
+  animation: scroll 60s linear infinite; */
 }
 
 @keyframes scroll {
@@ -319,7 +330,7 @@ body {
     display: flex;
     margin-left: auto;
     margin-right: auto;
-    width: 50%; 
+    width: 50%;
 }
 .project-modal-link-container {
     display: flex;

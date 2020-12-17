@@ -255,6 +255,7 @@ function updateProjects(_projects) {
     projects = _projects
     if (yorbScene.updateProjects) {
         yorbScene.updateProjects(projects)
+        yorbScene.createHtmlProjectList(projects)
     }
 }
 

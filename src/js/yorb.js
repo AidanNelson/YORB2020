@@ -210,6 +210,131 @@ export class Yorb {
         }
     }
 
+    createHtmlProjectList(_projects) {
+
+      let projects = _projects
+
+      // do a check for duplicates
+      let dupeCheck = {}
+      let numUniqueProjects = 0
+
+      let uniqueProjects = []
+
+      for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
+          let proj = projects[projectIndex]
+          if (proj) {
+              let project_id = proj.project_id
+
+              if (dupeCheck[project_id]) {
+                  // log('Duplicate with ID: ', proj.project_id);
+              } else {
+                  dupeCheck[project_id] = true
+                  numUniqueProjects++
+                  uniqueProjects.push(proj)
+              }
+          }
+      }
+      log('Number of total projects: ', projects.length)
+      log('Number of unique projects: ', numUniqueProjects)
+
+      // Make an HTML link to add to our overlay
+      let project_box = document.getElementById('html-project-list')
+      let our_projects = []
+
+      for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
+          let proj = projects[projectIndex]
+          if (proj) {
+
+              let proj_name = proj.project_name
+              let proj_link = proj.zoom_link
+
+              let users = proj.users
+              let user_name = ""
+              for (let i = 0; i < users.length; i++) {
+                user_name+=users[i].user_name
+                if (users.length > 1) {
+                  if (i < users.length - 1)
+                  user_name+=' \& '
+                }
+              }
+
+              let presFormat = ""
+              if (proj.room_id == "-1") {
+                presFormat = "Zoom"
+              } else {
+                let yorbletNum = proj.room_id + 1
+                presFormat = "Yorblet " + yorbletNum.toString()
+              }
+
+              let position = ""
+              switch (proj.position_id) {
+                case "0":
+                  position = "A"
+                  break
+                case "1":
+                  position = "B"
+                  break
+                case "2":
+                  position = "C"
+                  break
+                case "3":
+                  position = "D"
+                  break
+                case "4":
+                  position = "E"
+                  break
+                case "5":
+                  position = "F"
+                  break
+                case "6":
+                  position = "G"
+                  break
+                case "7":
+                  position = "H"
+                  break
+              }
+
+              let the_project = [
+                                  this.parseText(proj_name.toLowerCase()), // 0
+                                  this.parseText(proj_name), // 1
+                                  user_name, // 2
+                                  presFormat, // 3
+                                  position, // 4
+                                  proj_link // 5
+                                ]
+              our_projects.push(the_project)
+
+          }
+      }
+
+      // Sort the projects based on the lower case, parsed text (function below)
+      let sorted_projects = our_projects.sort()
+      console.table(sorted_projects)
+      // Now we create our links fromm the sorted data
+      for (let p of sorted_projects) {
+        // Taking array numbers from the_project above
+        var project_html = document.createElement('a')
+        project_html.setAttribute('href', p[5])
+        project_html.setAttribute('title', project_html.innerText)
+        project_html.innerText+=`${p[1]} - `
+        project_html.innerText+=`${p[2]} `
+        project_html.innerText+=`(${p[3]}${p[4]})`
+        project_html.innerHTML+=`<br>`
+        project_box.appendChild(project_html)
+      }
+
+    }
+
+    // this decodes the text twice because the project database seems to be double wrapped in html...
+    // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
+    parseText(encodedStr) {
+        var dom = this.textParser.parseFromString('<!doctype html><body>' + encodedStr, 'text/html')
+        var decodedString = dom.body.textContent
+        var dom2 = this.textParser.parseFromString('<!doctype html><body>' + decodedString, 'text/html')
+        var decodedString2 = dom2.body.textContent
+        return decodedString2
+    }
+
     swapMaterials() {
         if (MODE === 'YORB') {
             this.itpModel.swapMaterials()
