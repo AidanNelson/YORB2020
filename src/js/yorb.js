@@ -309,7 +309,7 @@ export class Yorb {
 
       // Sort the projects based on the lower case, parsed text (function below)
       let sorted_projects = our_projects.sort()
-      console.table(sorted_projects)
+    //   console.table(sorted_projects)
       // Now we create our links fromm the sorted data
       for (let p of sorted_projects) {
         // Taking array numbers from the_project above
