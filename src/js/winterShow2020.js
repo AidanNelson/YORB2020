@@ -643,7 +643,7 @@ export class WinterShow2020 {
             // zoomLinkEl.href = link
             zoomLinkEl.href = link
             // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
-            zoomLinkEl.innerHTML = 'Talk to the Creator!'
+            zoomLinkEl.innerHTML = 'Join Live Presentation!'
             zoomLinkEl.target = '_self'
             zoomLinkEl.rel = 'noopener noreferrer'
 
