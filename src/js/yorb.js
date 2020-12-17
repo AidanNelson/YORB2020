@@ -206,6 +206,107 @@ export class Yorb {
         }
     }
 
+    createHtmlProjectList(_projects) {
+
+      let projects = _projects
+
+      // do a check for duplicates
+      let dupeCheck = {}
+      let numUniqueProjects = 0
+
+      let uniqueProjects = []
+
+      for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
+          let proj = projects[projectIndex]
+          if (proj) {
+              let project_id = proj.project_id
+
+              if (dupeCheck[project_id]) {
+                  // log('Duplicate with ID: ', proj.project_id);
+              } else {
+                  dupeCheck[project_id] = true
+                  numUniqueProjects++
+                  uniqueProjects.push(proj)
+              }
+          }
+      }
+      log('Number of total projects: ', projects.length)
+      log('Number of unique projects: ', numUniqueProjects)
+
+      // Make an HTML link to add to our overlay
+      let project_box = document.getElementById('html-project-list')
+
+      for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
+          let proj = projects[projectIndex]
+          if (proj) {
+
+              let proj_name = proj.project_name
+
+              let proj_link = proj.zoom_link
+
+              let users = proj.users
+              let user_name = ""
+              for (let i = 0; i < users.length; i++) {
+                user_name+=users[i].user_name
+                if (users.length > 1) {
+                  if (i < users.length - 1)
+                  user_name+=' \& '
+                }
+              }
+
+              let presFormat = ""
+              if (proj.room_id == "-1") {
+                presFormat = "Zoom"
+              } else {
+                let yorbletNum = proj.room_id + 1
+                presFormat = "Yorblet " + yorbletNum.toString()
+              }
+
+              let position = ""
+              switch (proj.position_id) {
+                case "0":
+                  position = "A"
+                  break
+                case "1":
+                  position = "B"
+                  break
+                case "2":
+                  position = "C"
+                  break
+                case "3":
+                  position = "D"
+                  break
+                case "4":
+                  position = "E"
+                  break
+                case "5":
+                  position = "F"
+                  break
+                case "6":
+                  position = "G"
+                  break
+                case "7":
+                  position = "H"
+                  break
+              }
+
+
+
+              var project_html = document.createElement('a')
+              project_html.setAttribute('href', proj_link)
+              project_html.setAttribute('title', project_html.innerText)
+              project_html.innerText+=`${proj_name} - `
+              project_html.innerText+=`${user_name} `
+              project_html.innerText+=`(${presFormat}${position})`
+              project_html.innerHTML+=`<br>`
+              project_box.appendChild(project_html)
+
+
+          }
+      }
+
+    }
+
     swapMaterials() {
         if (MODE === 'YORB') {
             this.itpModel.swapMaterials()
