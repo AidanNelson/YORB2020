@@ -11,7 +11,7 @@ export class ITPModel {
 
         this.collidableMeshList = []
         this.floorModelParts = []
-
+        this.coverElevatorBankArea();
     }
 
     getCollidableMeshList() {
@@ -103,6 +103,20 @@ export class ITPModel {
                 console.error(e)
             }
         )
+    }
+
+    coverElevatorBankArea() {
+        let boxGeo = new THREE.BoxBufferGeometry(24.75,5,0.1);
+        let leftSideCover = new THREE.Mesh(boxGeo, this.wallMaterial);
+        leftSideCover.position.set(16,2,-4.1);
+
+        let rightSideCover = new THREE.Mesh(boxGeo, this.wallMaterial);
+        rightSideCover.position.set(14.65,2,2.25);
+        this.scene.add(leftSideCover)
+        this.scene.add(rightSideCover);
+
+        leftSideCover.layers.enable(3)
+        rightSideCover.layers.enable(3)
     }
 
     loadFloorModel() {
