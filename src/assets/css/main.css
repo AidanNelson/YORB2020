@@ -182,6 +182,10 @@ body {
     overflow: hidden;
 }
 
+#project-details {
+    overflow: scroll;
+}
+
 .box-title {
     font-weight: bold;
     margin: 1%;
