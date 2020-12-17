@@ -60,6 +60,35 @@ export class Signage {
         txt.rotateY(Math.PI)
         this.scene.add(txt)
 
+        message = 'Memories Fall 2020'
+        // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, font outerColor, innerColor
+        txt = create3DText(message, 0.35, textDepth, curveSegments, 0.01, bevelSize*0.5, bevelEnabled, false, font, outerColor)
+        txt.position.set(-14, 2.8, -25)
+        txt.rotateY(Math.PI*1.5)
+        this.scene.add(txt)
+
+        // message = 'Family Photos'
+        // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, font outerColor, innerColor
+        txt = create3DText(message, 0.35, textDepth, curveSegments, 0.01, bevelSize*0.5, bevelEnabled, false, font, outerColor)
+        txt.position.set(-7, 2.8, -53)
+        txt.rotateY(Math.PI*1.5)
+        this.scene.add(txt)
+
+
+        // message = 'Family Photos'
+        // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, font outerColor, innerColor
+        txt = create3DText(message, 0.35, textDepth, curveSegments, 0.01, bevelSize*0.5, bevelEnabled, false, font, outerColor)
+        txt.position.set(-7.3, 2.8, -69)
+        txt.rotateY(Math.PI*1.5)
+        this.scene.add(txt)
+
+        // message = 'Family Photos'
+        // params: text, size, depth, curveSegments, bevelThickness, bevelSize, bevelEnabled, mirror, font outerColor, innerColor
+        txt = create3DText(message, 0.35, textDepth, curveSegments, 0.01, bevelSize*0.5, bevelEnabled, false, font, outerColor)
+        txt.position.set(-23, 2.8, -88)
+        txt.rotateY(Math.PI / 2)
+        this.scene.add(txt)
+
         // message = "Resident's Residence"
         // txt = create3DText(message, 0.6, textDepth, curveSegments, 0.01, 0.01, false, false, font, outerColor, innerColor)
         // txt.position.set(-12.5, 1.75, -0.75)
