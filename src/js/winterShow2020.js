@@ -649,7 +649,7 @@ export class WinterShow2020 {
 
             linksDiv.appendChild(projectLinkEl)
             linksDiv.innerHTML += '&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;'
-            if (project.zoom_status === 1) {
+            if (project.zoom_status == 1) {
                 linksDiv.appendChild(zoomLinkEl)
             }
 
