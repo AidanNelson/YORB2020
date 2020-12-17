@@ -141,6 +141,11 @@ export class WinterShow2020 {
         mapPlane.rotateY(posterRotation)
         this.scene.add(mapPlane)
 
+        const mapPlane2 = new THREE.Mesh(mapGeometry, mapMaterial);
+        mapPlane2.position.set(15,1.75,2.15);
+        mapPlane2.rotateY(Math.PI);
+        this.scene.add(mapPlane2);
+
 
       }
 
@@ -211,10 +216,9 @@ export class WinterShow2020 {
                 let proj = projects[projectIndex]
                 if (proj) {
                     let project_id = proj.project_id
-
-                    if (dupeCheck[project_id]) {
-                        // log('Duplicate with ID: ', proj.project_id);
-                    } else {
+                    let isZoomProject = proj.room_id == "-1";
+                    if (dupeCheck[project_id])  continue;
+                    if (isZoomProject)  {
                         dupeCheck[project_id] = true
                         numUniqueProjects++
                         uniqueProjects.push(proj)
@@ -222,33 +226,34 @@ export class WinterShow2020 {
                 }
             }
             log('Number of total projects: ', this.projects.length)
-            log('Number of unique projects: ', numUniqueProjects)
+            log('Number of unique zoom projects: ', numUniqueProjects)
 
             if (numUniqueProjects > 0) {
                 // if the projects have been updated
                 let startIndex = 0
-                let endIndex = 96
+                let endIndex = numUniqueProjects
                 for (let i = startIndex; i < endIndex; i++) {
                     let proj = uniqueProjects[i]
+                    if (!proj) return;
                     let locX = -23.55
-                    let locZ = -80 + i * 1
+                    let locZ = -25 + i * 1
                     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
                     this.hyperlinkedObjects.push(hyperlink)
                     this.scene.add(hyperlink)
                 }
 
-                startIndex = endIndex
-                endIndex = uniqueProjects.length
-                for (let i = startIndex; i < endIndex; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -14
-                    let offset = i - startIndex * 1
-                    let locZ = -6 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
-                }
+                // startIndex = endIndex
+                // endIndex = uniqueProjects.length
+                // for (let i = startIndex; i < endIndex; i++) {
+                //     let proj = uniqueProjects[i]
+                //     let locX = -14
+                //     let offset = i - startIndex * 1
+                //     let locZ = -6 + offset
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
+                //     hyperlink.rotateY(Math.PI)
+                //     this.hyperlinkedObjects.push(hyperlink)
+                //     this.scene.add(hyperlink)
+                // }
 
                 // startIndex = endIndex
                 // endIndex = endIndex + 12
