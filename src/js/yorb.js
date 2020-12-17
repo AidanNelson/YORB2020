@@ -79,10 +79,14 @@ export class Yorb {
          */
 
         // Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
+        let randX = this.randomRange(6, 20)
+        let randZ = this.randomRange(-2.5, -1.5)
 
         // In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
-        let randX = this.randomRange(-7, -16)
-        let randZ = this.randomRange(-13, -8)
+        // let randX = this.randomRange(-7, -16)
+        // let randZ = this.randomRange(-13, -8)
+
+        // Set the starting position
         this.camera.position.set(randX, this.cameraHeight, randZ)
 
         // PARACHUTE IS BACK...
