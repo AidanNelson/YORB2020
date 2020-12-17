@@ -262,7 +262,7 @@ export class Yorb {
               if (proj.room_id == "-1") {
                 presFormat = "Zoom"
               } else {
-                let yorbletNum = proj.room_id + 1
+                let yorbletNum = proj.room_id
                 presFormat = "Yorblet " + yorbletNum.toString()
               }
 
@@ -313,13 +313,15 @@ export class Yorb {
       // Now we create our links fromm the sorted data
       for (let p of sorted_projects) {
         // Taking array numbers from the_project above
+
         var project_html = document.createElement('a')
         project_html.setAttribute('href', p[5])
         project_html.setAttribute('title', project_html.innerText)
-        project_html.innerText+=`${p[1]} - `
-        project_html.innerText+=`${p[2]} `
-        project_html.innerText+=`(${p[3]}${p[4]})`
-        project_html.innerHTML+=`<br>`
+        project_html.innerHTML+=`${p[2]} - `
+        project_html.innerHTML+=`<br />`
+        project_html.innerHTML+=`${p[1]} `
+        project_html.innerHTML+=`(${p[3]}${p[4]})`
+        project_html.innerHTML+=`<br /><br />`
         project_box.appendChild(project_html)
       }
 
