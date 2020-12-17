@@ -322,7 +322,7 @@ function setupControls() {
             }
             if (e.keyCode == 80) {
                 // 'p'
-                info(yorbScene.getPlayerPosition()[0])
+                console.log(yorbScene.getPlayerPosition()[0])
             }
         },
         false
