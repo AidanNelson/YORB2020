@@ -28,6 +28,8 @@ if (hostname === 'yorblet1.itp.io') {
     YORBLET_INDEX = 5
 } else if (hostname === 'yorblet6.itp.io') {
     YORBLET_INDEX = 6
+}else if (hostname === 'yorbletsix.itp.io') {
+    YORBLET_INDEX = 6
 } else if (hostname === 'yorblet7.itp.io') {
     YORBLET_INDEX = 7
 } else if (hostname === 'yorblet8.itp.io') {
