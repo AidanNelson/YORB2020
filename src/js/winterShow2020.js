@@ -82,7 +82,7 @@ export class WinterShow2020 {
       //add welcome sign
         const welcomeTexture = new THREE.TextureLoader().load(require('../assets/images/decals/welcome_sign_export_4x.png'));
         const tipsTexture = new THREE.TextureLoader().load(require('../assets/images/decals/tips_export_4x.png'));
-        const mapTexture = new THREE.TextureLoader().load(require('../assets/images/decals/full_map_export_1x.png'));
+        const mapTexture = new THREE.TextureLoader().load(require('../assets/images/decals/full_map_export_1x_new.png'));
 
         //add welcome poster
         let posterX = -6.5
@@ -134,7 +134,7 @@ export class WinterShow2020 {
         mapTexture.wrapT = THREE.RepeatWrapping
         mapTexture.repeat.set(1, 1)
 
-        const mapGeometry = new THREE.PlaneBufferGeometry(4.25, 2.5, 1, 1)
+        const mapGeometry = new THREE.PlaneBufferGeometry(5, 2.5, 1, 1)
         const mapMaterial = new THREE.MeshBasicMaterial({ map: mapTexture, transparent: true})
         const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial)
         //plane.lookAt(0, 1, 0)
@@ -154,10 +154,11 @@ export class WinterShow2020 {
 
         const ArrowImages = require('../assets/images/arrow_signs/*.png')
         const arrowImageObjects = [
-            {file:ArrowImages['MainProjArea_Forward'], w:4, h:2.5, x:-10, y:0.01, z:-12, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
+            {file:ArrowImages['MainProjArea_Forward'], w:4, h:2.5, x:-9, y:0.01, z:-12, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
             {file:ArrowImages['MainProjArea_Forward'], w:4, h:2.5, x:-1, y:0.01, z:-12, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
-            {file:ArrowImages['Yorblet1-6_Left'], w:4, h:2.5, x:-18, y:0.01, z:-5, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
-            {file:ArrowImages['Yorblet6-12_Right'], w:4.5, h:2.5, x:-18, y:0.01, z:-23, rotateX:-Math.PI / 2, rotateY:Math.PI / 2}
+            {file:ArrowImages['Yorblet1-6_Left'], w:4, h:2, x:-18, y:0.01, z:-5, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
+            {file:ArrowImages['Yorblet6-12_Right'], w:4.5, h:2, x:-18, y:0.01, z:-23, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
+            {file:ArrowImages['ZoomProjects'], w:4, h:2, x:-18, y:0.01, z:-14, rotateX:-Math.PI / 2, rotateY:Math.PI / 2}
         ]
        
         arrowImageObjects.forEach((img) =>{
