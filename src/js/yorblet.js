@@ -615,12 +615,11 @@ export class Yorblet {
                 this.addSky(SKY_COLOR_BLUE_ROOM);
                 this.createTriFence(SKY_COLOR_BLUE_ROOM);
             }
-            else if (YORBLET_INDEX === 12) { // BLUE TRIANGLE
-                // do styling for yorblet 8
-                this.addSky(SKY_COLOR_BLUE_ROOM);
-                this.createTriFence(SKY_COLOR_BLUE_ROOM);
+            else if (YORBLET_INDEX === 12) { // GREEN CIRCLE
+                // do styling for yorblet 12
+                this.addSky(SKY_COLOR_GREEN_ROOM);
+                this.createCircleFence(SKY_COLOR_GREEN_ROOM);
             }
-
 
     }
 
@@ -669,9 +668,9 @@ export class Yorblet {
             // do styling for yorblet 8
             this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_BLUE, COL_SECOND_BLUE,COL_MAIN_PINK)
         }
-        else if (YORBLET_INDEX === 12) { // BLUE SQUARE
-            // do styling for yorblet 8
-            this.addTriRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_MAIN_BLUE, COL_SECOND_BLUE,COL_MAIN_PINK)
+        else if (YORBLET_INDEX === 12) { // GREEN CIRCLE
+            // do styling for yorblet 12
+            this.addCircleRoom(centerX, centerZ, lookAtX, lookAtZ, angle, COL_ACCENT_BLUE, COL_SECOND_GREEN, COL_ACCENT_YELLOW )
         }
 
         // making a mini dome
