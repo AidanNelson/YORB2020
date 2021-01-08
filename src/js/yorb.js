@@ -213,6 +213,7 @@ export class Yorb {
     createHtmlProjectList(_projects) {
 
       let projects = _projects
+      // console.log("projects: ", projects)
 
       // do a check for duplicates
       let dupeCheck = {}
@@ -237,8 +238,11 @@ export class Yorb {
       log('Number of total projects: ', projects.length)
       log('Number of unique projects: ', numUniqueProjects)
 
-      // Make an HTML link to add to our overlay
+      // Grab the HTML where we will add our list
       let project_box = document.getElementById('html-project-list')
+      // Clear the contents if there are any to allow for updates
+      if (project_box.innerHTML) project_box.innerHTML = ""
+
       let our_projects = []
 
       for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
@@ -259,12 +263,16 @@ export class Yorb {
               }
 
               let presFormat = ""
-              if (proj.room_id == "-1") {
-                presFormat = "Zoom"
-              } else {
-                let yorbletNum = proj.room_id
-                presFormat = "Yorblet " + yorbletNum.toString()
+              let yorbletNum = ""
+              if (proj.room_id) {
+                if (proj.room_id == "-1") {
+                  presFormat = "Zoom"
+                } else {
+                  presFormat = "Yorblet"
+                  yorbletNum = proj.room_id
+                }
               }
+
 
               let position = ""
               switch (proj.position_id) {
@@ -294,33 +302,47 @@ export class Yorb {
                   break
               }
 
-              let the_project = [
-                                  this.parseText(proj_name.toLowerCase()), // 0
-                                  this.parseText(proj_name), // 1
-                                  user_name, // 2
-                                  presFormat, // 3
-                                  position, // 4
-                                  proj_link // 5
-                                ]
+              // Add the position to the Yorblet number, i.e. A1
+              position = yorbletNum + position
+
+              let the_project = {
+                                  projectName: this.parseText(proj_name),
+                                  userName: user_name,
+                                  presFormat: presFormat,
+                                  position: position,
+                                  projectLink: proj_link
+                                }
+
               our_projects.push(the_project)
 
           }
       }
 
       // Sort the projects based on the lower case, parsed text (function below)
-      let sorted_projects = our_projects.sort()
-    //   console.table(sorted_projects)
+      // from https://stackoverflow.com/questions/19259233/sorting-json-by-specific-element-alphabetically
+      function compareStrings(a, b) {
+        // Assuming you want case-insensitive comparison
+        a = a.toLowerCase();
+        b = b.toLowerCase();
+
+        return (a < b) ? -1 : (a > b) ? 1 : 0;
+      }
+
+      let sorted_projects = our_projects.sort((a, b) => {
+              return compareStrings(a.projectName, b.projectName)
+      })
+      // console.table(sorted_projects)
+      
       // Now we create our links fromm the sorted data
       for (let p of sorted_projects) {
         // Taking array numbers from the_project above
-
         var project_html = document.createElement('a')
-        project_html.setAttribute('href', p[5])
+        project_html.setAttribute('href', p.projectLink)
         project_html.setAttribute('title', project_html.innerText)
-        project_html.innerHTML+=`${p[2]} - `
+        project_html.innerHTML+=`${p.userName} - `
         project_html.innerHTML+=`<br />`
-        project_html.innerHTML+=`${p[1]} `
-        project_html.innerHTML+=`(${p[3]}${p[4]})`
+        project_html.innerHTML+=`${p.projectName} `
+        if (p.presFormat) project_html.innerHTML+=`(${p.presFormat} ${p.position})`
         project_html.innerHTML+=`<br /><br />`
         project_box.appendChild(project_html)
       }
