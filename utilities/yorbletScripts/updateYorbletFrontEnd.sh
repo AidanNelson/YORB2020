@@ -1,0 +1,1 @@
+cd /root/YORB2020 && git reset --hard HEAD && git checkout winter-show-2020 && git pull && npm run build

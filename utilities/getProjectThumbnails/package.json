@@ -1,0 +1,12 @@
+{
+  "name": "download-project-thumbs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.88.2",
+    "sharp": "^0.25.2"
+  }
+}

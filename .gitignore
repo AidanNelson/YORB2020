@@ -7,3 +7,4 @@ public/js/bundle.js
 images/project_thumbnails
 .cache
 dist/
+utilities/getProjectThumbnails/projectThumbnails
