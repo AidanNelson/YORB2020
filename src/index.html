@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>YORB 2020</title>
+
+        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+        <script>
+            // window.localStorage.setItem('debug', 'YORB*')
+            console.log("██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗    ████████╗ ██████╗     ██╗   ██╗ ██████╗ ██████╗ ██████╗ \n██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝    ╚══██╔══╝██╔═══██╗    ╚██╗ ██╔╝██╔═══██╗██╔══██╗██╔══██╗\n██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗         ██║   ██║   ██║     ╚████╔╝ ██║   ██║██████╔╝██████╔╝\n██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝         ██║   ██║   ██║      ╚██╔╝  ██║   ██║██╔══██╗██╔══██╗\n╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗       ██║   ╚██████╔╝       ██║   ╚██████╔╝██║  ██║██████╔╝\n ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝       ╚═╝    ╚═════╝        ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═════╝ \n");
+        </script>
+
+        <link rel="stylesheet" type="text/css" href="./assets/css/main.css" />
+        <link rel="shortcut icon" type="image/gif" href="./assets/images/favicon.png" />
+    </head>
+
+    <body>
+        <!-- <object id="p5-sketch-container" data="./assets/p5-sketches/sketches.html">Your browser doesn’t support the object tag.</object> -->
+        <div class="full-width-column">
+            <div class="main-content-container">
+                <div id="scene-container"></div>
+                <div id="overlay">
+                    <div style="padding-top: 5%">
+                        <button id="startButton"><img src="./assets/images/enter.png" /></button>
+                    </div>
+                </div>
+
+                <div class="webcam-status-overlay">
+                    <div class="vertical-positioning-container">
+                        <div class="centered-container">
+                            <img id="webcam-status-image" src="./assets/images/webcam.png" />
+                            <img id="microphone-status-image" src="./assets/images/mic.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom_bar_container">
+                <div class="bottom_bar">
+                    <div id="project-details">
+                        <div class="box-title">ITP Winter Show 2020</div>
+                        <div class="box-content">
+                            Wed Dec 16th, 8-10 p.m. ET <br />
+                            Thu Dec 17th, 8-10 p.m. ET <br /><br />
+                        </div>
+                        <div class="box-content" id="html-project-list">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="box-title">CONTROLS:</div>
+                        <div class="box-content">
+                            ESCAPE.......exit<br />
+                            WASD.........move<br />
+                            SPACEBAR.....jump<br />
+                            MOUSE........look<br />
+                            C............webcam<br />
+                            M............mic<br />
+                            1............paint
+                        </div>
+                        <br />
+                    </div>
+
+                    <div id="self-view-box">
+                        <div id="self-view-canvas-container"></div>
+                    </div>
+
+                    <div>
+                        <!-- <div class="box-title" style="background-color: rgb(72, 72, 72);">CREDITS:</div> -->
+                        <div id="credits-box" class="box-content">
+                            <br />
+                            <br />
+                            <br />
+                            Built with ❤️ at ITP
+                            <br />
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://www.aidanjnelson.com/">Aidan Nelson</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="http://nicoleaptekar.com/">Nicole Aptekar</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://ellennickles.site/">Ellen Nickles</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://www.jesse-simpson.com/">Jesse Simpson</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="http://alden.website/">Alden Rivendale Jones</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://billybennett.tv/">Billy Bennett</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://www.lydiajessup.me/">Lydia Jessup</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://augustluhrs.art/portfolio">August Luhrs</a>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://www.ygzhang.com/">Yuguang Zhang</a>
+                            <br />
+                            <br />
+                            <br />
+                            <span style="font-size: 9px; text-align: center">with special thanks to </span>
+                            <br />
+                            Shawn Van Every
+                            <br />
+                            ITP Residents 2019-2021
+                            <br />
+                            <br />
+                            <br />
+                            <span style="font-size: 9px; text-align: center">based on a project by</span>
+                            <br />
+                            <a target="_blank" rel="noopener noreferrer" href="https://itp.nyu.edu/~dbo3/blog/yorb/">Dan O'Sullivan</a><br />
+                        </div>
+                    </div>
+
+                    <div id="mini-map-box">
+                        <div id="mini-map-canvas-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="./js/index.js"></script>
+    </body>
+</html>
