@@ -263,7 +263,7 @@ export class Yorb {
                 presFormat = "Zoom"
               } else {
                 let yorbletNum = proj.room_id
-                presFormat = "Yorblet " + yorbletNum.toString()
+                if (yorbletNum) presFormat = "Yorblet " + yorbletNum.toString()
               }
 
               let position = ""
