@@ -37,8 +37,8 @@ let INSTANCE_PATH = false;
 // INSTANCE_PATH = '/socket.io'
 
 // For running against ITP server
-// WEB_SOCKET_SERVER = "https://yorb.itp.io";
-// INSTANCE_PATH = "/socket.io";
+WEB_SOCKET_SERVER = "https://yorb.itp.io";
+INSTANCE_PATH = "/socket.io";
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 // Setup Global Variables:
