@@ -325,7 +325,7 @@ function setupControls() {
                 // 'p'
                 let position = yorbScene.getPlayerPosition()[0];
                 console.log(position)
-                let url = `https://yorb.itp.io/?x=${position[0]}&y=${position[1]}&z=${position[2]}`
+                let url = `https://yorb.itp.io/?x=${position[0].toFixed(2)}&y=${position[1].toFixed(2)}&z=${position[2].toFixed(2)}`
                 console.log('Have your friends meet you here: ',url);
             }
         },

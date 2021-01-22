@@ -479,12 +479,8 @@ export class Yorb {
         let xParam = params.get("x");
         let zParam = params.get("z");
 
-        console.log(xParam);
-
         if (xParam) startX = parseFloat(xParam);
         if (zParam) startZ = parseFloat(zParam);
-
-        console.log('start',startX);
 
         return {
             x: startX,
