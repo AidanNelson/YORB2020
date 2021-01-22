@@ -323,7 +323,10 @@ function setupControls() {
             }
             if (e.keyCode == 80) {
                 // 'p'
-                console.log(yorbScene.getPlayerPosition()[0])
+                let position = yorbScene.getPlayerPosition()[0];
+                console.log(position)
+                let url = `https://yorb.itp.io/?x=${position[0]}&y=${position[1]}&z=${position[2]}`
+                console.log('Have your friends meet you here: ',url);
             }
         },
         false
