@@ -1,4 +1,4 @@
-![image of 3D environment with one person in it](docs/images/yorb-2020.png "YORB 2020")
+![image of 3D environment with many people moving around](docs/images/winter-show-2020.png "YORB 2020")
 
 ## About
 
