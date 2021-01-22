@@ -46,6 +46,7 @@ export class YorbControls2 {
         this.moveLeft = false
         this.moveRight = false
         this.canJump = false
+        this.run = false
 
         this.prevTime = performance.now()
         this.velocity = new THREE.Vector3()
@@ -58,6 +59,10 @@ export class YorbControls2 {
             'keydown',
             (event) => {
                 switch (event.keyCode) {
+                    case 16: // shift
+                      this.run = true
+                      break
+
                     case 38: // up
                     case 87: // w
                         this.moveForward = true
@@ -82,6 +87,7 @@ export class YorbControls2 {
                         if (this.canJump === true) this.velocity.y = jumpSpeed
                         this.canJump = false
                         break
+
                 }
             },
             false
@@ -91,6 +97,11 @@ export class YorbControls2 {
             'keyup',
             (event) => {
                 switch (event.keyCode) {
+
+                    case 16: // shift
+                      this.run = false
+                      break
+
                     case 38: // up
                     case 87: // w
                         this.moveForward = false
@@ -174,7 +185,13 @@ export class YorbControls2 {
     // update for these controls, which are unfortunately not included in the controls directly...
     // see: https://github.com/mrdoob/three.js/issues/5566
     updateControls() {
-        let speed = 50
+        let speed
+
+        if (this.run) { // if we hold shift, we 'run'
+          speed = 200
+        } else {
+          speed = 50
+        }
 
         var time = performance.now()
         var rawDelta = (time - this.prevTime) / 1000
