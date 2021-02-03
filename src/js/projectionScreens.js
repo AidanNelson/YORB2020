@@ -45,7 +45,9 @@ export class ProjectionScreens {
     }
 
     createYorbProjectionScreens() {
-        log(`\n\n\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nCREATING YORB PROJECTION SCREENS\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n`)
+        log(`\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
+            CREATING YORB PROJECTION SCREENS\n
+            >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n`)
         let locations = {
             data: [
                 {

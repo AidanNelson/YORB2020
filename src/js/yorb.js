@@ -137,6 +137,8 @@ export class Yorb {
         if (MODE === 'YORB') {
             this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse);
             this.show.setup();
+            this.projectionScreens.createYorbProjectionScreens()
+
             this.itpModel = new ITPModel(this.scene);
 
             this.photoGallery = new PhotoGallery(this.scene);
