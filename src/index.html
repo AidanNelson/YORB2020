@@ -15,6 +15,11 @@
     </head>
 
     <body>
+
+
+
+    <script async defer src="https://apis.google.com/js/api.js" >
+  </script>
         <!-- <object id="p5-sketch-container" data="./assets/p5-sketches/sketches.html">Your browser doesn’t support the object tag.</object> -->
         <div class="full-width-column">
             <div class="main-content-container">
@@ -38,11 +43,14 @@
             <div class="bottom_bar_container">
                 <div class="bottom_bar">
                     <div id="project-details">
-                        <div class="box-title">ITP Winter Show 2020</div>
+                        <!-- <div class="box-title">ITP Winter Show 2020</div>
                         <div class="box-content">
                             Wed Dec 16th, 8-10 p.m. ET <br />
                             Thu Dec 17th, 8-10 p.m. ET <br /><br />
-                        </div>
+                        </div> -->
+                                 <!--Add buttons to initiate auth sequence and sign out-->
+    <button id="authorize_button" style="display: none;">Authorize</button>
+    <button id="signout_button" style="display: none;">Sign Out</button>
                         <div class="box-content" id="html-project-list">
                         </div>
                     </div>

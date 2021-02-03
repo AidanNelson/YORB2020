@@ -207,6 +207,12 @@ function initSocketConnection() {
             updateProjects(_projects);
         });
 
+        socket.on('calendarEvents', (events) => {
+            if (yorbScene.calendar) {
+                yorbScene.calendar.update(events);
+            }
+        })
+
         socket.on('userDisconnected', (_id, _ids) => {
             // Update the data from the server
 

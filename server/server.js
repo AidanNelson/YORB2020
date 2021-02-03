@@ -31,6 +31,7 @@ const debugModule = require('debug')
 const mediasoup = require('mediasoup')
 const fs = require('fs')
 const https = require('https')
+const {listEvents} = require("./calendar");
 
 // HTTP Server setup:
 // https://stackoverflow.com/questions/27393705/how-to-resolve-a-socket-io-404-not-found-error
@@ -163,6 +164,8 @@ let projects = []
 //
 
 const os = require('os')
+const { eventNames } = require('process')
+// const { Calendar } = require('../src/js/calendar')
 const numCPUs = os.cpus().length
 
 async function main() {
@@ -199,9 +202,14 @@ async function main() {
 
     updateProjects()
     setInterval(updateProjects, 180000) // update projects every five minutes
+
+    let events = listEvents();
+    console.log('evennts: ',events.length);
 }
 
 main()
+
+// getCalendarEvents();
 
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
 //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//

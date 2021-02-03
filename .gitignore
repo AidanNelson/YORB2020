@@ -8,3 +8,5 @@ images/project_thumbnails
 .cache
 dist/
 utilities/getProjectThumbnails/projectThumbnails
+credentials.json
+token.json
