@@ -13,15 +13,15 @@ export class ProjectionScreens {
 
         // audio variables:
         this.volume = 0; // for lerping audioEl clicks
-        this.distanceThresholdSquared = 500
-        this.rolloffNumerator = 7
+        this.distanceThresholdSquared = 500 // when to start rolling off volume
+        this.rolloffNumerator = 7 // for changing volume roll-off
 
         this.screenIdIndex = 0
 
         this.projectionScreens = {} // object to store projection screens
         this.shift_down = false
         this.createBlankScreenVideo()
-        // this.createProjectionScreens()
+        this.createYorbProjectionScreens() // turn on for YORB, but not YORBLETS
 
         this.raycaster = new THREE.Raycaster()
 
@@ -44,66 +44,40 @@ export class ProjectionScreens {
         blankScreenVideo.play()
     }
 
-    createProjectionScreens() {
+    createYorbProjectionScreens() {
+        log(`\n\n\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nCREATING YORB PROJECTION SCREENS\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n`)
         let locations = {
             data: [
                 {
-                    room: 'classRoom1-left',
-                    x: 2.8,
-                    y: 1.9,
-                    z: 27.309458609,
-                    rot: Math.PI / 2,
+                  room: 'classRoom1-left', x: 2.8, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
                 },
                 {
-                    room: 'classRoom1-right',
-                    x: 2.8,
-                    y: 1.9,
-                    z: 22.123456,
-                    rot: Math.PI / 2,
+                  room: 'classRoom1-right', x: 2.8, y: 1.9, z: 22.123456, rot: Math.PI / 2,
                 },
                 {
-                    room: 'classRoom2-left',
-                    x: 10.4,
-                    y: 1.9,
-                    z: 27.309458609,
-                    rot: Math.PI / 2,
+                  room: 'classRoom2-left', x: 10.4, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
                 },
                 {
-                    room: 'classRoom2-right',
-                    x: 10.4,
-                    y: 1.9,
-                    z: 22.123456,
-                    rot: Math.PI / 2,
+                  room: 'classRoom2-right', x: 10.4, y: 1.9, z: 22.123456, rot: Math.PI / 2,
+                },
+                // {
+                //   room: 'classRoom3-left', x: 18.0, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
+                // },
+                // {
+                //   room: 'classRoom3-right', x: 18.0, y: 1.9, z: 22.123456, rot: Math.PI / 2,
+                // },
+                // {
+                //   room: 'classRoom4-left', x: 25.7, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
+                // },
+                // {
+                //   room: 'classRoom4-right', x: 25.7, y: 1.9, z: 22.123456, rot: Math.PI / 2,
+                // },
+                {
+                  room: 'redSquare', x: -23.5, y: 1.9, z: -14.675, rot: Math.PI / 2
                 },
                 {
-                    room: 'classRoom3-left',
-                    x: 18.0,
-                    y: 1.9,
-                    z: 27.309458609,
-                    rot: Math.PI / 2,
+                  room: 'back-lawn', x: 105, y: 1.9, z:-39, rot: Math.PI
                 },
-                {
-                    room: 'classRoom3-right',
-                    x: 18.0,
-                    y: 1.9,
-                    z: 22.123456,
-                    rot: Math.PI / 2,
-                },
-                {
-                    room: 'classRoom4-left',
-                    x: 25.7,
-                    y: 1.9,
-                    z: 27.309458609,
-                    rot: Math.PI / 2,
-                },
-                {
-                    room: 'classRoom4-right',
-                    x: 25.7,
-                    y: 1.9,
-                    z: 22.123456,
-                    rot: Math.PI / 2,
-                },
-                { room: 'redSquare', x: -23.5, y: 1.9, z: -14.675, rot: Math.PI / 2 },
             ],
         }
 
@@ -124,7 +98,7 @@ export class ProjectionScreens {
                 videoTexture: videoTexture,
                 activeUserId: 'default',
                 screenId: _id,
-                audioEl: false,
+                // audioEl: false,
             }
 
             this.projectionScreens[_id] = screen

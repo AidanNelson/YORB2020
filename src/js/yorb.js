@@ -125,6 +125,7 @@ export class Yorb {
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer);
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
+        log("testing logging")
 
         this.show = false;
         this.yorblet = false;
