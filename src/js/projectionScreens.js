@@ -50,18 +50,18 @@ export class ProjectionScreens {
             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n`)
         let locations = {
             data: [
-                {
-                  room: 'classRoom1-left', x: 2.8, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
-                },
-                {
-                  room: 'classRoom1-right', x: 2.8, y: 1.9, z: 22.123456, rot: Math.PI / 2,
-                },
-                {
-                  room: 'classRoom2-left', x: 10.4, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
-                },
-                {
-                  room: 'classRoom2-right', x: 10.4, y: 1.9, z: 22.123456, rot: Math.PI / 2,
-                },
+                // {
+                //   room: 'classRoom1-left', x: 2.8, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
+                // },
+                // {
+                //   room: 'classRoom1-right', x: 2.8, y: 1.9, z: 22.123456, rot: Math.PI / 2,
+                // },
+                // {
+                //   room: 'classRoom2-left', x: 10.4, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
+                // },
+                // {
+                //   room: 'classRoom2-right', x: 10.4, y: 1.9, z: 22.123456, rot: Math.PI / 2,
+                // },
                 // {
                 //   room: 'classRoom3-left', x: 18.0, y: 1.9, z: 27.309458609, rot: Math.PI / 2,
                 // },
@@ -78,7 +78,7 @@ export class ProjectionScreens {
                   room: 'redSquare', x: -23.5, y: 1.9, z: -14.675, rot: Math.PI / 2
                 },
                 {
-                  room: 'back-lawn', x: 105, y: 1.9, z:-39, rot: Math.PI
+                  room: 'back-lawn', x: 74, y: 1.9 * 4, z:-77, rot: Math.PI / 2 + Math.PI / 4, scaleFactor: 4, hasStage: true
                 },
             ],
         }
@@ -90,7 +90,16 @@ export class ProjectionScreens {
             let dims = { width: 1920, height: 1080 }
             let [videoTexture, videoMaterial] = makeVideoTextureAndMaterial(_id, dims)
 
-            let screen = new THREE.Mesh(new THREE.BoxGeometry(5, (5 * 9) / 16, 0.01), videoMaterial)
+            let scaleFactor = 1;
+            let hasStage = false;
+            if (locations.data[i].scaleFactor) {
+              scaleFactor = locations.data[i].scaleFactor
+            }
+            if (locations.data[i].hasStage) {
+              
+            }
+
+            let screen = new THREE.Mesh(new THREE.BoxGeometry(5 * scaleFactor, ((5 * 9) / 16) * scaleFactor, 0.01), videoMaterial)
 
             screen.position.set(locations.data[i].x, locations.data[i].y, locations.data[i].z)
             screen.rotateY(locations.data[i].rot)
