@@ -7,7 +7,8 @@
     "build": "parcel build src/index.html --public-url ./",
     "watch": "parcel src/index.html",
     "start-server": "node server/server.js",
-    "production": "export NODE_ENV=PRODUCTION && parcel build src/index.html --public-url ./ && forever start server/server.js"
+    "production": "export NODE_ENV=PRODUCTION && parcel build src/index.html --public-url ./ && forever start server/server.js",
+    "update-calendar-token": "node utilities/calendar/updateCalendarToken.js"
   },
   "author": "",
   "license": "ISC",

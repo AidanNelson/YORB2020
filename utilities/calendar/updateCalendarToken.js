@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+ //https://stackoverflow.com/questions/10576386/invalid-grant-trying-to-get-oauth-token-from-google
  
 const fs = require('fs');
 const readline = require('readline');
@@ -27,7 +28,7 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 // time.
 const TOKEN_PATH = 'token.json';
 
-function main() {
+function updateCalendarToken() {
     fs.readFile('credentials.json', (err, content) => {
         if (err) return console.log('Error loading client secret file:', err);
         // Authorize a client with credentials, then call the Google Calendar API.
@@ -44,7 +45,7 @@ function main() {
 function authorize(credentials, callback) {
     const { client_secret, client_id, redirect_uris } = credentials.web;
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-    return getAccessToken(oAuth2Client, callback);
+    getAccessToken(oAuth2Client);
 }
 
 /**
@@ -53,7 +54,7 @@ function authorize(credentials, callback) {
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-function getAccessToken(oAuth2Client, callback) {
+function getAccessToken(oAuth2Client) {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: SCOPES,
@@ -67,13 +68,16 @@ function getAccessToken(oAuth2Client, callback) {
         rl.close();
         oAuth2Client.getToken(code, (err, token) => {
             if (err) return console.error('Error retrieving access token', err);
-            oAuth2Client.setCredentials(token);
+            // oAuth2Client.setCredentials(token);
             // Store the token to disk for later program executions
             fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
                 if (err) return console.error(err);
                 console.log('Token stored to', TOKEN_PATH);
             });
-            callback(oAuth2Client);
         });
     });
 }
+
+
+
+updateCalendarToken();

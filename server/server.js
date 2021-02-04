@@ -33,6 +33,8 @@ const fs = require('fs')
 const https = require('https')
 const {listEvents} = require("./calendar");
 
+listEvents();
+
 // HTTP Server setup:
 // https://stackoverflow.com/questions/27393705/how-to-resolve-a-socket-io-404-not-found-error
 var express = require('express'),
@@ -203,8 +205,8 @@ async function main() {
     updateProjects()
     setInterval(updateProjects, 180000) // update projects every five minutes
 
-    let events = listEvents();
-    console.log('evennts: ',events.length);
+    // let events = listEvents();
+    // console.log('evennts: ',events.length);
 }
 
 main()
