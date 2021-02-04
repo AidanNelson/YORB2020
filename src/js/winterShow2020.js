@@ -228,8 +228,8 @@ export class WinterShow2020 {
                     }
                 }
             }
-            log('Number of total projects: ', this.projects.length)
-            log('Number of unique zoom projects: ', numUniqueProjects)
+            // log('Number of total projects: ', this.projects.length)
+            // log('Number of unique zoom projects: ', numUniqueProjects)
 
             if (numUniqueProjects > 0) {
                 // if the projects have been updated
@@ -431,7 +431,7 @@ export class WinterShow2020 {
                     this.scene.add(hyperlink)
                 }
 
-                console.log("We've placed ", endIndex, ' projects so far.')
+                // console.log("We've placed ", endIndex, ' projects so far.')
             }
         }
     }
@@ -439,7 +439,7 @@ export class WinterShow2020 {
     addPortals() {
         //goes through all yorblets except 0 (lobby) and makes portal
         for (let i = 1; i < yorbletPortalReference.length; i++) {
-            log(yorbletPortalReference[i])
+            // log(yorbletPortalReference[i])
             this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
         }
     }

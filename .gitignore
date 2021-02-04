@@ -8,3 +8,10 @@ images/project_thumbnails
 .cache
 dist/
 utilities/getProjectThumbnails/projectThumbnails
+100DaysScripts/package-lock.json
+**/kd/*
+**/kc/*
+**/paula/*
+**/james/*
+**/instagram-scraper*
+utilities/100DaysScripts/latestScrapes.txt

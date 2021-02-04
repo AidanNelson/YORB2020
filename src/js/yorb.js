@@ -17,6 +17,8 @@ import { ProjectionScreens } from './projectionScreens';
 import { YorbControls2 } from './yorbControls2.js';
 import { Yorblet } from './yorblet.js';
 import { PhotoGallery } from './photoGallery';
+import { DaysGallery } from './daysGallery';
+
 
 import * as THREE from 'three';
 
@@ -137,8 +139,8 @@ export class Yorb {
             this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse);
             this.show.setup();
             this.itpModel = new ITPModel(this.scene);
-
             this.photoGallery = new PhotoGallery(this.scene);
+            this.daysGallery = new DaysGallery(this.scene, this.camera, this.mouse);
         }
 
         // this.sketches = new Sketches(this.scene)
@@ -188,7 +190,7 @@ export class Yorb {
     // update projects:
     updateProjects(projects) {
         if (this.show) {
-            log('yorb received', projects.length, 'show projects');
+            // log('yorb received', projects.length, 'show projects');
             this.show.updateProjects(projects);
         }
         if (this.yorblet) {
@@ -219,8 +221,8 @@ export class Yorb {
                 }
             }
         }
-        log('Number of total projects: ', projects.length);
-        log('Number of unique projects: ', numUniqueProjects);
+        // log('Number of total projects: ', projects.length);
+        // log('Number of unique projects: ', numUniqueProjects);
 
         // Make an HTML link to add to our overlay
         let project_box = document.getElementById('html-project-list');

@@ -40,7 +40,7 @@ export class Portal {
         this.label = yorbletReference[destination_index].label; //a label object that contains the text, color, size, rotation Y, x/y/z position offset of the label (do we need more?)
 
         this.portalLoader = new GLTFLoader();
-        log(this.model);
+        // log(this.model);
         this.loadPortalModel(this.model);
     }
 
