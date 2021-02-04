@@ -13,15 +13,15 @@ export class ProjectionScreens {
 
         // audio variables:
         this.volume = 0; // for lerping audioEl clicks
-        this.distanceThresholdSquared = 500 // when to start rolling off volume
-        this.rolloffNumerator = 7 // for changing volume roll-off
+        this.distanceThresholdSquared = 6150 // when to start rolling off volume
+        this.rolloffNumerator = 615 // for changing volume roll-off
 
         this.screenIdIndex = 0
 
         this.projectionScreens = {} // object to store projection screens
         this.shift_down = false
         this.createBlankScreenVideo()
-        this.createYorbProjectionScreens() // turn on for YORB, but not YORBLETS
+        // this.createYorbProjectionScreens() // turn on for YORB, but not YORBLETS
 
         this.raycaster = new THREE.Raycaster()
 
@@ -45,9 +45,6 @@ export class ProjectionScreens {
     }
 
     createYorbProjectionScreens() {
-        log(`\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
-            CREATING YORB PROJECTION SCREENS\n
-            >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n`)
         let locations = {
             data: [
                 // {
@@ -120,7 +117,13 @@ export class ProjectionScreens {
 
     addStage(centerX, centerZ, lookAtX=0, lookAtZ=0, scaleFactor=1, angle=0) {
         // add the stage itself
-        const cylinderGeometry = new THREE.CylinderBufferGeometry(3 * scaleFactor, 3 * scaleFactor, 1, 32, 1, false)
+        const radiusTop = 3 * scaleFactor
+        const radiusBottom = 3 * scaleFactor
+        const height = 1
+        const radialSegments = 32
+        const heightSegments1 = 1
+        const openEnded = false
+        const cylinderGeometry = new THREE.CylinderBufferGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments1, openEnded)
         const cylinderMaterial = new THREE.MeshPhongMaterial({ color: 0x000000, side: THREE.DoubleSide })
         const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
         cylinder.position.set(centerX, 0, centerZ)
@@ -131,13 +134,13 @@ export class ProjectionScreens {
         //https://threejsfundamentals.org/threejs/lessons/threejs-primitives.html
         //trying sphereGeometryconst radius = 7;
         const radius = 7
-        const widthSegments = 12
-        const heightSegments = 8
+        const widthSegments = 24
+        const heightSegments2 = 16
         const phiStart = Math.PI * 0
         const phiLength = Math.PI * 1
         const thetaStart = Math.PI * 0.0
         const thetaLength = Math.PI * 0.9
-        const domeGeometry = new THREE.SphereBufferGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)
+        const domeGeometry = new THREE.SphereBufferGeometry(radius, widthSegments, heightSegments2, phiStart, phiLength, thetaStart, thetaLength)
 
         // domeGeometry.scale(0.7, 0.7, 0.7)
         domeGeometry.scale(scaleFactor * 0.7, scaleFactor * 0.7, scaleFactor * 0.7)

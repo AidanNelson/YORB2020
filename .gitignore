@@ -8,3 +8,4 @@ images/project_thumbnails
 .cache
 dist/
 utilities/getProjectThumbnails/projectThumbnails
+misc/
