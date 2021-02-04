@@ -127,6 +127,7 @@ export class Yorb {
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer);
 
         this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
+        log("testing logging")
 
         this.show = false;
         this.yorblet = false;
@@ -138,6 +139,8 @@ export class Yorb {
         if (MODE === 'YORB') {
             this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse);
             this.show.setup();
+            this.projectionScreens.createYorbProjectionScreens()
+
             this.itpModel = new ITPModel(this.scene);
             this.photoGallery = new PhotoGallery(this.scene);
             this.daysGallery = new DaysGallery(this.scene, this.camera, this.mouse);
