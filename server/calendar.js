@@ -14,13 +14,21 @@ function listEvents() {
     const { client_secret, client_id, redirect_uris } = credentials.web;
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
+    // const url = oauth2Client.generateAuthUrl({
+    //     // 'online' (default) or 'offline' (gets refresh_token)
+    //     access_type: 'offline',
+      
+    //     // If you only need one scope you can pass it as a string
+    //     scope: scopes
+    //   });
+
     console.log('creds:', credentials);
     // Check if we have previously stored a token.
     const tokenJSON = fs.readFileSync(TOKEN_PATH);
     const token = JSON.parse(tokenJSON);
     oAuth2Client.setCredentials(token);
 
-    const calendar = google.calendar({ version: 'v3', oAuth2Client });
+    const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
     calendar.events.list(
         {
