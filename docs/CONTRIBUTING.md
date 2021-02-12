@@ -44,14 +44,20 @@ If you want to run the code locally, you can do so against either the ITP Yorb s
     cd server
     npm install
     ```
-4. Change directory again back to the root directory of the project and start the server:
+4. Create a new file in the `/server` folder called `.env` and copy the contents of `example.env` into it.  Adjust the `PRODUCTION_IP` to reflect your computer's IP address on the local network:
+    ```
+    PROJECT_DATABASE_URL = 'https://itp.nyu.edu/projects/public/projectsJSON_ALL.php?venue_id=164&room_id=1'    
+    PRODUCTION_IP="192.168.0.107"
+    PRODUCTION_PORT="3000"
+    ```
+5. Change directory again back to the root directory of the project and start the server:
     ```bash
     cd ..
     npm run start-server
     ```
-5. In a separate terminal window (in the root directory of the project), start the build system (same as step #4 from above):
+6. In a separate terminal window (in the root directory of the project), start the build system (same as step #4 from above):
     ```bash
     npm run watch
     ```
-6. Navigate your browser window to http://localhost:1234.  This page should now connect to your backend server at http://localhost:3000.
-7. Note that you may need to restart this local development server / build system from time to time to ensure that your changes are being reflected in the browser!
+7. Navigate your browser window to http://localhost:1234.  This page should now connect to your backend server at http://localhost:3000.
+8. Note that you may need to restart this local development server / build system from time to time to ensure that your changes are being reflected in the browser!
