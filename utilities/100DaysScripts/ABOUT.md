@@ -2,18 +2,20 @@
 
 *not sure where best to put this readme and the corresponding files, so for now keeping most of it in utilities while the module is in /js and the scrapes/resizes are in assets/images/100Days*
 
+NOTE: If you don't have images in the corresponding folders the YORB will still build but it'll throw a bunch of errors in the console, just ignore them. If you want to run your local YORB with the scrapes, reach out to me (August) and I can walk you through the steps.
+
 ### To-Do: Deploy
 - [X] Update path in cron tab line (sudo crontab -e)
 - [X] install instagram-scraper (python)
 - [X] add cron tab line to YORB machine (check time of classes)
-- [ ] add accounts to accounts.txt
+- [X] add accounts to accounts.txt
 - [X] add assets folders since in .gitignore
 - [X] create YORBOT account
-- [ ] follow class
+- [X] follow class
 
 ### To-Do: Develop
 - [X] resize script (images)
-- [ ] resize script (videos) (ffmpeg?)
+- [-] resize script (videos) (ffmpeg?)
 - [X] resize script to account for rect posts (contain)
 - [ ] make sure there's a valid post to display -- error with no content length...
 - [ ] smaller avatars/zig zag gallery?

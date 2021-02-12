@@ -114,7 +114,9 @@ export class DaysGallery {
         let galleryGeometry = new THREE.BoxGeometry(1.5, 1.5, .2);
         //might want to eventually make this more programatic, but fine for now...
         //have to find by key since position in posts can change
-        let kcPosts, kdPosts, paulaPosts;
+        let kdPosts = ["","","","","","","","","","","","","","","","",""];
+        let kcPosts = ["","","","","","","","","","","","","","",""];
+        let paulaPosts = ["","","","","","","","","","","","","","",""];
         for (let section of Object.keys(posts)) {
             let sec = Object.keys(posts[section])[0];
 
@@ -143,12 +145,12 @@ export class DaysGallery {
         
         kdGroup.add(southWallKD, eastWallKD, northWallKD, westWallKD);
 
-        //right classroom -- kc 14 incl. kc
+        //right classroom -- kc 15 incl. kc
         let kcGroup = new THREE.Group();
         let southGroupKC = kcPosts.slice(0, 3);
-        let westGroupKC = kcPosts.slice(3, 7);
-        let northGroupKC = kcPosts.slice(7, 10);
-        let eastGroupKC = kcPosts.slice(10, kcPosts.length);
+        let westGroupKC = kcPosts.slice(3, 8);
+        let northGroupKC = kcPosts.slice(8, 11);
+        let eastGroupKC = kcPosts.slice(11, kcPosts.length);
 
         let southWallKC = Place.onWall(new Vector3(41.5, 2, 19.5), new Vector3(47, 2, 19.5), southGroupKC, galleryGeometry, {labelLocation: 'alternating'});
         let westWallKC = Place.onWall(new Vector3(47, 2, 19.5), new Vector3(47, 2, 29.8), westGroupKC, galleryGeometry, {labelLocation: 'alternating'});
@@ -280,7 +282,7 @@ export class DaysGallery {
     galleryTitle () {
         const fontJson = require('../assets/fonts/helvetiker_regular_copy.typeface.json')
         const font = new THREE.Font(fontJson)
-        const text = '100 Days of Making'
+        const text = 'X Days of Making'
 
         const fontGeometry = new THREE.TextBufferGeometry(text, {
             font: font,

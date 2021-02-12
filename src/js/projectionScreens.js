@@ -21,7 +21,7 @@ export class ProjectionScreens {
         this.projectionScreens = {} // object to store projection screens
         this.shift_down = false
         this.createBlankScreenVideo()
-        // this.createYorbProjectionScreens() // turn on for YORB, but not YORBLETS
+        this.createYorbProjectionScreens() // turn on for YORB, but not YORBLETS
 
         this.raycaster = new THREE.Raycaster()
 
@@ -182,6 +182,7 @@ export class ProjectionScreens {
             let audioEl = document.getElementById(`${clientId}_screenshareAudio`)
             if (audioEl) {
                 let distSquared = this.camera.position.distanceToSquared(screen.position)
+//		console.log(distSquared);
                 if (distSquared > this.distanceThresholdSquared) {
                     // TODO pause consumer here, rather than setting volume to zero
                     audioEl.volume = 0

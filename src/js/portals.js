@@ -12,7 +12,7 @@ const PortalModels = require('../assets/models/portals/*.glb');
 //this reference holds all info about which portal goes to where, used by both yorblet.js and winterShow2020.js
 const yorbletReference = [
     {url: "https://yorb.itp.io", model: PortalModels['tacobell'], label: {text:"Return to Lobby", color:0xf4d010, size:0.4, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:2}}, //lobby
-    {url: 'https://yorb.itp.io/experimental', model: PortalModels['sphBlue'], label: {text:"   Go to\nYorblet 1", color:0x4b4ff4, size:0.25, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:0.6}},
+    {url: 'https://yorb.itp.io/?x=38&y=0.5&z=14', model: PortalModels['sphBlue'], label: {text:"   Go to\nYorblet 1", color:0x4b4ff4, size:0.25, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:0.6}},
     {url: 'https://yorblet2.itp.io', model: PortalModels['cubPink'], label: {text:"   Go to\nYorblet 2", color:0xfc3691, size:0.25, rotateY:Math.PI / 2, xOff:0, yOff:3, zOff:0.6}},
     {url: 'https://yorblet3.itp.io', model: PortalModels['pyrYellow'], label: {text:"   Go to\nYorblet 3", color:0xf4d010, size:0.25, rotateY:Math.PI/2, xOff:0, yOff:3, zOff:0.6}},
     {url: 'https://yorblet4.itp.io', model:PortalModels ['ligGreen'], label: {text:"   Go to\nYorblet 4", color:0x9be210, size:0.25, rotateY:Math.PI/2, xOff:0, yOff:3, zOff:0.6}},
