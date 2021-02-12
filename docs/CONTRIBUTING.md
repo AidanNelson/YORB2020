@@ -6,7 +6,7 @@ If you want to run the code locally, you can do so against either the ITP Yorb s
 
 1. Clone or fork the repository and download a local copy:
     ```bash
-    git clone https://github.com/AidanNelson/YORB2020.git
+    git clone https://github.com/yorb-club/YORB2020.git
     ```
 2. Navigate into the repository and install dependencies:
     ```bash
