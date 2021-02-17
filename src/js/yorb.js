@@ -19,6 +19,8 @@ import { Yorblet } from './yorblet.js';
 import { PhotoGallery } from './photoGallery';
 import { DaysGallery } from './daysGallery';
 
+import {sceneSetup, sceneDraw} from "./sandbox";
+
 
 import * as THREE from 'three';
 
@@ -124,6 +126,8 @@ export class Yorb {
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
     // add YORB parts
     addYORBParts() {
+        sceneSetup(this.scene);
+
         this.controls = new YorbControls2(this.scene, this.camera, this.renderer);
 
         //this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
@@ -507,6 +511,7 @@ export class Yorb {
             // things to update 50 times per seconds:
             this.controls.update();
             this.projectionScreens.update();
+            sceneDraw(this.scene);
 
             // things to update 5 x per second
             if (this.frameCount % 10 === 0) {
