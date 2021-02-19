@@ -110,75 +110,77 @@ export class DaysGallery {
     */
 
     generateGallery (posts) {
-        let galleryGroup = new THREE.Group();
-        let galleryGeometry = new THREE.BoxGeometry(1.5, 1.5, .2);
-        //might want to eventually make this more programatic, but fine for now...
-        //have to find by key since position in posts can change
-        let kdPosts = ["","","","","","","","","","","","","","","","",""];
-        let kcPosts = ["","","","","","","","","","","","","","",""];
-        let paulaPosts = ["","","","","","","","","","","","","","",""];
-        for (let section of Object.keys(posts)) {
-            let sec = Object.keys(posts[section])[0];
+        if(posts.length != 0) { //to prevent place tool error of adding non-objects to scene if no gallery files
+            let galleryGroup = new THREE.Group();
+            let galleryGeometry = new THREE.BoxGeometry(1.5, 1.5, .2);
+            //might want to eventually make this more programatic, but fine for now...
+            //have to find by key since position in posts can change
+            let kdPosts = ["","","","","","","","","","","","","","","","",""];
+            let kcPosts = ["","","","","","","","","","","","","","",""];
+            let paulaPosts = ["","","","","","","","","","","","","","",""];
+            for (let section of Object.keys(posts)) {
+                let sec = Object.keys(posts[section])[0];
 
-            if(sec == 'kc'){
-                kcPosts = posts[section][sec];
+                if(sec == 'kc'){
+                    kcPosts = posts[section][sec];
+                }
+                if(sec == 'kd'){
+                    kdPosts = posts[section][sec];
+                }
+                if(sec == 'paula'){
+                    paulaPosts = posts[section][sec];
+                }
             }
-            if(sec == 'kd'){
-                kdPosts = posts[section][sec];
-            }
-            if(sec == 'paula'){
-                paulaPosts = posts[section][sec];
-            }
+            
+            //left classroom -- kd 17 incl kd
+            let kdGroup = new THREE.Group();
+            let southGroupKD = kdPosts.slice(0, 3);
+            let westGroupKD = kdPosts.slice(3, 9);
+            let northGroupKD = kdPosts.slice(9, 12);
+            let eastGroupKD = kdPosts.slice(12, kdPosts.length);
+
+            let southWallKD = Place.onWall(new Vector3(41.5, 2, 7.4), new Vector3(47, 2, 7.4), southGroupKD, galleryGeometry, {labelLocation: 'alternating'});
+            let westWallKD = Place.onWall(new Vector3(47, 2, 7.4), new Vector3(47, 2, 18.4), westGroupKD, galleryGeometry, {labelLocation: 'alternating'});
+            let northWallKD = Place.onWall(new Vector3(47, 2, 18.4), new Vector3(41.5, 2, 18.4), northGroupKD, galleryGeometry, {labelLocation: 'alternating'});
+            let eastWallKD = Place.onWall(new Vector3(41.5, 2, 18.4), new Vector3(41.5, 2, 10), eastGroupKD, galleryGeometry, {labelLocation: 'alternating'});
+            
+            kdGroup.add(southWallKD, eastWallKD, northWallKD, westWallKD);
+
+            //right classroom -- kc 15 incl. kc
+            let kcGroup = new THREE.Group();
+            let southGroupKC = kcPosts.slice(0, 3);
+            let westGroupKC = kcPosts.slice(3, 8);
+            let northGroupKC = kcPosts.slice(8, 11);
+            let eastGroupKC = kcPosts.slice(11, kcPosts.length);
+
+            let southWallKC = Place.onWall(new Vector3(41.5, 2, 19.5), new Vector3(47, 2, 19.5), southGroupKC, galleryGeometry, {labelLocation: 'alternating'});
+            let westWallKC = Place.onWall(new Vector3(47, 2, 19.5), new Vector3(47, 2, 29.8), westGroupKC, galleryGeometry, {labelLocation: 'alternating'});
+            let northWallKC = Place.onWall(new Vector3(47, 2, 29.8), new Vector3(41.5, 2, 29.8), northGroupKC, galleryGeometry, {labelLocation: 'alternating'});
+            let eastWallKC = Place.onWall(new Vector3(41.5, 2, 29.8), new Vector3(41.5, 2, 20.9), eastGroupKC, galleryGeometry, {labelLocation: 'alternating'});
+            
+            kcGroup.add(southWallKC, eastWallKC, northWallKC, westWallKC);
+
+            //third classroom -- paula 15 incl. p-- starts from west so last wall(see through) has least num of canvases
+            let paulaGroup = new THREE.Group();
+            let westGroupPaula = paulaPosts.slice(0, 5); //tight squeeze...
+            let northGroupPaula = paulaPosts.slice(5, 8);
+            let eastGroupPaula = paulaPosts.slice(8, 13);
+            let southGroupPaula = paulaPosts.slice(13, paulaPosts.length);
+
+            let westWallPaula = Place.onWall(new Vector3(39.5, 2, 21.9), new Vector3(39.5, 2, 29.8), westGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
+            let northWallPaula = Place.onWall(new Vector3(39.5, 2, 29.8), new Vector3(33.7, 2, 29.8), northGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
+            let eastWallPaula = Place.onWall(new Vector3(33.7, 2, 29.8), new Vector3(33.7, 2, 21.9), eastGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
+            let southWallPaula = Place.onWall(new Vector3(34.8, 2, 21.9), new Vector3(39.5, 2, 21.9), southGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
+            
+            paulaGroup.add(southWallPaula, eastWallPaula, northWallPaula, westWallPaula);
+
+
+            //add all groups to scene
+            galleryGroup.add(kdGroup, kcGroup, paulaGroup) //prob not necessary but w/e
+            this.scene.add(galleryGroup);
+            //add to object to maybe reference later if need to update specific canvas?
+            this.gallery = galleryGroup;
         }
-        
-        //left classroom -- kd 17 incl kd
-        let kdGroup = new THREE.Group();
-        let southGroupKD = kdPosts.slice(0, 3);
-        let westGroupKD = kdPosts.slice(3, 9);
-        let northGroupKD = kdPosts.slice(9, 12);
-        let eastGroupKD = kdPosts.slice(12, kdPosts.length);
-
-        let southWallKD = Place.onWall(new Vector3(41.5, 2, 7.4), new Vector3(47, 2, 7.4), southGroupKD, galleryGeometry, {labelLocation: 'alternating'});
-        let westWallKD = Place.onWall(new Vector3(47, 2, 7.4), new Vector3(47, 2, 18.4), westGroupKD, galleryGeometry, {labelLocation: 'alternating'});
-        let northWallKD = Place.onWall(new Vector3(47, 2, 18.4), new Vector3(41.5, 2, 18.4), northGroupKD, galleryGeometry, {labelLocation: 'alternating'});
-        let eastWallKD = Place.onWall(new Vector3(41.5, 2, 18.4), new Vector3(41.5, 2, 10), eastGroupKD, galleryGeometry, {labelLocation: 'alternating'});
-        
-        kdGroup.add(southWallKD, eastWallKD, northWallKD, westWallKD);
-
-        //right classroom -- kc 15 incl. kc
-        let kcGroup = new THREE.Group();
-        let southGroupKC = kcPosts.slice(0, 3);
-        let westGroupKC = kcPosts.slice(3, 8);
-        let northGroupKC = kcPosts.slice(8, 11);
-        let eastGroupKC = kcPosts.slice(11, kcPosts.length);
-
-        let southWallKC = Place.onWall(new Vector3(41.5, 2, 19.5), new Vector3(47, 2, 19.5), southGroupKC, galleryGeometry, {labelLocation: 'alternating'});
-        let westWallKC = Place.onWall(new Vector3(47, 2, 19.5), new Vector3(47, 2, 29.8), westGroupKC, galleryGeometry, {labelLocation: 'alternating'});
-        let northWallKC = Place.onWall(new Vector3(47, 2, 29.8), new Vector3(41.5, 2, 29.8), northGroupKC, galleryGeometry, {labelLocation: 'alternating'});
-        let eastWallKC = Place.onWall(new Vector3(41.5, 2, 29.8), new Vector3(41.5, 2, 20.9), eastGroupKC, galleryGeometry, {labelLocation: 'alternating'});
-        
-        kcGroup.add(southWallKC, eastWallKC, northWallKC, westWallKC);
-
-        //third classroom -- paula 15 incl. p-- starts from west so last wall(see through) has least num of canvases
-        let paulaGroup = new THREE.Group();
-        let westGroupPaula = paulaPosts.slice(0, 5); //tight squeeze...
-        let northGroupPaula = paulaPosts.slice(5, 8);
-        let eastGroupPaula = paulaPosts.slice(8, 13);
-        let southGroupPaula = paulaPosts.slice(13, paulaPosts.length);
-
-        let westWallPaula = Place.onWall(new Vector3(39.5, 2, 21.9), new Vector3(39.5, 2, 29.8), westGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
-        let northWallPaula = Place.onWall(new Vector3(39.5, 2, 29.8), new Vector3(33.7, 2, 29.8), northGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
-        let eastWallPaula = Place.onWall(new Vector3(33.7, 2, 29.8), new Vector3(33.7, 2, 21.9), eastGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
-        let southWallPaula = Place.onWall(new Vector3(34.8, 2, 21.9), new Vector3(39.5, 2, 21.9), southGroupPaula, galleryGeometry, {labelLocation: 'alternating'});
-        
-        paulaGroup.add(southWallPaula, eastWallPaula, northWallPaula, westWallPaula);
-
-
-        //add all groups to scene
-        galleryGroup.add(kdGroup, kcGroup, paulaGroup) //prob not necessary but w/e
-        this.scene.add(galleryGroup);
-        //add to object to maybe reference later if need to update specific canvas?
-        this.gallery = galleryGroup;
     }
 
     /*
@@ -230,7 +232,7 @@ export class DaysGallery {
         }
     }
 
-    checkProjectionScreenCollisions() {
+    checkGalleryCanvasCollisions() {
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         var intersects = this.raycaster.intersectObject(this.gallery, true);
@@ -253,11 +255,13 @@ export class DaysGallery {
     onMouseClick(e) {
         // log('gallery');
         // log(JSON.stringify(this.gallery));
-        this.checkProjectionScreenCollisions();
-        if (this.selectedPost && this.shift_down) {
-            log('selected: ' + JSON.stringify(this.selectedPost.name));
-            this.makeInstagramLinkModal(this.selectedPost.name);
-            this.shift_down = false // reset this because the displayMedia dialog means we lose the onKeyUp event
+        if(this.gallery != undefined){ //to prevent raycasting to empty gallery error
+            this.checkGalleryCanvasCollisions();
+            if (this.selectedPost && this.shift_down) {
+                log('selected: ' + JSON.stringify(this.selectedPost.name));
+                this.makeInstagramLinkModal(this.selectedPost.name);
+                this.shift_down = false // reset this because the displayMedia dialog means we lose the onKeyUp event
+            }
         }
     }
 
