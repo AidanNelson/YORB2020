@@ -468,7 +468,7 @@ async function createMiniMap() {
         let mapImg = false;
 
         sketch.setup = () => {
-            mapImg = sketch.loadImage(require('../assets/images/map.png'));
+            //mapImg = sketch.loadImage(require('../assets/images/map.png'));
             sketch.createCanvas(300, 300);
             sketch.pixelDensity(1);
             sketch.frameRate(5);

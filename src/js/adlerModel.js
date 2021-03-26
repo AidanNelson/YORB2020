@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-export class ITPModel {
+export class AdlerModel {
     constructor(scene) {
         this.GLTFLoader = new GLTFLoader()
 
@@ -120,7 +120,7 @@ export class ITPModel {
     }
 
     loadFloorModel() {
-        let scaleFactor = 1.25
+        let scaleFactor = 1
         this.matMode = 0
 
         //this.loadModel(require('../assets/models/rehearsal/ceiling.glb'), "ceiling", this.ceilingMaterial, scaleFactor, false, false)

@@ -11,7 +11,7 @@ export class ITPModel {
 
         this.collidableMeshList = []
         this.floorModelParts = []
-        //this.coverElevatorBankArea();
+        this.coverElevatorBankArea();
     }
 
     getCollidableMeshList() {
@@ -123,18 +123,18 @@ export class ITPModel {
         let scaleFactor = 1.25
         this.matMode = 0
 
-        //this.loadModel(require('../assets/models/rehearsal/ceiling.glb'), "ceiling", this.ceilingMaterial, scaleFactor, false, false)
-        this.loadModel(require('../assets/models/rehearsal/floor.glb'), "floor", this.floorMaterial, scaleFactor, false, true, true)
-        this.loadModel(require('../assets/models/rehearsal/walls.glb'), "walls", this.wallMaterial, scaleFactor, true, true, true)
-        //this.loadModel(require('../assets/models/itp/glass-fixturing.glb'), "glass-fixturing", this.glassFixturingMaterial, scaleFactor, true, false)
-        //this.loadModel(require('../assets/models/itp/glass.glb'), "glass", this.glassMaterial, scaleFactor, false, false, true)
-        //this.loadModel(require('../assets/models/itp/granite-bar.glb'), "granite-bar", this.graniteBarMaterial, scaleFactor, true, false, true)
-        //this.loadModel(require('../assets/models/itp/ibeam.glb'), "ibeam", this.paintedMetalMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../assets/models/itp/ceiling.glb'), "ceiling", this.ceilingMaterial, scaleFactor, true, false)
+        this.loadModel(require('../assets/models/itp/floor.glb'), "floor", this.floorMaterial, scaleFactor, false, true, true)
+        this.loadModel(require('../assets/models/itp/glass-fixturing.glb'), "glass-fixturing", this.glassFixturingMaterial, scaleFactor, true, false)
+        this.loadModel(require('../assets/models/itp/glass.glb'), "glass", this.glassMaterial, scaleFactor, false, false, true)
+        this.loadModel(require('../assets/models/itp/granite-bar.glb'), "granite-bar", this.graniteBarMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../assets/models/itp/ibeam.glb'), "ibeam", this.paintedMetalMaterial, scaleFactor, true, false, true)
         // this.loadModel(require('../assets/models/itp/light-diffuser.glb'), "light-diffuser", this.lightDiffuserMaterial, scaleFactor, false, false);
         // this.loadModel(require('../assets/models/itp/light-housing.glb'), "light-housing", this.lightHousingMaterial, scaleFactor, false, false);
         // this.loadModel(require('../assets/models/itp/lighting-grid.glb'), "lighting-grid", this.wallMaterial, scaleFactor, false, false);
-        //this.loadModel(require('../assets/models/itp/window-shelf.glb'), "window-shelf", this.windowShelfMaterial, scaleFactor, true, false)
-        //this.loadModel(require('../assets/models/itp/wooden-bar.glb'), "wooden-bar", this.floorMaterial, scaleFactor, true, true, true)
+        this.loadModel(require('../assets/models/itp/walls.glb'), "walls", this.wallMaterial, scaleFactor, true, false, true)
+        this.loadModel(require('../assets/models/itp/window-shelf.glb'), "window-shelf", this.windowShelfMaterial, scaleFactor, true, false)
+        this.loadModel(require('../assets/models/itp/wooden-bar.glb'), "wooden-bar", this.floorMaterial, scaleFactor, true, true, true)
     }
 
     swapMaterials() {

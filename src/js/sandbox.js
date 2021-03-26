@@ -21,6 +21,7 @@ export function sceneSetup(scene){
     myMesh = new THREE.Mesh(geometry, material);
 
     scene.add(myMesh);
+    myMesh.position.set(0, 2, 0);
 }
 
 export function sceneDraw(scene){

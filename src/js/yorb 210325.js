@@ -9,17 +9,15 @@ import { hackToRemovePlayerTemporarily, pauseAllConsumersForPeer, resumeAllConsu
 
 import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils';
 
-//import { SpringShow2020 } from './springShow2020';
-//import { WinterShow2020 } from './winterShow2020';
-import { Adler2021 } from './adler2021';
-import { AdlerModel } from './adlerModel';
-//import { ITPModel } from './itpModel';
+import { SpringShow2020 } from './springShow2020';
+import { WinterShow2020 } from './winterShow2020';
+import { ITPModel } from './itpModel';
 import { Sketches } from './p5Sketches';
-//import { ProjectionScreens } from './projectionScreens';
+import { ProjectionScreens } from './projectionScreens';
 import { YorbControls2 } from './yorbControls2.js';
-//import { Yorblet } from './yorblet.js';
-//import { PhotoGallery } from './photoGallery';
-//import { DaysGallery } from './daysGallery';
+import { Yorblet } from './yorblet.js';
+import { PhotoGallery } from './photoGallery';
+import { DaysGallery } from './daysGallery';
 
 import {sceneSetup, sceneDraw} from "./sandbox";
 
@@ -143,14 +141,13 @@ export class Yorb {
         }
 
         if (MODE === 'YORB') {
-            //this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse);
-            this.show = new Adler2021(this.scene, this.camera, this.controls, this.mouse);
+            this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse);
             this.show.setup();
             //this.projectionScreens.createYorbProjectionScreens()
-	        //this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
-            this.adlerModel = new AdlerModel(this.scene);
-            //this.photoGallery = new PhotoGallery(this.scene);
-            //this.daysGallery = new DaysGallery(this.scene, this.camera, this.mouse);
+	    this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
+            this.itpModel = new ITPModel(this.scene);
+            this.photoGallery = new PhotoGallery(this.scene);
+            this.daysGallery = new DaysGallery(this.scene, this.camera, this.mouse);
         }
 
         // this.sketches = new Sketches(this.scene)
@@ -332,7 +329,7 @@ export class Yorb {
 
     swapMaterials() {
         if (MODE === 'YORB') {
-            this.adlerModel.swapMaterials();
+            this.itpModel.swapMaterials();
         }
     }
 
@@ -513,7 +510,7 @@ export class Yorb {
 
             // things to update 50 times per seconds:
             this.controls.update();
-            //this.projectionScreens.update();
+            this.projectionScreens.update();
             sceneDraw(this.scene);
 
             // things to update 5 x per second
@@ -523,7 +520,7 @@ export class Yorb {
 
             if (this.frameCount % 20 == 0) {
                 this.updateClientVolumes();
-                //this.projectionScreens.updatePositionalAudio();
+                this.projectionScreens.updatePositionalAudio();
                 this.movementCallback();
                 if (this.show) {
                     this.show.update();
@@ -542,7 +539,7 @@ export class Yorb {
                         hackToRemovePlayerTemporarily();
                     }
                 }
-                //this.projectionScreens.checkProjectionScreenCollisions();
+                this.projectionScreens.checkProjectionScreenCollisions();
             }
             if (this.frameCount % 50 == 0) {
                 this.selectivelyPauseAndResumeConsumers();
@@ -576,7 +573,7 @@ export class Yorb {
     }
 
     releaseProjectionScreen(screenId) {
-        //this.projectionScreens.releaseProjectionScreen(screenId);
+        this.projectionScreens.releaseProjectionScreen(screenId);
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
