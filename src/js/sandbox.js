@@ -15,6 +15,7 @@ export function sceneSetup(scene){
     // this code will be called once inside of the 'addYORBParts()' function
     // in the yorb.js file
     
+    /*
     let geometry = new THREE.BoxGeometry(1,1,1);
     let material = new THREE.MeshNormalMaterial();
     
@@ -22,6 +23,7 @@ export function sceneSetup(scene){
 
     scene.add(myMesh);
     myMesh.position.set(0, 2, 0);
+    */
 }
 
 export function sceneDraw(scene){
