@@ -11,16 +11,16 @@ import { redrawVideoCanvas, makeVideoTextureAndMaterial } from './utils';
 
 import { SpringShow2020 } from './springShow2020';
 import { WinterShow2020 } from './winterShow2020';
+import { SpringShow2021 } from './springShow2021';
 import { ITPModel } from './itpModel';
 import { Sketches } from './p5Sketches';
 import { ProjectionScreens } from './projectionScreens';
-import { YorbControls2 } from './yorbControls2.js';
+import { Controls } from './controls.js';
 import { Yorblet } from './yorblet.js';
 import { PhotoGallery } from './photoGallery';
 import { DaysGallery } from './daysGallery';
 
-import {sceneSetup, sceneDraw} from "./sandbox";
-
+import { sceneSetup, sceneDraw } from './sandbox';
 
 import * as THREE from 'three';
 
@@ -128,26 +128,27 @@ export class Yorb {
     addYORBParts() {
         sceneSetup(this.scene);
 
-        this.controls = new YorbControls2(this.scene, this.camera, this.renderer);
+        this.controls = new Controls(this.scene, this.camera, this.renderer);
 
         //this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
         //console.log("testing logging");
-        
-	this.show = false;
+
+        this.show = false;
         this.yorblet = false;
 
-        if (MODE === 'YORBLET') {
-            this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, this.controls);
-        }
+        // if (MODE === 'YORBLET') {
+        //     this.yorblet = new Yorblet(this.scene, this.projectionScreens, this.mouse, this.camera, this.controls);
+        // }
 
         if (MODE === 'YORB') {
-            this.show = new WinterShow2020(this.scene, this.camera, this.controls, this.mouse);
+            this.show = new SpringShow2021(this.scene, this.camera, this.controls, this.mouse);
             this.show.setup();
+
             //this.projectionScreens.createYorbProjectionScreens()
-	    this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
-            this.itpModel = new ITPModel(this.scene);
-            this.photoGallery = new PhotoGallery(this.scene);
-            this.daysGallery = new DaysGallery(this.scene, this.camera, this.mouse);
+            // this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
+            // this.itpModel = new ITPModel(this.scene);
+            // this.photoGallery = new PhotoGallery(this.scene);
+            // this.daysGallery = new DaysGallery(this.scene, this.camera, this.mouse);
         }
 
         // this.sketches = new Sketches(this.scene)
@@ -485,8 +486,8 @@ export class Yorb {
 
         // any query params in the URL?
         let params = new URLSearchParams(window.location.search);
-        let xParam = params.get("x");
-        let zParam = params.get("z");
+        let xParam = params.get('x');
+        let zParam = params.get('z');
 
         if (xParam) startX = parseFloat(xParam);
         if (zParam) startZ = parseFloat(zParam);
@@ -510,7 +511,7 @@ export class Yorb {
 
             // things to update 50 times per seconds:
             this.controls.update();
-            this.projectionScreens.update();
+            // this.projectionScreens.update();
             sceneDraw(this.scene);
 
             // things to update 5 x per second
@@ -520,7 +521,7 @@ export class Yorb {
 
             if (this.frameCount % 20 == 0) {
                 this.updateClientVolumes();
-                this.projectionScreens.updatePositionalAudio();
+                // this.projectionScreens.updatePositionalAudio();
                 this.movementCallback();
                 if (this.show) {
                     this.show.update();
@@ -539,7 +540,7 @@ export class Yorb {
                         hackToRemovePlayerTemporarily();
                     }
                 }
-                this.projectionScreens.checkProjectionScreenCollisions();
+                // this.projectionScreens.checkProjectionScreenCollisions();
             }
             if (this.frameCount % 50 == 0) {
                 this.selectivelyPauseAndResumeConsumers();
