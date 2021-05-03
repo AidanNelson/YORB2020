@@ -8,6 +8,8 @@ import { Signage } from './signage';
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png');
 
+const waterTextureFile = require('../assets/images/TexturesCom_WaterPlain0012_1_seamless_S.jpg');
+
 import debugModule from 'debug';
 
 const log = debugModule('YORB:WinterShow');
@@ -825,15 +827,14 @@ class LazyRiver {
     }
 
     // onKeyDown(e) {
-        // if (e.keyCode === 32) {
-        //     this.isMoving = !this.isMoving;
+    // if (e.keyCode === 32) {
+    //     this.isMoving = !this.isMoving;
 
-        //     if (!this.isMoving) {
-        //         this.hasStarted = false;
-        //     }
-        // }
+    //     if (!this.isMoving) {
+    //         this.hasStarted = false;
+    //     }
     // }
-
+    // }
 
     addSpline() {
         const splineCurve = new THREE.CatmullRomCurve3([
@@ -886,14 +887,17 @@ class LazyRiver {
 
         const shape1 = new THREE.Shape(pts1);
         const geometry1 = new THREE.ExtrudeGeometry(shape1, extrudeSettings1);
-        const material1 = new THREE.MeshLambertMaterial({ color: 0x0000aa, wireframe: false, side: THREE.DoubleSide });
+        let waterTexture = new THREE.TextureLoader().load(waterTextureFile);
+        waterTexture.wrapS = THREE.RepeatWrapping;
+        waterTexture.wrapT = THREE.RepeatWrapping;
+        waterTexture.repeat.set(0.1, 0.1);
+        const material1 = new THREE.MeshLambertMaterial({ color: 0xaaaaff, wireframe: false, side: THREE.DoubleSide, map: waterTexture });
         const mesh1 = new THREE.Mesh(geometry1, material1);
 
         this.scene.add(mesh1);
-        mesh1.position.set(0,-1.5,0);
+        mesh1.position.set(0, -1.5, 0);
 
         this.lazyRiverMesh = mesh1;
-        
 
         this.pointsAlongLazyRiver = this.lazyRiverPath.getPoints(this.pointsResolution);
         this.findClosestPointAlongLazyRiver();
