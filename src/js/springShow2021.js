@@ -804,7 +804,13 @@ class LazyRiver {
         this.scene = scene;
         this.camera = camera;
 
+        this.hasStarted = false;
         this.isMoving = false;
+
+        this.raycaster = new THREE.Raycaster();
+        this.downVector = new THREE.Vector3(0, -1, 0);
+
+        this.pointsResolution = 256;
 
         // spline movement variables:
         this.direction = new THREE.Vector3();
@@ -813,28 +819,29 @@ class LazyRiver {
         this.position = new THREE.Vector3();
         this.lookAt = new THREE.Vector3();
 
-
-
-        window.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+        // window.addEventListener('keydown', (e) => this.onKeyDown(e), false);
 
         this.addSpline();
-
-
     }
 
-    onKeyDown(e){
-        if (e.keyCode === 32){
-            this.isMoving = !this.isMoving;
-        }
-    }
+    // onKeyDown(e) {
+        // if (e.keyCode === 32) {
+        //     this.isMoving = !this.isMoving;
+
+        //     if (!this.isMoving) {
+        //         this.hasStarted = false;
+        //     }
+        // }
+    // }
+
 
     addSpline() {
         const splineCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-40, 0, -40),
-            new THREE.Vector3(40, 0, -40),
-            new THREE.Vector3(140, 0, -40),
-            new THREE.Vector3(40, 0, 40),
-            new THREE.Vector3(-40, 0, 40),
+            new THREE.Vector3(-20, 0, -20),
+            new THREE.Vector3(20, 0, -20),
+            new THREE.Vector3(80, 0, -20),
+            new THREE.Vector3(20, 0, 20),
+            new THREE.Vector3(-20, 0, 20),
         ]);
 
         splineCurve.curveType = 'catmullrom';
@@ -849,97 +856,72 @@ class LazyRiver {
             this.riverMesh.geometry.dispose();
         }
 
-        const extrudePath = splineCurve;
         this.lazyRiverPath = splineCurve;
 
-        this.tubeGeometry = new THREE.TubeGeometry(extrudePath, 128, 0.25, 12, true);
-        // this.riverGeometry = new THREE.
+        this.tubeGeometry = new THREE.TubeGeometry(this.lazyRiverPath, 128, 0.25, 12, true);
 
         // 3D shape
-        this.riverMesh = new THREE.Mesh(this.tubeGeometry, material);
-        const wireframe = new THREE.Mesh(this.tubeGeometry, wireframeMaterial);
+        // this.riverMesh = new THREE.Mesh(this.tubeGeometry, material);
+        // const wireframe = new THREE.Mesh(this.tubeGeometry, wireframeMaterial);
 
-        this.riverMesh.add(wireframe);
-        // this.riverMesh.rotateZ(Math.PI / 2);
-        // this.riverMesh.position.set(0, 1.5, 0);
+        // this.riverMesh.add(wireframe);
 
-        this.scene.add(this.riverMesh);
+        // this.scene.add(this.riverMesh);
 
         // Extrusion
         const extrudeSettings1 = {
             steps: 100,
             bevelEnabled: false,
-            extrudePath: this.lazyRiverPath
+            extrudePath: this.lazyRiverPath,
         };
 
+        const pts1 = [],
+            count = 3;
 
-        const pts1 = [], count = 3;
-
-        for ( let i = 0; i < count; i ++ ) {
-            const l = 2;
-            const a = 2 * i / count * Math.PI;
-            pts1.push( new THREE.Vector2( Math.cos( a ) * l, Math.sin( a ) * l ) );
+        for (let i = 0; i < count; i++) {
+            const l = 3;
+            const a = ((2 * i) / count) * Math.PI;
+            pts1.push(new THREE.Vector2(Math.cos(a) * l, Math.sin(a) * l));
         }
 
-        const shape1 = new THREE.Shape( pts1 );
-        const geometry1 = new THREE.ExtrudeGeometry( shape1, extrudeSettings1 );
-        const material1 = new THREE.MeshLambertMaterial( { color: 0x0000aa, wireframe: false, side: THREE.DoubleSide } );
-        const mesh1 = new THREE.Mesh( geometry1, material1 );
+        const shape1 = new THREE.Shape(pts1);
+        const geometry1 = new THREE.ExtrudeGeometry(shape1, extrudeSettings1);
+        const material1 = new THREE.MeshLambertMaterial({ color: 0x0000aa, wireframe: false, side: THREE.DoubleSide });
+        const mesh1 = new THREE.Mesh(geometry1, material1);
 
-        this.scene.add( mesh1 );
+        this.scene.add(mesh1);
+        mesh1.position.set(0,-1.5,0);
+
+        this.lazyRiverMesh = mesh1;
+        
+
+        this.pointsAlongLazyRiver = this.lazyRiverPath.getPoints(this.pointsResolution);
+        this.findClosestPointAlongLazyRiver();
+    }
+
+    findClosestPointAlongLazyRiver() {
+        let closestIndex = -1;
+        let closest = null;
+        let closestDistance = Infinity;
+        for (let i = 0; i < this.pointsAlongLazyRiver.length; i++) {
+            let pt = this.pointsAlongLazyRiver[i];
+            let distSquared = this.camera.position.distanceToSquared(pt);
+            if (distSquared < closestDistance) {
+                closestDistance = distSquared;
+                closest = pt;
+                closestIndex = i;
+            }
+        }
+        return closestIndex / this.pointsResolution;
     }
 
     update() {
-        this.moveCameraAlongSpline();
-    }
-
-    moveCameraAlongSpline() {
-        // animate camera along spline
-        if (this.isMoving) {
-            
-            const time = Date.now();
-            const looptime = 20 * 1000;
-            const t = (time % looptime) / looptime;
-
-            this.tubeGeometry.parameters.path.getPointAt(t, this.position);
-            // position.multiplyScalar(params.scale);
-
-            // interpolation
-            const numSegments = this.tubeGeometry.tangents.length;
-            const pickt = t * numSegments;
-            const pick = Math.floor(pickt);
-            const pickNext = (pick + 1) % numSegments;
-
-            console.log('binormals: ', this.tubeGeometry.binormals);
-
-            this.binormal.subVectors(this.tubeGeometry.binormals[pickNext], this.tubeGeometry.binormals[pick]);
-            this.binormal.multiplyScalar(pickt - pick).add(this.tubeGeometry.binormals[pick]);
-
-            this.tubeGeometry.parameters.path.getTangentAt(t, this.direction);
-            const offset = 15;
-
-            this.normal.copy(this.binormal).cross(this.direction);
-
-            // we move on a offset on its binormal
-
-            this.position.add(this.normal.clone().multiplyScalar(offset));
-
-            // splineCamera.position.copy(position);
-            // cameraEye.position.copy(position);
-            this.camera.position.copy(this.position);
-
-            // using arclength for stablization in look ahead
-
-            this.tubeGeometry.parameters.path.getPointAt((t + 30 / this.tubeGeometry.parameters.path.getLength()) % 1, this.lookAt);
-            // this.lookAt.multiplyScalar(params.scale);
-
-            // camera orientation 2 - up orientation via normal
-            // if (true) this.lookAt.copy(this.position).add(this.direction);
-            // this.camera.matrix.lookAt(this.camera.position, this.lookAt, this.normal);
-            // this.camera.quaternion.setFromRotationMatrix(this.camera.matrix);
-
-            // cameraHelper.update();
-            // renderer.render(scene, params.animationView === true ? splineCamera : camera);
+        this.raycaster.set(this.camera.position, this.downVector);
+        let intersections = this.raycaster.intersectObject(this.lazyRiverMesh);
+        if (intersections[0]) {
+            this.positionAlongCurve = this.findClosestPointAlongLazyRiver();
+            this.tubeGeometry.parameters.path.getTangent(this.positionAlongCurve, this.direction);
+            this.camera.position.add(this.direction.multiplyScalar(0.1));
         }
     }
 }
