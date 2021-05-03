@@ -834,6 +834,8 @@ class LazyRiver {
         const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshLambertMaterial({map: grassTexture}));
         groundPlane.rotateX(-Math.PI/2);
         this.scene.add(groundPlane);
+
+        this.addYorbletEntrance();
     }
 
     // onKeyDown(e) {
@@ -845,6 +847,28 @@ class LazyRiver {
     //     }
     // }
     // }
+
+    addYorbletEntrance() {
+          // add entrance:
+          const geometry = new THREE.TorusBufferGeometry(8, 1, 16, 24, Math.PI)
+          const material = new THREE.MeshBasicMaterial({ color: 0xff00ff })
+          const torus = new THREE.Mesh(geometry, material)
+          this.scene.add(torus)
+          torus.position.set(86,0,-25);
+          torus.lookAt(78, 0,-20)
+
+          const material2 = new THREE.MeshBasicMaterial({ color: 0xffff00 })
+          const torus2 = new THREE.Mesh(geometry, material2)
+          this.scene.add(torus2)
+          torus2.position.set(25,0,27);
+          torus2.lookAt(22, 0,15)
+
+          const material3 = new THREE.MeshBasicMaterial({ color: 0x00ffff })
+          const torus3 = new THREE.Mesh(geometry, material3)
+          this.scene.add(torus3)
+          torus3.position.set(-5,0,-15);
+          torus3.lookAt(6, 0,-10)
+    }
 
     addSpline() {
         this.lazyRiverPath = new THREE.CatmullRomCurve3([
