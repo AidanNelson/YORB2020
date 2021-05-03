@@ -9,6 +9,7 @@ import { Signage } from './signage';
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png');
 
 const waterTextureFile = require('../assets/images/TexturesCom_WaterPlain0012_1_seamless_S.jpg');
+const grassTextureFile = require('../assets/images/Grass004_1K_Color.jpg');
 
 import debugModule from 'debug';
 
@@ -824,6 +825,15 @@ class LazyRiver {
         // window.addEventListener('keydown', (e) => this.onKeyDown(e), false);
 
         this.addSpline();
+
+        const grassTexture = new THREE.TextureLoader().load(grassTextureFile);
+        grassTexture.wrapS = THREE.RepeatWrapping;
+        grassTexture.wrapT = THREE.RepeatWrapping;
+        grassTexture.repeat.set(500, 500);
+
+        const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshLambertMaterial({map: grassTexture}));
+        groundPlane.rotateX(-Math.PI/2);
+        this.scene.add(groundPlane);
     }
 
     // onKeyDown(e) {
@@ -837,27 +847,27 @@ class LazyRiver {
     // }
 
     addSpline() {
-        const splineCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-20, 0, -20),
+        this.lazyRiverPath = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 0, -5),
             new THREE.Vector3(20, 0, -20),
             new THREE.Vector3(80, 0, -20),
             new THREE.Vector3(20, 0, 20),
             new THREE.Vector3(-20, 0, 20),
         ]);
 
-        splineCurve.curveType = 'catmullrom';
-        splineCurve.closed = true;
+        this.lazyRiverPath.curveType = 'catmullrom';
+        this.lazyRiverPath.closed = true;
 
-        const material = new THREE.MeshLambertMaterial({ color: 0xff00ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+        // const material = new THREE.MeshLambertMaterial({ color: 0xff00ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
 
-        const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, linewidth: 5, opacity: 0.3, wireframe: true, transparent: true });
+        // const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, linewidth: 5, opacity: 0.3, wireframe: true, transparent: true });
 
-        if (this.riverMesh !== undefined) {
-            parent.remove(this.riverMesh);
-            this.riverMesh.geometry.dispose();
-        }
+        // if (this.riverMesh !== undefined) {
+        //     parent.remove(this.riverMesh);
+        //     this.riverMesh.geometry.dispose();
+        // }
 
-        this.lazyRiverPath = splineCurve;
+        // this.lazyRiverPath = splineCurve;
 
         this.tubeGeometry = new THREE.TubeGeometry(this.lazyRiverPath, 128, 0.25, 12, true);
 
@@ -871,7 +881,7 @@ class LazyRiver {
 
         // Extrusion
         const extrudeSettings1 = {
-            steps: 100,
+            steps: 128,
             bevelEnabled: false,
             extrudePath: this.lazyRiverPath,
         };
@@ -895,7 +905,7 @@ class LazyRiver {
         const mesh1 = new THREE.Mesh(geometry1, material1);
 
         this.scene.add(mesh1);
-        mesh1.position.set(0, -1.5, 0);
+        mesh1.position.set(0, -1.2, 0);
 
         this.lazyRiverMesh = mesh1;
 
