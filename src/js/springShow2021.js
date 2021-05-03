@@ -1,16 +1,16 @@
-import * as THREE from 'three'
+import * as THREE from 'three';
 
-import { createSimpleText } from './utils'
-import { hackToRemovePlayerTemporarily } from './index.js'
-import { Vector3 } from 'three'
-import { Portal } from './portals'
-import { Signage } from './signage'
+import { createSimpleText } from './utils';
+import { hackToRemovePlayerTemporarily } from './index.js';
+import { Vector3 } from 'three';
+import { Portal } from './portals';
+import { Signage } from './signage';
 
-const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
+const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png');
 
-import debugModule from 'debug'
+import debugModule from 'debug';
 
-const log = debugModule('YORB:WinterShow')
+const log = debugModule('YORB:WinterShow');
 
 const yorbletPortalReference = [
     //for portal creation, needs scene, position, and index
@@ -20,45 +20,47 @@ const yorbletPortalReference = [
     // { position: new Vector3(-23, 0, 4.5) },
     // { position: new Vector3(-23, 0, 2) },
     // { position: new Vector3(-23, 0, -0.5) },
-    // { position: new Vector3(-23, 0, -3) }, 
+    // { position: new Vector3(-23, 0, -3) },
     // { position: new Vector3(-23, 0, -35) }, //these six are in south side
     // { position: new Vector3(-23, 0, -37.5) },
     // { position: new Vector3(-23, 0, -40) },
     // { position: new Vector3(-23, 0, -42.5) },
     // { position: new Vector3(-23, 0, -45) },
     // { position: new Vector3(-23, 0, -47.5) }
-]
+];
 
 export class SpringShow2021 {
     constructor(scene, camera, controls, mouse) {
-        this.scene = scene
-        this.camera = camera
-        this.controls = controls
-        this.mouse = mouse
+        this.scene = scene;
+        this.camera = camera;
+        this.controls = controls;
+        this.mouse = mouse;
 
-        this.hightlightedProjectId = -1
-        this.activeProjectId = -1 // will change to project ID if a project is active
+        this.hightlightedProjectId = -1;
+        this.activeProjectId = -1; // will change to project ID if a project is active
 
         // we need some stuff to operate:
-        this.raycaster = new THREE.Raycaster()
-        this.textureLoader = new THREE.TextureLoader()
-        this.textParser = new DOMParser()
+        this.raycaster = new THREE.Raycaster();
+        this.textureLoader = new THREE.TextureLoader();
+        this.textParser = new DOMParser();
 
-        this.highlightMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a })
-        this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff })
+        this.highlightMaterial = new THREE.MeshLambertMaterial({ color: 0xffff1a });
+        this.linkMaterial = new THREE.MeshLambertMaterial({ color: 0xb3b3ff });
         this.linkVisitedMaterial = new THREE.MeshLambertMaterial({
             color: 0x6699ff,
-        })
-        this.statusBoxMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 })
+        });
+        this.statusBoxMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
 
-        this.projects = []
-        this.hyperlinkedObjects = []
-        this.linkMaterials = {}
+        this.projects = [];
+        this.hyperlinkedObjects = [];
+        this.linkMaterials = {};
 
-        this.portals = []
+        this.portals = [];
 
         // let domElement = document.getElementById('scene-container')
-        window.addEventListener('click', (e) => this.onMouseClick(e), false)
+        window.addEventListener('click', (e) => this.onMouseClick(e), false);
+
+        this.splineTrain = new LazyRiver(this.scene, this.camera);
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -66,123 +68,116 @@ export class SpringShow2021 {
     // Interactable Hyperlinks for Spring Show 💎
 
     setup() {
-        var loader = new THREE.FontLoader()
-        let fontJSON = require('../assets/fonts/helvetiker_bold.json')
-        this.font = loader.parse(fontJSON)
-        this._updateProjects()
+        var loader = new THREE.FontLoader();
+        let fontJSON = require('../assets/fonts/helvetiker_bold.json');
+        this.font = loader.parse(fontJSON);
+        this._updateProjects();
+
         // this.addPortals()
         // this.addDecals();
         // var signage = new Signage(this.scene);
         // this.addArrowSigns();
     }
 
-
-    addDecals(){
-
-      //add welcome sign
+    addDecals() {
+        //add welcome sign
         const welcomeTexture = new THREE.TextureLoader().load(require('../assets/images/decals/welcome_sign_export_4x.png'));
         const tipsTexture = new THREE.TextureLoader().load(require('../assets/images/decals/tips_export_4x.png'));
         const mapTexture = new THREE.TextureLoader().load(require('../assets/images/decals/full_map_export_1x_new.png'));
 
         //add welcome poster
-        let posterX = -6.5
-        let posterY = 1.6
-        let posterZ = -7.25
+        let posterX = -6.5;
+        let posterY = 1.6;
+        let posterZ = -7.25;
 
-        let posterRotation = 1.5708*2
+        let posterRotation = 1.5708 * 2;
 
-        welcomeTexture.wrapS = THREE.RepeatWrapping
-        welcomeTexture.wrapT = THREE.RepeatWrapping
-        welcomeTexture.repeat.set(1, 1)
+        welcomeTexture.wrapS = THREE.RepeatWrapping;
+        welcomeTexture.wrapT = THREE.RepeatWrapping;
+        welcomeTexture.repeat.set(1, 1);
 
-        const signGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1)
-        const signMaterial = new THREE.MeshBasicMaterial({ map: welcomeTexture, transparent: true})
-        const signPlane = new THREE.Mesh(signGeometry, signMaterial)
+        const signGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1);
+        const signMaterial = new THREE.MeshBasicMaterial({ map: welcomeTexture, transparent: true });
+        const signPlane = new THREE.Mesh(signGeometry, signMaterial);
         //plane.lookAt(0, 1, 0)
-        signPlane.position.set(posterX, posterY, posterZ)
-        signPlane.rotateY(posterRotation)
-        this.scene.add(signPlane)
+        signPlane.position.set(posterX, posterY, posterZ);
+        signPlane.rotateY(posterRotation);
+        this.scene.add(signPlane);
 
         //add tips poster
-        posterX = -9.5
-        posterY = 1.65
-        posterZ = -7.25
+        posterX = -9.5;
+        posterY = 1.65;
+        posterZ = -7.25;
 
-        posterRotation = 1.5708*2
+        posterRotation = 1.5708 * 2;
 
-        tipsTexture.wrapS = THREE.RepeatWrapping
-        tipsTexture.wrapT = THREE.RepeatWrapping
-        tipsTexture.repeat.set(1, 1)
+        tipsTexture.wrapS = THREE.RepeatWrapping;
+        tipsTexture.wrapT = THREE.RepeatWrapping;
+        tipsTexture.repeat.set(1, 1);
 
-        const tipsGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1)
-        const tipsMaterial = new THREE.MeshBasicMaterial({ map: tipsTexture, transparent: true})
-        const tipsPlane = new THREE.Mesh(tipsGeometry, tipsMaterial)
+        const tipsGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1);
+        const tipsMaterial = new THREE.MeshBasicMaterial({ map: tipsTexture, transparent: true });
+        const tipsPlane = new THREE.Mesh(tipsGeometry, tipsMaterial);
         //plane.lookAt(0, 1, 0)
-        tipsPlane.position.set(posterX, posterY, posterZ)
-        tipsPlane.rotateY(posterRotation)
-        this.scene.add(tipsPlane)
-
+        tipsPlane.position.set(posterX, posterY, posterZ);
+        tipsPlane.rotateY(posterRotation);
+        this.scene.add(tipsPlane);
 
         //add map
-        posterX = -3.5
-        posterY = 1.65
-        posterZ = -10.25
+        posterX = -3.5;
+        posterY = 1.65;
+        posterZ = -10.25;
 
-        posterRotation = 1.5708*3
+        posterRotation = 1.5708 * 3;
 
-        mapTexture.wrapS = THREE.RepeatWrapping
-        mapTexture.wrapT = THREE.RepeatWrapping
-        mapTexture.repeat.set(1, 1)
+        mapTexture.wrapS = THREE.RepeatWrapping;
+        mapTexture.wrapT = THREE.RepeatWrapping;
+        mapTexture.repeat.set(1, 1);
 
-        const mapGeometry = new THREE.PlaneBufferGeometry(5, 2.5, 1, 1)
-        const mapMaterial = new THREE.MeshBasicMaterial({ map: mapTexture, transparent: true})
-        const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial)
+        const mapGeometry = new THREE.PlaneBufferGeometry(5, 2.5, 1, 1);
+        const mapMaterial = new THREE.MeshBasicMaterial({ map: mapTexture, transparent: true });
+        const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial);
         //plane.lookAt(0, 1, 0)
-        mapPlane.position.set(posterX, posterY, posterZ)
-        mapPlane.rotateY(posterRotation)
-        this.scene.add(mapPlane)
+        mapPlane.position.set(posterX, posterY, posterZ);
+        mapPlane.rotateY(posterRotation);
+        this.scene.add(mapPlane);
 
         const mapPlane2 = new THREE.Mesh(mapGeometry, mapMaterial);
-        mapPlane2.position.set(15,1.75,2.15);
+        mapPlane2.position.set(15, 1.75, 2.15);
         mapPlane2.rotateY(Math.PI);
         this.scene.add(mapPlane2);
-
-
-      }
-
-      addArrowSigns() {
-
-        const ArrowImages = require('../assets/images/arrow_signs/*.png')
-        const arrowImageObjects = [
-            {file:ArrowImages['MainProjArea_Forward'], w:4, h:2.5, x:-9, y:0.01, z:-12, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
-            {file:ArrowImages['MainProjArea_Forward'], w:4, h:2.5, x:-1, y:0.01, z:-12, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
-            {file:ArrowImages['Yorblet1-6_Left'], w:4, h:2, x:-18, y:0.01, z:-5, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
-            {file:ArrowImages['Yorblet6-12_Right'], w:4.5, h:2, x:-18, y:0.01, z:-23, rotateX:-Math.PI / 2, rotateY:Math.PI / 2},
-            {file:ArrowImages['ZoomProjects'], w:4, h:2, x:-18, y:0.01, z:-14, rotateX:-Math.PI / 2, rotateY:Math.PI / 2}
-        ]
-       
-        arrowImageObjects.forEach((img) =>{
-
-            const imgTxture = new THREE.TextureLoader().load(img.file);
-
-            imgTxture.wrapS = THREE.RepeatWrapping
-            imgTxture.wrapT = THREE.RepeatWrapping
-            imgTxture.repeat.set(1, 1)
-    
-            const imgGeometry = new THREE.PlaneBufferGeometry(img.w, img.h, 1, 1)
-            const imgMaterial = new THREE.MeshBasicMaterial({ map: imgTxture, transparent: true, side: THREE.DoubleSide })
-            const imgPlane = new THREE.Mesh(imgGeometry, imgMaterial)
-
-            imgPlane.position.set(img.x, img.y, img.z)
-    
-            imgPlane.rotateY(img.rotateY)
-            imgPlane.rotateX(img.rotateX)
-            // if (rotateZ) {imgPlane.rotateZ(rotateZ)}
-    
-            this.scene.add(imgPlane)
-        })
     }
 
+    addArrowSigns() {
+        const ArrowImages = require('../assets/images/arrow_signs/*.png');
+        const arrowImageObjects = [
+            { file: ArrowImages['MainProjArea_Forward'], w: 4, h: 2.5, x: -9, y: 0.01, z: -12, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+            { file: ArrowImages['MainProjArea_Forward'], w: 4, h: 2.5, x: -1, y: 0.01, z: -12, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+            { file: ArrowImages['Yorblet1-6_Left'], w: 4, h: 2, x: -18, y: 0.01, z: -5, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+            { file: ArrowImages['Yorblet6-12_Right'], w: 4.5, h: 2, x: -18, y: 0.01, z: -23, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+            { file: ArrowImages['ZoomProjects'], w: 4, h: 2, x: -18, y: 0.01, z: -14, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+        ];
+
+        arrowImageObjects.forEach((img) => {
+            const imgTxture = new THREE.TextureLoader().load(img.file);
+
+            imgTxture.wrapS = THREE.RepeatWrapping;
+            imgTxture.wrapT = THREE.RepeatWrapping;
+            imgTxture.repeat.set(1, 1);
+
+            const imgGeometry = new THREE.PlaneBufferGeometry(img.w, img.h, 1, 1);
+            const imgMaterial = new THREE.MeshBasicMaterial({ map: imgTxture, transparent: true, side: THREE.DoubleSide });
+            const imgPlane = new THREE.Mesh(imgGeometry, imgMaterial);
+
+            imgPlane.position.set(img.x, img.y, img.z);
+
+            imgPlane.rotateY(img.rotateY);
+            imgPlane.rotateX(img.rotateX);
+            // if (rotateZ) {imgPlane.rotateZ(rotateZ)}
+
+            this.scene.add(imgPlane);
+        });
+    }
 
     /*
      * updateProjects(projects)
@@ -195,36 +190,36 @@ export class SpringShow2021 {
      *
      */
     updateProjects(projects) {
-        this.projects = projects
-        this._updateProjects()
+        this.projects = projects;
+        this._updateProjects();
     }
 
     _updateProjects() {
         if (this.font) {
-            let projects = this.projects
+            let projects = this.projects;
 
             for (let i = 0; i < this.hyperlinkedObjects.length; i++) {
-                this.scene.remove(this.hyperlinkedObjects[i])
+                this.scene.remove(this.hyperlinkedObjects[i]);
             }
-            this.hyperlinkedObjects = []
+            this.hyperlinkedObjects = [];
 
             // do a check for duplicates
-            let dupeCheck = {}
-            let numUniqueProjects = 0
+            let dupeCheck = {};
+            let numUniqueProjects = 0;
 
-            let uniqueProjects = []
+            let uniqueProjects = [];
 
             for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
-                let proj = projects[projectIndex]
+                let proj = projects[projectIndex];
                 if (proj) {
-                    let project_id = proj.project_id
-                    let isZoomProject = proj.room_id == "-1";
-                    if (dupeCheck[project_id])  continue;
+                    let project_id = proj.project_id;
+                    let isZoomProject = proj.room_id == '-1';
+                    if (dupeCheck[project_id]) continue;
                     // if (isZoomProject)  {
                     if (true) {
-                        dupeCheck[project_id] = true
-                        numUniqueProjects++
-                        uniqueProjects.push(proj)
+                        dupeCheck[project_id] = true;
+                        numUniqueProjects++;
+                        uniqueProjects.push(proj);
                     }
                 }
             }
@@ -233,57 +228,57 @@ export class SpringShow2021 {
 
             if (numUniqueProjects > 0) {
                 // if the projects have been updated
-                let startIndex = 0
-                let endIndex = 63
+                let startIndex = 0;
+                let endIndex = 63;
                 for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i]
+                    let proj = uniqueProjects[i];
                     if (!proj) return;
-                    let locX = -23.55
-                    let locZ = -79 + i * 1.5
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
+                    let locX = -23.55;
+                    let locZ = -79 + i * 1.5;
+                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                    this.hyperlinkedObjects.push(hyperlink);
+                    this.scene.add(hyperlink);
                 }
 
-                startIndex = endIndex
-                endIndex = endIndex + 7
+                startIndex = endIndex;
+                endIndex = endIndex + 7;
                 for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i]
+                    let proj = uniqueProjects[i];
                     if (!proj) return;
-                    let offset = i - startIndex * 1
-                    let locX = -23.55
-                    let locZ = 22 + offset * 1.5
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
+                    let offset = i - startIndex * 1;
+                    let locX = -23.55;
+                    let locZ = 22 + offset * 1.5;
+                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                    this.hyperlinkedObjects.push(hyperlink);
+                    this.scene.add(hyperlink);
                 }
 
-                startIndex = endIndex
-                endIndex = endIndex + 11
+                startIndex = endIndex;
+                endIndex = endIndex + 11;
                 for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i]
+                    let proj = uniqueProjects[i];
                     if (!proj) return;
-                    let offset = i - startIndex * 1
-                    let locX = -22.55 + offset * 1.5
-                    let locZ = 32 
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI/2)
+                    let offset = i - startIndex * 1;
+                    let locX = -22.55 + offset * 1.5;
+                    let locZ = 32;
+                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                    hyperlink.rotateY(Math.PI / 2);
 
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
+                    this.hyperlinkedObjects.push(hyperlink);
+                    this.scene.add(hyperlink);
                 }
 
-                startIndex = endIndex
-                endIndex = endIndex + 16
+                startIndex = endIndex;
+                endIndex = endIndex + 16;
                 for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i]
-                    let locX = -14
-                    let offset = i - startIndex * 1
-                    let locZ = -6 + offset
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
+                    let proj = uniqueProjects[i];
+                    let locX = -14;
+                    let offset = i - startIndex * 1;
+                    let locZ = -6 + offset;
+                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                    hyperlink.rotateY(Math.PI);
+                    this.hyperlinkedObjects.push(hyperlink);
+                    this.scene.add(hyperlink);
                 }
 
                 // startIndex = endIndex
@@ -405,30 +400,30 @@ export class SpringShow2021 {
 
                 // // along x axis:
 
-                startIndex = endIndex
-                endIndex = endIndex + 19
+                startIndex = endIndex;
+                endIndex = endIndex + 19;
                 for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i]
-                    let offset = i - startIndex * 1
-                    let locX = -21 + offset
-                    let locZ = -106.5
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(-Math.PI / 2)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
+                    let proj = uniqueProjects[i];
+                    let offset = i - startIndex * 1;
+                    let locX = -21 + offset;
+                    let locZ = -106.5;
+                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                    hyperlink.rotateY(-Math.PI / 2);
+                    this.hyperlinkedObjects.push(hyperlink);
+                    this.scene.add(hyperlink);
                 }
 
-                startIndex = endIndex
-                endIndex = uniqueProjects.length
+                startIndex = endIndex;
+                endIndex = uniqueProjects.length;
                 for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i]
-                    let offset = i - startIndex * 1
-                    let locX = -21 + offset
-                    let locZ = -95.125
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                    hyperlink.rotateY(Math.PI / 2)
-                    this.hyperlinkedObjects.push(hyperlink)
-                    this.scene.add(hyperlink)
+                    let proj = uniqueProjects[i];
+                    let offset = i - startIndex * 1;
+                    let locX = -21 + offset;
+                    let locZ = -95.125;
+                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                    hyperlink.rotateY(Math.PI / 2);
+                    this.hyperlinkedObjects.push(hyperlink);
+                    this.scene.add(hyperlink);
                 }
 
                 // console.log("We've placed ", endIndex, ' projects so far.')
@@ -440,31 +435,31 @@ export class SpringShow2021 {
         //goes through all yorblets except 0 (lobby) and makes portal
         for (let i = 1; i < yorbletPortalReference.length; i++) {
             // log(yorbletPortalReference[i])
-            this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i))
+            this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i));
         }
     }
 
     // this decodes the text twice because the project database seems to be double wrapped in html...
     // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
     parseText(encodedStr) {
-        var dom = this.textParser.parseFromString('<!doctype html><body>' + encodedStr, 'text/html')
-        var decodedString = dom.body.textContent
-        var dom2 = this.textParser.parseFromString('<!doctype html><body>' + decodedString, 'text/html')
-        var decodedString2 = dom2.body.textContent
-        return decodedString2
+        var dom = this.textParser.parseFromString('<!doctype html><body>' + encodedStr, 'text/html');
+        var decodedString = dom.body.textContent;
+        var dom2 = this.textParser.parseFromString('<!doctype html><body>' + decodedString, 'text/html');
+        var decodedString2 = dom2.body.textContent;
+        return decodedString2;
     }
 
     addLineBreak(longString) {
-        let spaceIndex = longString.indexOf(' ', 10)
+        let spaceIndex = longString.indexOf(' ', 10);
         if (spaceIndex != -1) {
-            let firstHalf = longString.slice(0, spaceIndex)
-            let secondHalf = longString.slice(spaceIndex, longString.length)
+            let firstHalf = longString.slice(0, spaceIndex);
+            let secondHalf = longString.slice(spaceIndex, longString.length);
             if (secondHalf.length > 15) {
-                secondHalf = this.addLineBreak(secondHalf)
+                secondHalf = this.addLineBreak(secondHalf);
             }
-            return firstHalf.trim() + '\n' + secondHalf.trim()
+            return firstHalf.trim() + '\n' + secondHalf.trim();
         } else {
-            return longString
+            return longString;
         }
     }
 
@@ -478,59 +473,59 @@ export class SpringShow2021 {
      */
 
     createHyperlinkedMesh(x, y, z, _project) {
-        let linkDepth = 0.1
-        let fontColor = 0x343434
-        let statusColor = 0xffffff
-        let fontSize = 0.05
+        let linkDepth = 0.1;
+        let fontColor = 0x343434;
+        let statusColor = 0xffffff;
+        let fontSize = 0.05;
 
-        var geometry = new THREE.BoxGeometry(linkDepth, 0.75, 0.75)
-        var textBoxGeometry = new THREE.BoxGeometry(linkDepth, 0.5, 0.75)
+        var geometry = new THREE.BoxGeometry(linkDepth, 0.75, 0.75);
+        var textBoxGeometry = new THREE.BoxGeometry(linkDepth, 0.5, 0.75);
 
-        let textBoxMat
+        let textBoxMat;
 
         // check whether we've visited the link before and set material accordingly
         if (localStorage.getItem(_project.project_id) == 'visited') {
-            textBoxMat = this.linkVisitedMaterial
+            textBoxMat = this.linkVisitedMaterial;
         } else {
-            textBoxMat = this.linkMaterial
+            textBoxMat = this.linkMaterial;
         }
 
-        let tex
+        let tex;
         if (project_thumbnails[_project.project_id]) {
-            tex = this.textureLoader.load(project_thumbnails[_project.project_id])
+            tex = this.textureLoader.load(project_thumbnails[_project.project_id]);
         } else {
-            tex = this.textureLoader.load(project_thumbnails['0000']) // default texture
+            tex = this.textureLoader.load(project_thumbnails['0000']); // default texture
         }
-        tex.wrapS = THREE.RepeatWrapping
-        tex.wrapT = THREE.RepeatWrapping
-        tex.repeat.set(1, 1)
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(1, 1);
 
         let imageMat = new THREE.MeshLambertMaterial({
             color: 0xffffff,
             map: tex,
-        })
+        });
 
-        this.linkMaterials[_project.project_id.toString()] = imageMat
+        this.linkMaterials[_project.project_id.toString()] = imageMat;
 
-        var textSign = new THREE.Mesh(textBoxGeometry, textBoxMat)
-        var imageSign = new THREE.Mesh(geometry, imageMat)
+        var textSign = new THREE.Mesh(textBoxGeometry, textBoxMat);
+        var imageSign = new THREE.Mesh(geometry, imageMat);
 
         // parse text of name and add line breaks if necessary
-        var name = this.parseText(_project.project_name)
+        var name = this.parseText(_project.project_name);
         if (name.length > 15) {
-            name = this.addLineBreak(name)
+            name = this.addLineBreak(name);
         }
 
         // create name text mesh
-        var textMesh = createSimpleText(name, fontColor, fontSize, this.font)
+        var textMesh = createSimpleText(name, fontColor, fontSize, this.font);
 
-        textMesh.position.x += linkDepth / 2 + 0.01 // offset forward
-        textMesh.rotateY(Math.PI / 2)
+        textMesh.position.x += linkDepth / 2 + 0.01; // offset forward
+        textMesh.rotateY(Math.PI / 2);
 
-        imageSign.position.set(x, y, z)
-        textSign.position.set(0, -0.75 / 2 - 0.5 / 2, 0)
-        textSign.add(textMesh)
-        imageSign.add(textSign)
+        imageSign.position.set(x, y, z);
+        textSign.position.set(0, -0.75 / 2 - 0.5 / 2, 0);
+        textSign.add(textMesh);
+        imageSign.add(textSign);
 
         // parse zoom room status
         // var status_code = _project.zoom_status
@@ -552,15 +547,15 @@ export class SpringShow2021 {
         // }
 
         // https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
-        let now = Date.now()
+        let now = Date.now();
         imageSign.userData = {
             project: _project,
             lastVisitedTime: now,
-        }
+        };
 
-        imageSign.name = _project.project_id
+        imageSign.name = _project.project_id;
 
-        return imageSign
+        return imageSign;
     }
 
     /*
@@ -580,15 +575,15 @@ export class SpringShow2021 {
      */
     zoomStatusDecoder(status) {
         if (status == '0') {
-            return 'Currently Offline'
+            return 'Currently Offline';
         } else if (status == '1') {
-            return 'Currently Live'
+            return 'Currently Live';
         } else if (status == '2') {
-            return 'Project Creator Will Be Right Back'
+            return 'Project Creator Will Be Right Back';
         } else if (status == '3') {
-            return 'Room Full Try Again Soon'
+            return 'Room Full Try Again Soon';
         } else {
-            return ''
+            return '';
         }
     }
     generateProjectModal(project) {
@@ -596,112 +591,112 @@ export class SpringShow2021 {
         // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
 
         if (!document.getElementsByClassName('project-modal')[0]) {
-            this.controls.pause()
-            localStorage.setItem(project.project_id, 'visited')
+            this.controls.pause();
+            localStorage.setItem(project.project_id, 'visited');
 
-            let id = project.project_id
-            let name = project.project_name
-            let pitch = project.elevator_pitch
-            let description = project.description
-            let link = project.zoom_link
-            let room_status = this.zoomStatusDecoder(project.zoom_status)
+            let id = project.project_id;
+            let name = project.project_name;
+            let pitch = project.elevator_pitch;
+            let description = project.description;
+            let link = project.zoom_link;
+            let room_status = this.zoomStatusDecoder(project.zoom_status);
 
-            let modalEl = document.createElement('div')
-            modalEl.className = 'project-modal'
-            modalEl.id = id + '_modal'
+            let modalEl = document.createElement('div');
+            modalEl.className = 'project-modal';
+            modalEl.id = id + '_modal';
 
-            let contentEl = document.createElement('div')
-            contentEl.className = 'project-modal-content'
+            let contentEl = document.createElement('div');
+            contentEl.className = 'project-modal-content';
 
-            let closeButton = document.createElement('button')
+            let closeButton = document.createElement('button');
             closeButton.addEventListener('click', () => {
-                modalEl.remove()
+                modalEl.remove();
                 // https://stackoverflow.com/questions/19426559/three-js-access-scene-objects-by-name-or-id
-                let now = Date.now()
-                let link = this.scene.getObjectByName(id)
-                link.userData.lastVisitedTime = now
-                this.controls.resume()
+                let now = Date.now();
+                let link = this.scene.getObjectByName(id);
+                link.userData.lastVisitedTime = now;
+                this.controls.resume();
                 setTimeout(() => {
-                    this.activeProjectId = -1
-                }, 100) // this helps reset without reopening the modal
-            })
-            closeButton.innerHTML = 'X'
+                    this.activeProjectId = -1;
+                }, 100); // this helps reset without reopening the modal
+            });
+            closeButton.innerHTML = 'X';
 
-            let projectImageEl = document.createElement('img')
-            let filename = 'https://itp.nyu.edu' + project.image
+            let projectImageEl = document.createElement('img');
+            let filename = 'https://itp.nyu.edu' + project.image;
             // let filename = "images/project_thumbnails/" + project.project_id + ".png";
-            projectImageEl.src = filename
-            projectImageEl.className = 'project-modal-img'
+            projectImageEl.src = filename;
+            projectImageEl.className = 'project-modal-img';
 
-            let titleEl = document.createElement('h1')
-            titleEl.innerHTML = this.parseText(name)
-            titleEl.className = 'project-modal-title'
+            let titleEl = document.createElement('h1');
+            titleEl.innerHTML = this.parseText(name);
+            titleEl.className = 'project-modal-title';
 
             // names
-            let names = ''
+            let names = '';
             for (let i = 0; i < project.users.length; i++) {
-                names += project.users[i].user_name
+                names += project.users[i].user_name;
                 if (i < project.users.length - 1) {
-                    names += ' & '
+                    names += ' & ';
                 }
             }
-            let namesEl = document.createElement('p')
-            namesEl.innerHTML = names
-            namesEl.className = 'project-modal-names'
+            let namesEl = document.createElement('p');
+            namesEl.innerHTML = names;
+            namesEl.className = 'project-modal-names';
 
-            let elevatorPitchHeaderEl = document.createElement('p')
-            elevatorPitchHeaderEl.innerHTML = 'Elevator Pitch'
-            let elevatorPitchEl = document.createElement('p')
-            elevatorPitchEl.innerHTML = this.parseText(pitch)
-            elevatorPitchEl.className = 'project-modal-text'
+            let elevatorPitchHeaderEl = document.createElement('p');
+            elevatorPitchHeaderEl.innerHTML = 'Elevator Pitch';
+            let elevatorPitchEl = document.createElement('p');
+            elevatorPitchEl.innerHTML = this.parseText(pitch);
+            elevatorPitchEl.className = 'project-modal-text';
 
-            let descriptionHeaderEl = document.createElement('p')
-            descriptionHeaderEl.innerHTML = 'Description'
-            let descriptionEl = document.createElement('p')
-            descriptionEl.innerHTML = this.parseText(description)
-            descriptionEl.className = 'project-modal-text'
+            let descriptionHeaderEl = document.createElement('p');
+            descriptionHeaderEl.innerHTML = 'Description';
+            let descriptionEl = document.createElement('p');
+            descriptionEl.innerHTML = this.parseText(description);
+            descriptionEl.className = 'project-modal-text';
 
-            let talkToCreatorDiv = document.createElement('div')
-            talkToCreatorDiv.className = 'project-modal-links-header'
-            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator:'
+            let talkToCreatorDiv = document.createElement('div');
+            talkToCreatorDiv.className = 'project-modal-links-header';
+            talkToCreatorDiv.innerHTML = 'Talk To The Project Creator:';
 
-            let linksDiv = document.createElement('div')
-            linksDiv.className = 'project-modal-link-container'
+            let linksDiv = document.createElement('div');
+            linksDiv.className = 'project-modal-link-container';
 
-            let projectLinkEl = document.createElement('a')
+            let projectLinkEl = document.createElement('a');
             // projectLinkEl.href = link;
-            projectLinkEl.href = project.url
-            projectLinkEl.innerHTML = 'Project Website'
-            projectLinkEl.target = '_blank'
-            projectLinkEl.rel = 'noopener noreferrer'
+            projectLinkEl.href = project.url;
+            projectLinkEl.innerHTML = 'Project Website';
+            projectLinkEl.target = '_blank';
+            projectLinkEl.rel = 'noopener noreferrer';
 
-            let zoomLinkEl = document.createElement('a')
+            let zoomLinkEl = document.createElement('a');
             // zoomLinkEl.href = link
-            zoomLinkEl.href = link
+            zoomLinkEl.href = link;
             // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
-            zoomLinkEl.innerHTML = 'Join Live Presentation!'
-            zoomLinkEl.target = '_self'
-            zoomLinkEl.rel = 'noopener noreferrer'
+            zoomLinkEl.innerHTML = 'Join Live Presentation!';
+            zoomLinkEl.target = '_self';
+            zoomLinkEl.rel = 'noopener noreferrer';
 
-            linksDiv.appendChild(projectLinkEl)
-            linksDiv.innerHTML += '&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;'
+            linksDiv.appendChild(projectLinkEl);
+            linksDiv.innerHTML += '&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;';
             if (project.zoom_status == 1) {
-                linksDiv.appendChild(zoomLinkEl)
+                linksDiv.appendChild(zoomLinkEl);
             }
 
-            contentEl.appendChild(closeButton)
-            contentEl.appendChild(projectImageEl)
-            contentEl.appendChild(titleEl)
-            contentEl.appendChild(namesEl)
-            contentEl.appendChild(elevatorPitchHeaderEl)
-            contentEl.appendChild(elevatorPitchEl)
-            contentEl.appendChild(descriptionHeaderEl)
-            contentEl.appendChild(descriptionEl)
-            contentEl.appendChild(talkToCreatorDiv)
-            contentEl.appendChild(linksDiv)
+            contentEl.appendChild(closeButton);
+            contentEl.appendChild(projectImageEl);
+            contentEl.appendChild(titleEl);
+            contentEl.appendChild(namesEl);
+            contentEl.appendChild(elevatorPitchHeaderEl);
+            contentEl.appendChild(elevatorPitchEl);
+            contentEl.appendChild(descriptionHeaderEl);
+            contentEl.appendChild(descriptionEl);
+            contentEl.appendChild(talkToCreatorDiv);
+            contentEl.appendChild(linksDiv);
 
-            modalEl.appendChild(contentEl)
-            document.body.appendChild(modalEl)
+            modalEl.appendChild(contentEl);
+            document.body.appendChild(modalEl);
         }
     }
 
@@ -714,90 +709,237 @@ export class SpringShow2021 {
      *
      */
     highlightHyperlinks() {
-        let thresholdDist = 5
-        let now = Date.now()
+        let thresholdDist = 5;
+        let now = Date.now();
 
         // store reference to last highlighted project id
-        let lastHighlightedProjectId = this.hightlightedProjectId
+        let lastHighlightedProjectId = this.hightlightedProjectId;
 
         // cast ray out from camera
-        this.raycaster.setFromCamera(this.mouse, this.camera)
+        this.raycaster.setFromCamera(this.mouse, this.camera);
 
-        var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects)
+        var intersects = this.raycaster.intersectObjects(this.hyperlinkedObjects);
 
         // if we have intersections, highlight them
         if (intersects.length > 0) {
             if (intersects[0].distance < thresholdDist) {
-                let link = intersects[0].object
-                this.hightlightedProjectId = link.userData.project.project_id
+                let link = intersects[0].object;
+                this.hightlightedProjectId = link.userData.project.project_id;
                 // do styling
-                this.highlightLink(link)
+                this.highlightLink(link);
             }
         }
 
         // if we've changed which project is highlighted
         if (lastHighlightedProjectId != this.hightlightedProjectId) {
-            let link = this.scene.getObjectByName(lastHighlightedProjectId)
+            let link = this.scene.getObjectByName(lastHighlightedProjectId);
             if (link != null) {
                 // reset styling
-                this.resetLinkMaterial(link)
+                this.resetLinkMaterial(link);
             }
         } else {
             // no change, so lets check for
-            let link = this.scene.getObjectByName(this.hightlightedProjectId)
+            let link = this.scene.getObjectByName(this.hightlightedProjectId);
             if (link != null) {
                 if (now - link.userData.lastVisitedTime > 500) {
                     // reset styling
-                    this.hightlightedProjectId = -1
-                    this.resetLinkMaterial(link)
+                    this.hightlightedProjectId = -1;
+                    this.resetLinkMaterial(link);
                 }
             }
         }
     }
 
     highlightLink(link) {
-        let now = Date.now()
-        link.userData.lastVisitedTime = now
-        link.userData.highlighted = true
+        let now = Date.now();
+        link.userData.lastVisitedTime = now;
+        link.userData.highlighted = true;
 
-        link.children[0].material = this.highlightMaterial
-        link.scale.set(1.1, 1.1, 1.1)
+        link.children[0].material = this.highlightMaterial;
+        link.scale.set(1.1, 1.1, 1.1);
     }
 
     resetLinkMaterial(link) {
-        link.scale.set(1, 1, 1)
+        link.scale.set(1, 1, 1);
         // reset according to whether we have visited it or not yet
-        let mat
+        let mat;
         // check whether we've visited the link before and set material accordingly
         if (localStorage.getItem(link.userData.project.project_id) == 'visited') {
-            mat = this.linkVisitedMaterial
+            mat = this.linkVisitedMaterial;
         } else {
-            mat = this.linkMaterial
+            mat = this.linkMaterial;
         }
         // log(link);
-        link.children[0].material = mat
+        link.children[0].material = mat;
     }
 
     activateHighlightedProject() {
         if (this.hightlightedProjectId != -1 && this.activeProjectId === -1) {
-            let link = this.scene.getObjectByName(this.hightlightedProjectId)
+            let link = this.scene.getObjectByName(this.hightlightedProjectId);
             if (link != null) {
-                this.generateProjectModal(link.userData.project)
-                hackToRemovePlayerTemporarily()
+                this.generateProjectModal(link.userData.project);
+                hackToRemovePlayerTemporarily();
 
                 // reset markers
-                this.activeProjectId = link.userData.project.project_id
+                this.activeProjectId = link.userData.project.project_id;
             }
         }
     }
 
     update() {
         if (this.activeProjectId == -1) {
-            this.highlightHyperlinks()
+            this.highlightHyperlinks();
         }
+
+        this.splineTrain.update();
     }
 
     onMouseClick(e) {
-        this.activateHighlightedProject()
+        this.activateHighlightedProject();
+    }
+}
+
+class LazyRiver {
+    constructor(scene, camera) {
+        this.scene = scene;
+        this.camera = camera;
+
+        this.isMoving = false;
+
+        // spline movement variables:
+        this.direction = new THREE.Vector3();
+        this.binormal = new THREE.Vector3();
+        this.normal = new THREE.Vector3();
+        this.position = new THREE.Vector3();
+        this.lookAt = new THREE.Vector3();
+
+
+
+        window.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+
+        this.addSpline();
+
+
+    }
+
+    onKeyDown(e){
+        if (e.keyCode === 32){
+            this.isMoving = !this.isMoving;
+        }
+    }
+
+    addSpline() {
+        const splineCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-40, 0, -40),
+            new THREE.Vector3(40, 0, -40),
+            new THREE.Vector3(140, 0, -40),
+            new THREE.Vector3(40, 0, 40),
+            new THREE.Vector3(-40, 0, 40),
+        ]);
+
+        splineCurve.curveType = 'catmullrom';
+        splineCurve.closed = true;
+
+        const material = new THREE.MeshLambertMaterial({ color: 0xff00ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+
+        const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, linewidth: 5, opacity: 0.3, wireframe: true, transparent: true });
+
+        if (this.riverMesh !== undefined) {
+            parent.remove(this.riverMesh);
+            this.riverMesh.geometry.dispose();
+        }
+
+        const extrudePath = splineCurve;
+        this.lazyRiverPath = splineCurve;
+
+        this.tubeGeometry = new THREE.TubeGeometry(extrudePath, 128, 0.25, 12, true);
+        // this.riverGeometry = new THREE.
+
+        // 3D shape
+        this.riverMesh = new THREE.Mesh(this.tubeGeometry, material);
+        const wireframe = new THREE.Mesh(this.tubeGeometry, wireframeMaterial);
+
+        this.riverMesh.add(wireframe);
+        // this.riverMesh.rotateZ(Math.PI / 2);
+        // this.riverMesh.position.set(0, 1.5, 0);
+
+        this.scene.add(this.riverMesh);
+
+        // Extrusion
+        const extrudeSettings1 = {
+            steps: 100,
+            bevelEnabled: false,
+            extrudePath: this.lazyRiverPath
+        };
+
+
+        const pts1 = [], count = 3;
+
+        for ( let i = 0; i < count; i ++ ) {
+            const l = 2;
+            const a = 2 * i / count * Math.PI;
+            pts1.push( new THREE.Vector2( Math.cos( a ) * l, Math.sin( a ) * l ) );
+        }
+
+        const shape1 = new THREE.Shape( pts1 );
+        const geometry1 = new THREE.ExtrudeGeometry( shape1, extrudeSettings1 );
+        const material1 = new THREE.MeshLambertMaterial( { color: 0x0000aa, wireframe: false, side: THREE.DoubleSide } );
+        const mesh1 = new THREE.Mesh( geometry1, material1 );
+
+        this.scene.add( mesh1 );
+    }
+
+    update() {
+        this.moveCameraAlongSpline();
+    }
+
+    moveCameraAlongSpline() {
+        // animate camera along spline
+        if (this.isMoving) {
+            
+            const time = Date.now();
+            const looptime = 20 * 1000;
+            const t = (time % looptime) / looptime;
+
+            this.tubeGeometry.parameters.path.getPointAt(t, this.position);
+            // position.multiplyScalar(params.scale);
+
+            // interpolation
+            const numSegments = this.tubeGeometry.tangents.length;
+            const pickt = t * numSegments;
+            const pick = Math.floor(pickt);
+            const pickNext = (pick + 1) % numSegments;
+
+            console.log('binormals: ', this.tubeGeometry.binormals);
+
+            this.binormal.subVectors(this.tubeGeometry.binormals[pickNext], this.tubeGeometry.binormals[pick]);
+            this.binormal.multiplyScalar(pickt - pick).add(this.tubeGeometry.binormals[pick]);
+
+            this.tubeGeometry.parameters.path.getTangentAt(t, this.direction);
+            const offset = 15;
+
+            this.normal.copy(this.binormal).cross(this.direction);
+
+            // we move on a offset on its binormal
+
+            this.position.add(this.normal.clone().multiplyScalar(offset));
+
+            // splineCamera.position.copy(position);
+            // cameraEye.position.copy(position);
+            this.camera.position.copy(this.position);
+
+            // using arclength for stablization in look ahead
+
+            this.tubeGeometry.parameters.path.getPointAt((t + 30 / this.tubeGeometry.parameters.path.getLength()) % 1, this.lookAt);
+            // this.lookAt.multiplyScalar(params.scale);
+
+            // camera orientation 2 - up orientation via normal
+            // if (true) this.lookAt.copy(this.position).add(this.direction);
+            // this.camera.matrix.lookAt(this.camera.position, this.lookAt, this.normal);
+            // this.camera.quaternion.setFromRotationMatrix(this.camera.matrix);
+
+            // cameraHelper.update();
+            // renderer.render(scene, params.animationView === true ? splineCamera : camera);
+        }
     }
 }

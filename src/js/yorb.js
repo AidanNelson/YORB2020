@@ -508,6 +508,7 @@ export class Yorb {
 
         if (!this.controls.paused) {
             this.frameCount++;
+            this.show.update();
 
             // things to update 50 times per seconds:
             this.controls.update();
@@ -524,7 +525,7 @@ export class Yorb {
                 // this.projectionScreens.updatePositionalAudio();
                 this.movementCallback();
                 if (this.show) {
-                    this.show.update();
+                    // this.show.update();
                     for (let portal of this.show.portals) {
                         //originally had this in framecount % 50, might want to move there if too slow
                         if (portal.teleportCheck(this.getPlayerPosition()[0])) {
