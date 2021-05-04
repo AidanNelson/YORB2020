@@ -813,6 +813,8 @@ class LazyRiver {
         this.raycaster = new THREE.Raycaster();
         this.downVector = new THREE.Vector3(0, -1, 0);
 
+        this.textureOffset = 0;
+
         this.pointsResolution = 256;
 
         // spline movement variables:
@@ -921,15 +923,17 @@ class LazyRiver {
 
         const shape1 = new THREE.Shape(pts1);
         const geometry1 = new THREE.ExtrudeGeometry(shape1, extrudeSettings1);
-        let waterTexture = new THREE.TextureLoader().load(waterTextureFile);
-        waterTexture.wrapS = THREE.RepeatWrapping;
-        waterTexture.wrapT = THREE.RepeatWrapping;
-        waterTexture.repeat.set(0.1, 0.1);
-        const material1 = new THREE.MeshLambertMaterial({ color: 0xaaaaff, wireframe: false, side: THREE.DoubleSide, map: waterTexture });
+
+        this.waterTexture = new THREE.TextureLoader().load(waterTextureFile);
+        this.waterTexture.wrapS = THREE.RepeatWrapping;
+        this.waterTexture.wrapT = THREE.RepeatWrapping;
+        this.waterTexture.repeat.set(0.1, 0.1);
+        const material1 = new THREE.MeshLambertMaterial({ color: 0xaaaaff, wireframe: false, side: THREE.DoubleSide, map: this.waterTexture });
+
         const mesh1 = new THREE.Mesh(geometry1, material1);
 
         this.scene.add(mesh1);
-        mesh1.position.set(0, -1.2, 0);
+        mesh1.position.set(0, -1.49, 0);
 
         this.lazyRiverMesh = mesh1;
 
@@ -954,6 +958,8 @@ class LazyRiver {
     }
 
     update() {
+        this.textureOffset -= 1;
+        this.waterTexture.offset.set((this.textureOffset % 1000 )/ 1000,0);
         this.raycaster.set(this.camera.position, this.downVector);
         let intersections = this.raycaster.intersectObject(this.lazyRiverMesh);
         if (intersections[0]) {
