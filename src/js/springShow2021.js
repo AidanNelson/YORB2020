@@ -82,105 +82,105 @@ export class SpringShow2021 {
         // this.addArrowSigns();
     }
 
-    addDecals() {
-        //add welcome sign
-        const welcomeTexture = new THREE.TextureLoader().load(require('../assets/images/decals/welcome_sign_export_4x.png'));
-        const tipsTexture = new THREE.TextureLoader().load(require('../assets/images/decals/tips_export_4x.png'));
-        const mapTexture = new THREE.TextureLoader().load(require('../assets/images/decals/full_map_export_1x_new.png'));
+    // addDecals() {
+    //     //add welcome sign
+    //     const welcomeTexture = new THREE.TextureLoader().load(require('../assets/images/decals/welcome_sign_export_4x.png'));
+    //     const tipsTexture = new THREE.TextureLoader().load(require('../assets/images/decals/tips_export_4x.png'));
+    //     const mapTexture = new THREE.TextureLoader().load(require('../assets/images/decals/full_map_export_1x_new.png'));
 
-        //add welcome poster
-        let posterX = -6.5;
-        let posterY = 1.6;
-        let posterZ = -7.25;
+    //     //add welcome poster
+    //     let posterX = -6.5;
+    //     let posterY = 1.6;
+    //     let posterZ = -7.25;
 
-        let posterRotation = 1.5708 * 2;
+    //     let posterRotation = 1.5708 * 2;
 
-        welcomeTexture.wrapS = THREE.RepeatWrapping;
-        welcomeTexture.wrapT = THREE.RepeatWrapping;
-        welcomeTexture.repeat.set(1, 1);
+    //     welcomeTexture.wrapS = THREE.RepeatWrapping;
+    //     welcomeTexture.wrapT = THREE.RepeatWrapping;
+    //     welcomeTexture.repeat.set(1, 1);
 
-        const signGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1);
-        const signMaterial = new THREE.MeshBasicMaterial({ map: welcomeTexture, transparent: true });
-        const signPlane = new THREE.Mesh(signGeometry, signMaterial);
-        //plane.lookAt(0, 1, 0)
-        signPlane.position.set(posterX, posterY, posterZ);
-        signPlane.rotateY(posterRotation);
-        this.scene.add(signPlane);
+    //     const signGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1);
+    //     const signMaterial = new THREE.MeshBasicMaterial({ map: welcomeTexture, transparent: true });
+    //     const signPlane = new THREE.Mesh(signGeometry, signMaterial);
+    //     //plane.lookAt(0, 1, 0)
+    //     signPlane.position.set(posterX, posterY, posterZ);
+    //     signPlane.rotateY(posterRotation);
+    //     this.scene.add(signPlane);
 
-        //add tips poster
-        posterX = -9.5;
-        posterY = 1.65;
-        posterZ = -7.25;
+    //     //add tips poster
+    //     posterX = -9.5;
+    //     posterY = 1.65;
+    //     posterZ = -7.25;
 
-        posterRotation = 1.5708 * 2;
+    //     posterRotation = 1.5708 * 2;
 
-        tipsTexture.wrapS = THREE.RepeatWrapping;
-        tipsTexture.wrapT = THREE.RepeatWrapping;
-        tipsTexture.repeat.set(1, 1);
+    //     tipsTexture.wrapS = THREE.RepeatWrapping;
+    //     tipsTexture.wrapT = THREE.RepeatWrapping;
+    //     tipsTexture.repeat.set(1, 1);
 
-        const tipsGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1);
-        const tipsMaterial = new THREE.MeshBasicMaterial({ map: tipsTexture, transparent: true });
-        const tipsPlane = new THREE.Mesh(tipsGeometry, tipsMaterial);
-        //plane.lookAt(0, 1, 0)
-        tipsPlane.position.set(posterX, posterY, posterZ);
-        tipsPlane.rotateY(posterRotation);
-        this.scene.add(tipsPlane);
+    //     const tipsGeometry = new THREE.PlaneBufferGeometry(2.7, 2, 1, 1);
+    //     const tipsMaterial = new THREE.MeshBasicMaterial({ map: tipsTexture, transparent: true });
+    //     const tipsPlane = new THREE.Mesh(tipsGeometry, tipsMaterial);
+    //     //plane.lookAt(0, 1, 0)
+    //     tipsPlane.position.set(posterX, posterY, posterZ);
+    //     tipsPlane.rotateY(posterRotation);
+    //     this.scene.add(tipsPlane);
 
-        //add map
-        posterX = -3.5;
-        posterY = 1.65;
-        posterZ = -10.25;
+    //     //add map
+    //     posterX = -3.5;
+    //     posterY = 1.65;
+    //     posterZ = -10.25;
 
-        posterRotation = 1.5708 * 3;
+    //     posterRotation = 1.5708 * 3;
 
-        mapTexture.wrapS = THREE.RepeatWrapping;
-        mapTexture.wrapT = THREE.RepeatWrapping;
-        mapTexture.repeat.set(1, 1);
+    //     mapTexture.wrapS = THREE.RepeatWrapping;
+    //     mapTexture.wrapT = THREE.RepeatWrapping;
+    //     mapTexture.repeat.set(1, 1);
 
-        const mapGeometry = new THREE.PlaneBufferGeometry(5, 2.5, 1, 1);
-        const mapMaterial = new THREE.MeshBasicMaterial({ map: mapTexture, transparent: true });
-        const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial);
-        //plane.lookAt(0, 1, 0)
-        mapPlane.position.set(posterX, posterY, posterZ);
-        mapPlane.rotateY(posterRotation);
-        this.scene.add(mapPlane);
+    //     const mapGeometry = new THREE.PlaneBufferGeometry(5, 2.5, 1, 1);
+    //     const mapMaterial = new THREE.MeshBasicMaterial({ map: mapTexture, transparent: true });
+    //     const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial);
+    //     //plane.lookAt(0, 1, 0)
+    //     mapPlane.position.set(posterX, posterY, posterZ);
+    //     mapPlane.rotateY(posterRotation);
+    //     this.scene.add(mapPlane);
 
-        const mapPlane2 = new THREE.Mesh(mapGeometry, mapMaterial);
-        mapPlane2.position.set(15, 1.75, 2.15);
-        mapPlane2.rotateY(Math.PI);
-        this.scene.add(mapPlane2);
-    }
+    //     const mapPlane2 = new THREE.Mesh(mapGeometry, mapMaterial);
+    //     mapPlane2.position.set(15, 1.75, 2.15);
+    //     mapPlane2.rotateY(Math.PI);
+    //     this.scene.add(mapPlane2);
+    // }
 
-    addArrowSigns() {
-        const ArrowImages = require('../assets/images/arrow_signs/*.png');
-        const arrowImageObjects = [
-            { file: ArrowImages['MainProjArea_Forward'], w: 4, h: 2.5, x: -9, y: 0.01, z: -12, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
-            { file: ArrowImages['MainProjArea_Forward'], w: 4, h: 2.5, x: -1, y: 0.01, z: -12, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
-            { file: ArrowImages['Yorblet1-6_Left'], w: 4, h: 2, x: -18, y: 0.01, z: -5, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
-            { file: ArrowImages['Yorblet6-12_Right'], w: 4.5, h: 2, x: -18, y: 0.01, z: -23, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
-            { file: ArrowImages['ZoomProjects'], w: 4, h: 2, x: -18, y: 0.01, z: -14, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
-        ];
+    // addArrowSigns() {
+    //     const ArrowImages = require('../assets/images/arrow_signs/*.png');
+    //     const arrowImageObjects = [
+    //         { file: ArrowImages['MainProjArea_Forward'], w: 4, h: 2.5, x: -9, y: 0.01, z: -12, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+    //         { file: ArrowImages['MainProjArea_Forward'], w: 4, h: 2.5, x: -1, y: 0.01, z: -12, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+    //         { file: ArrowImages['Yorblet1-6_Left'], w: 4, h: 2, x: -18, y: 0.01, z: -5, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+    //         { file: ArrowImages['Yorblet6-12_Right'], w: 4.5, h: 2, x: -18, y: 0.01, z: -23, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+    //         { file: ArrowImages['ZoomProjects'], w: 4, h: 2, x: -18, y: 0.01, z: -14, rotateX: -Math.PI / 2, rotateY: Math.PI / 2 },
+    //     ];
 
-        arrowImageObjects.forEach((img) => {
-            const imgTxture = new THREE.TextureLoader().load(img.file);
+    //     arrowImageObjects.forEach((img) => {
+    //         const imgTxture = new THREE.TextureLoader().load(img.file);
 
-            imgTxture.wrapS = THREE.RepeatWrapping;
-            imgTxture.wrapT = THREE.RepeatWrapping;
-            imgTxture.repeat.set(1, 1);
+    //         imgTxture.wrapS = THREE.RepeatWrapping;
+    //         imgTxture.wrapT = THREE.RepeatWrapping;
+    //         imgTxture.repeat.set(1, 1);
 
-            const imgGeometry = new THREE.PlaneBufferGeometry(img.w, img.h, 1, 1);
-            const imgMaterial = new THREE.MeshBasicMaterial({ map: imgTxture, transparent: true, side: THREE.DoubleSide });
-            const imgPlane = new THREE.Mesh(imgGeometry, imgMaterial);
+    //         const imgGeometry = new THREE.PlaneBufferGeometry(img.w, img.h, 1, 1);
+    //         const imgMaterial = new THREE.MeshBasicMaterial({ map: imgTxture, transparent: true, side: THREE.DoubleSide });
+    //         const imgPlane = new THREE.Mesh(imgGeometry, imgMaterial);
 
-            imgPlane.position.set(img.x, img.y, img.z);
+    //         imgPlane.position.set(img.x, img.y, img.z);
 
-            imgPlane.rotateY(img.rotateY);
-            imgPlane.rotateX(img.rotateX);
-            // if (rotateZ) {imgPlane.rotateZ(rotateZ)}
+    //         imgPlane.rotateY(img.rotateY);
+    //         imgPlane.rotateX(img.rotateX);
+    //         // if (rotateZ) {imgPlane.rotateZ(rotateZ)}
 
-            this.scene.add(imgPlane);
-        });
-    }
+    //         this.scene.add(imgPlane);
+    //     });
+    // }
 
     /*
      * updateProjects(projects)
@@ -231,216 +231,90 @@ export class SpringShow2021 {
 
             if (numUniqueProjects > 0) {
                 // if the projects have been updated
-                let startIndex = 0;
-                let endIndex = 63;
-                for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i];
-                    if (!proj) return;
-                    let locX = -23.55;
-                    let locZ = -79 + i * 1.5;
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                    this.hyperlinkedObjects.push(hyperlink);
-                    this.scene.add(hyperlink);
-                }
-
-                startIndex = endIndex;
-                endIndex = endIndex + 7;
-                for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i];
-                    if (!proj) return;
-                    let offset = i - startIndex * 1;
-                    let locX = -23.55;
-                    let locZ = 22 + offset * 1.5;
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                    this.hyperlinkedObjects.push(hyperlink);
-                    this.scene.add(hyperlink);
-                }
-
-                startIndex = endIndex;
-                endIndex = endIndex + 11;
-                for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i];
-                    if (!proj) return;
-                    let offset = i - startIndex * 1;
-                    let locX = -22.55 + offset * 1.5;
-                    let locZ = 32;
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                    hyperlink.rotateY(Math.PI / 2);
-
-                    this.hyperlinkedObjects.push(hyperlink);
-                    this.scene.add(hyperlink);
-                }
-
-                startIndex = endIndex;
-                endIndex = endIndex + 16;
-                for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i];
-                    let locX = -14;
-                    let offset = i - startIndex * 1;
-                    let locZ = -6 + offset;
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                    hyperlink.rotateY(Math.PI);
-                    this.hyperlinkedObjects.push(hyperlink);
-                    this.scene.add(hyperlink);
-                }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 12
+                // let startIndex = 0;
+                // let endIndex = 63;
                 // for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -14
-                //     let offset = i - startIndex * 1
-                //     let locZ = -30 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     hyperlink.rotateY(Math.PI)
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
+                //     let proj = uniqueProjects[i];
+                //     if (!proj) return;
+                //     let locX = -23.55;
+                //     let locZ = -79 + i * 1.5;
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                //     this.hyperlinkedObjects.push(hyperlink);
+                //     this.scene.add(hyperlink);
                 // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 5
+                // startIndex = endIndex;
+                // endIndex = endIndex + 7;
                 // for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -14
-                //     let offset = i - startIndex * 1
-                //     let locZ = -42.75 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     hyperlink.rotateY(Math.PI)
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
+                //     let proj = uniqueProjects[i];
+                //     if (!proj) return;
+                //     let offset = i - startIndex * 1;
+                //     let locX = -23.55;
+                //     let locZ = 22 + offset * 1.5;
+                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
+                //     this.hyperlinkedObjects.push(hyperlink);
+                //     this.scene.add(hyperlink);
                 // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 10
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -7
-                //     let offset = i - startIndex * 1
-                //     let locZ = -57 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     hyperlink.rotateY(Math.PI)
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 18
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -7
-                //     let offset = i - startIndex * 1
-                //     let locZ = -77 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     hyperlink.rotateY(Math.PI)
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 11
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -23.55
-                //     let offset = i - startIndex * 1
-                //     let locZ = -93 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     // hyperlink.rotateY(Math.PI);
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 11
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -17.25
-                //     let offset = i - startIndex * 1
-                //     let locZ = -93 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     hyperlink.rotateY(Math.PI)
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 11
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -16
-                //     let offset = i - startIndex * 1
-                //     let locZ = -93 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     // hyperlink.rotateY(Math.PI);
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 11
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = -23.55
-                //     let offset = i - startIndex * 1
-                //     let locZ = -106 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     // hyperlink.rotateY(Math.PI);
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // startIndex = endIndex
-                // endIndex = endIndex + 8
-                // for (let i = startIndex; i < endIndex; i++) {
-                //     let proj = uniqueProjects[i]
-                //     let locX = 1.25
-                //     let offset = i - startIndex * 1
-                //     let locZ = -106 + offset
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj)
-                //     hyperlink.rotateY(Math.PI)
-                //     this.hyperlinkedObjects.push(hyperlink)
-                //     this.scene.add(hyperlink)
-                // }
-
-                // // along x axis:
-
-                startIndex = endIndex;
-                endIndex = endIndex + 19;
-                for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i];
-                    let offset = i - startIndex * 1;
-                    let locX = -21 + offset;
-                    let locZ = -106.5;
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                    hyperlink.rotateY(-Math.PI / 2);
-                    this.hyperlinkedObjects.push(hyperlink);
-                    this.scene.add(hyperlink);
-                }
-
-                startIndex = endIndex;
-                endIndex = uniqueProjects.length;
-                for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                    let proj = uniqueProjects[i];
-                    let offset = i - startIndex * 1;
-                    let locX = -21 + offset;
-                    let locZ = -95.125;
-                    let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                    hyperlink.rotateY(Math.PI / 2);
-                    this.hyperlinkedObjects.push(hyperlink);
-                    this.scene.add(hyperlink);
-                }
-
                 // console.log("We've placed ", endIndex, ' projects so far.')
             }
         }
     }
 
-    addPortals() {
-        //goes through all yorblets except 0 (lobby) and makes portal
-        for (let i = 1; i < yorbletPortalReference.length; i++) {
-            // log(yorbletPortalReference[i])
-            this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i));
+    // this will update the project posters
+    arrangeProjects() {
+        let radius = RADIUS;
+
+        // set left side offsets
+        let xOffset = 0;
+        let zOffset = 20;
+
+        let projectIndex = 0;
+        // make left side projects
+        for (let i = 0; i < this.numProjects / 2; i++) {
+            let proj = this.projects[projectIndex];
+            if (!proj) return;
+
+            let theta = (Math.PI * 2) / (this.numProjects - 2);
+            let angle = theta * i;
+
+            let centerX = radius * Math.cos(angle) + xOffset;
+            let centerZ = radius * Math.sin(angle) + zOffset;
+
+            let hyperlink = this.createHyperlinkedMesh(centerX, 1, centerZ, xOffset, zOffset, proj);
+            this.hyperlinkedObjects.push(hyperlink);
+            this.scene.add(hyperlink);
+
+            projectIndex++;
+        }
+
+        xOffset = 0;
+        zOffset = -20;
+
+        // make right side projects
+        for (let i = this.numProjects / 2 - 1; i < this.numProjects - 1; i++) {
+            let proj = this.projects[projectIndex];
+            if (!proj) return;
+
+            let theta = (Math.PI * 2) / (this.numProjects - 2);
+            let angle = theta * i;
+
+            let centerX = radius * Math.cos(angle) + xOffset;
+            let centerZ = radius * Math.sin(angle) + zOffset;
+
+            let hyperlink = this.createHyperlinkedMesh(centerX, 1, centerZ, xOffset, zOffset, proj);
+            this.hyperlinkedObjects.push(hyperlink);
+            this.scene.add(hyperlink);
+
+            projectIndex++;
         }
     }
+
+    // addPortals() {
+    //     //goes through all yorblets except 0 (lobby) and makes portal
+    //     for (let i = 1; i < yorbletPortalReference.length; i++) {
+    //         // log(yorbletPortalReference[i])
+    //         this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i));
+    //     }
+    // }
 
     // this decodes the text twice because the project database seems to be double wrapped in html...
     // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
@@ -802,6 +676,17 @@ export class SpringShow2021 {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
 class LazyRiver {
     constructor(scene, camera) {
         this.scene = scene;
@@ -833,8 +718,8 @@ class LazyRiver {
         grassTexture.wrapT = THREE.RepeatWrapping;
         grassTexture.repeat.set(500, 500);
 
-        const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshLambertMaterial({map: grassTexture}));
-        groundPlane.rotateX(-Math.PI/2);
+        const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshLambertMaterial({ map: grassTexture }));
+        groundPlane.rotateX(-Math.PI / 2);
         this.scene.add(groundPlane);
 
         this.addYorbletEntrance();
@@ -851,25 +736,25 @@ class LazyRiver {
     // }
 
     addYorbletEntrance() {
-          // add entrance:
-          const geometry = new THREE.TorusBufferGeometry(8, 1, 16, 24, Math.PI)
-          const material = new THREE.MeshBasicMaterial({ color: 0xff00ff })
-          const torus = new THREE.Mesh(geometry, material)
-          this.scene.add(torus)
-          torus.position.set(86,0,-25);
-          torus.lookAt(78, 0,-20)
+        // add entrance:
+        const geometry = new THREE.TorusBufferGeometry(8, 1, 16, 24, Math.PI);
+        const material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+        const torus = new THREE.Mesh(geometry, material);
+        this.scene.add(torus);
+        torus.position.set(86, 0, -25);
+        torus.lookAt(78, 0, -20);
 
-          const material2 = new THREE.MeshBasicMaterial({ color: 0xffff00 })
-          const torus2 = new THREE.Mesh(geometry, material2)
-          this.scene.add(torus2)
-          torus2.position.set(25,0,27);
-          torus2.lookAt(22, 0,15)
+        const material2 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const torus2 = new THREE.Mesh(geometry, material2);
+        this.scene.add(torus2);
+        torus2.position.set(25, 0, 27);
+        torus2.lookAt(22, 0, 15);
 
-          const material3 = new THREE.MeshBasicMaterial({ color: 0x00ffff })
-          const torus3 = new THREE.Mesh(geometry, material3)
-          this.scene.add(torus3)
-          torus3.position.set(-5,0,-15);
-          torus3.lookAt(6, 0,-10)
+        const material3 = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const torus3 = new THREE.Mesh(geometry, material3);
+        this.scene.add(torus3);
+        torus3.position.set(-5, 0, -15);
+        torus3.lookAt(6, 0, -10);
     }
 
     addSpline() {
@@ -959,7 +844,7 @@ class LazyRiver {
 
     update() {
         this.textureOffset -= 1;
-        this.waterTexture.offset.set((this.textureOffset % 1000 )/ 1000,0);
+        this.waterTexture.offset.set((this.textureOffset % 1000) / 1000, 0);
         this.raycaster.set(this.camera.position, this.downVector);
         let intersections = this.raycaster.intersectObject(this.lazyRiverMesh);
         if (intersections[0]) {
