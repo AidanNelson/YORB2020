@@ -63,7 +63,7 @@ export class SpringShow2021 {
         // let domElement = document.getElementById('scene-container')
         window.addEventListener('click', (e) => this.onMouseClick(e), false);
 
-        this.splineTrain = new LazyRiver(this.scene, this.camera);
+        // this.lazyRiver = new LazyRiver(this.scene, this.camera);
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -76,10 +76,22 @@ export class SpringShow2021 {
         this.font = loader.parse(fontJSON);
         this._updateProjects();
 
+        this.addGround();
         // this.addPortals()
         // this.addDecals();
         // var signage = new Signage(this.scene);
         // this.addArrowSigns();
+    }
+
+    addGround() {
+        const grassTexture = new THREE.TextureLoader().load(grassTextureFile);
+        grassTexture.wrapS = THREE.RepeatWrapping;
+        grassTexture.wrapT = THREE.RepeatWrapping;
+        grassTexture.repeat.set(500, 500);
+
+        const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshLambertMaterial({ map: grassTexture }));
+        groundPlane.rotateX(-Math.PI / 2);
+        this.scene.add(groundPlane);
     }
 
     // addDecals() {
@@ -198,6 +210,7 @@ export class SpringShow2021 {
     }
 
     _updateProjects() {
+        console.log('updating ', this.projects);
         if (this.font) {
             let projects = this.projects;
 
@@ -230,56 +243,110 @@ export class SpringShow2021 {
             // log('Number of unique zoom projects: ', numUniqueProjects)
 
             if (numUniqueProjects > 0) {
-                // if the projects have been updated
-                // let startIndex = 0;
-                // let endIndex = 63;
-                // for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                //     let proj = uniqueProjects[i];
-                //     if (!proj) return;
-                //     let locX = -23.55;
-                //     let locZ = -79 + i * 1.5;
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                //     this.hyperlinkedObjects.push(hyperlink);
-                //     this.scene.add(hyperlink);
-                // }
-                // startIndex = endIndex;
-                // endIndex = endIndex + 7;
-                // for (let i = startIndex; i < endIndex && i < numUniqueProjects; i++) {
-                //     let proj = uniqueProjects[i];
-                //     if (!proj) return;
-                //     let offset = i - startIndex * 1;
-                //     let locX = -23.55;
-                //     let locZ = 22 + offset * 1.5;
-                //     let hyperlink = this.createHyperlinkedMesh(locX, 1.75, locZ, proj);
-                //     this.hyperlinkedObjects.push(hyperlink);
-                //     this.scene.add(hyperlink);
-                // }
+                let gallerySpacing = 20;
+
+                this.arrangeMiniGallery(-gallerySpacing,0,10, 0, Math.PI, 0xff00ff);
+                this.arrangeMiniGallery(gallerySpacing,0,10, 0, 0, 0xffffff);
+                this.arrangeMiniGallery(-gallerySpacing,gallerySpacing,10, 0, Math.PI,0x0000ff);
+                this.arrangeMiniGallery(gallerySpacing,gallerySpacing,10, 0, 0, 0x00ffff);
+                
                 // console.log("We've placed ", endIndex, ' projects so far.')
             }
         }
     }
 
-    // this will update the project posters
-    arrangeProjects() {
-        let radius = RADIUS;
+    arrangeMiniGallery(centerX,centerZ, numProjects, projectOffset, yRotation = 0, archCol){
 
-        // set left side offsets
-        let xOffset = 0;
-        let zOffset = 20;
+        let miniGalleryParent = new THREE.Group();
 
-        let projectIndex = 0;
-        // make left side projects
-        for (let i = 0; i < this.numProjects / 2; i++) {
+        let projectIndex = projectOffset;
+        let projectHeight = 1.5;
+        let projectSpacing = 4;
+
+        let locX =  0;
+        let locZ =  -1 * projectSpacing;
+
+
+        // arrange one row
+        for (let i = 0; i < numProjects/2; i++){
             let proj = this.projects[projectIndex];
             if (!proj) return;
 
-            let theta = (Math.PI * 2) / (this.numProjects - 2);
+            locX += projectSpacing;
+
+            let hyperlink = this.createHyperlinkedMesh(locX, projectHeight, locZ, proj);
+            hyperlink.rotateY(-Math.PI/2);
+            this.hyperlinkedObjects.push(hyperlink);
+            miniGalleryParent.add(hyperlink);
+
+            
+
+            projectIndex++;
+        }
+
+        locX = 0;
+        locZ += projectSpacing * 2;
+
+        // then the other
+        for (let i = 0; i < numProjects/2; i++){
+            let proj = this.projects[projectIndex];
+            if (!proj) return;
+
+            locX += projectSpacing;
+
+            let hyperlink = this.createHyperlinkedMesh(locX, projectHeight, locZ, proj);
+            hyperlink.rotateY(Math.PI/2);
+            this.hyperlinkedObjects.push(hyperlink);
+            miniGalleryParent.add(hyperlink);
+
+            
+
+            projectIndex++;
+        }
+
+        // add entrance:
+        const geometry = new THREE.TorusBufferGeometry(4, 0.5, 16, 24, Math.PI);
+        const material = new THREE.MeshBasicMaterial({ color: archCol });
+        const torus = new THREE.Mesh(geometry, material);
+        torus.rotateY(Math.PI/2)
+        miniGalleryParent.add(torus);
+
+        // then a floor
+        let floorWidth = projectSpacing * 1.5;
+        let floorLength = projectSpacing * ((numProjects / 2) + 1);
+        let geo = new THREE.BoxGeometry(floorLength, 0.1, floorWidth);
+        let mat = new THREE.MeshLambertMaterial({color: 'hotpink'});
+        let mesh = new THREE.Mesh(geo,mat);
+        mesh.position.set(projectSpacing * ((numProjects/4)),0,0);
+        miniGalleryParent.add(mesh);
+
+        miniGalleryParent.rotateY(yRotation);
+        miniGalleryParent.position.set(centerX,0,centerZ);
+        
+        this.scene.add(miniGalleryParent);
+    }
+    // this will update the project posters
+    arrangeProjectsInOval(radius, numProjects, projectOffset) {
+        // set left side offsets
+        let xOffset = 0;
+        let zOffset = radius / 2;
+
+        let projectHeight = 1;
+
+        let projectIndex = projectOffset;
+        // make left side projects
+        for (let i = 0; i < numProjects / 2; i++) {
+            let proj = this.projects[projectIndex];
+            if (!proj) return;
+
+            let theta = (Math.PI * 2) / (numProjects - 2);
             let angle = theta * i;
 
             let centerX = radius * Math.cos(angle) + xOffset;
             let centerZ = radius * Math.sin(angle) + zOffset;
 
-            let hyperlink = this.createHyperlinkedMesh(centerX, 1, centerZ, xOffset, zOffset, proj);
+            let hyperlink = this.createHyperlinkedMesh(centerX, projectHeight, centerZ, proj);
+            hyperlink.lookAt(centerX, projectHeight, centerZ);
             this.hyperlinkedObjects.push(hyperlink);
             this.scene.add(hyperlink);
 
@@ -287,20 +354,20 @@ export class SpringShow2021 {
         }
 
         xOffset = 0;
-        zOffset = -20;
+        zOffset = -radius/2;
 
         // make right side projects
-        for (let i = this.numProjects / 2 - 1; i < this.numProjects - 1; i++) {
+        for (let i = numProjects / 2 - 1; i < numProjects - 1; i++) {
             let proj = this.projects[projectIndex];
             if (!proj) return;
 
-            let theta = (Math.PI * 2) / (this.numProjects - 2);
+            let theta = (Math.PI * 2) / (numProjects - 2);
             let angle = theta * i;
 
             let centerX = radius * Math.cos(angle) + xOffset;
             let centerZ = radius * Math.sin(angle) + zOffset;
 
-            let hyperlink = this.createHyperlinkedMesh(centerX, 1, centerZ, xOffset, zOffset, proj);
+            let hyperlink = this.createHyperlinkedMesh(centerX, projectHeight, centerZ, proj);
             this.hyperlinkedObjects.push(hyperlink);
             this.scene.add(hyperlink);
 
@@ -350,6 +417,7 @@ export class SpringShow2021 {
      */
 
     createHyperlinkedMesh(x, y, z, _project) {
+        console.log(_project);
         let linkDepth = 0.1;
         let fontColor = 0x343434;
         let statusColor = 0xffffff;
@@ -404,25 +472,6 @@ export class SpringShow2021 {
         textSign.add(textMesh);
         imageSign.add(textSign);
 
-        // parse zoom room status
-        // var status_code = _project.zoom_status
-        // let status = ''
-        // // status_code = 1;
-        // if (status_code == '1') {
-        //     var statusBoxGemoetry = new THREE.BoxGeometry(linkDepth, 0.125, 0.5)
-        //     var statusSign = new THREE.Mesh(statusBoxGemoetry, this.statusBoxMaterial)
-        //     status = 'Live now!'
-        //     var statusTextMesh = createSimpleText(status, statusColor, fontSize, this.font)
-        //     statusTextMesh.position.x += linkDepth / 2 + 0.01
-        //     statusTextMesh.position.y -= 0.0625
-        //     statusTextMesh.rotateY(Math.PI / 2)
-        //     statusSign.add(statusTextMesh)
-        //     statusSign.position.y += 0.25
-        //     statusSign.position.x += 0.01
-
-        //     imageSign.add(statusSign)
-        // }
-
         // https://stackoverflow.com/questions/24690731/three-js-3d-models-as-hyperlink/24692057
         let now = Date.now();
         imageSign.userData = {
@@ -450,19 +499,6 @@ export class SpringShow2021 {
      *		}
      *
      */
-    zoomStatusDecoder(status) {
-        if (status == '0') {
-            return 'Currently Offline';
-        } else if (status == '1') {
-            return 'Currently Live';
-        } else if (status == '2') {
-            return 'Project Creator Will Be Right Back';
-        } else if (status == '3') {
-            return 'Room Full Try Again Soon';
-        } else {
-            return '';
-        }
-    }
     generateProjectModal(project) {
         // parse project descriptions to render without &amp; etc.
         // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
@@ -476,7 +512,6 @@ export class SpringShow2021 {
             let pitch = project.elevator_pitch;
             let description = project.description;
             let link = project.zoom_link;
-            let room_status = this.zoomStatusDecoder(project.zoom_status);
 
             let modalEl = document.createElement('div');
             modalEl.className = 'project-modal';
@@ -548,9 +583,7 @@ export class SpringShow2021 {
             projectLinkEl.rel = 'noopener noreferrer';
 
             let zoomLinkEl = document.createElement('a');
-            // zoomLinkEl.href = link
             zoomLinkEl.href = link;
-            // zoomLinkEl.innerHTML = 'Zoom Room - ' + room_status
             zoomLinkEl.innerHTML = 'Join Live Presentation!';
             zoomLinkEl.target = '_self';
             zoomLinkEl.rel = 'noopener noreferrer';
@@ -668,7 +701,7 @@ export class SpringShow2021 {
             this.highlightHyperlinks();
         }
 
-        this.splineTrain.update();
+        // this.lazyRiver.update();
     }
 
     onMouseClick(e) {
@@ -712,15 +745,6 @@ class LazyRiver {
         // window.addEventListener('keydown', (e) => this.onKeyDown(e), false);
 
         this.addSpline();
-
-        const grassTexture = new THREE.TextureLoader().load(grassTextureFile);
-        grassTexture.wrapS = THREE.RepeatWrapping;
-        grassTexture.wrapT = THREE.RepeatWrapping;
-        grassTexture.repeat.set(500, 500);
-
-        const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshLambertMaterial({ map: grassTexture }));
-        groundPlane.rotateX(-Math.PI / 2);
-        this.scene.add(groundPlane);
 
         this.addYorbletEntrance();
     }
