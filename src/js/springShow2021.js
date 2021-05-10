@@ -63,7 +63,7 @@ export class SpringShow2021 {
         // let domElement = document.getElementById('scene-container')
         window.addEventListener('click', (e) => this.onMouseClick(e), false);
 
-        // this.lazyRiver = new LazyRiver(this.scene, this.camera);
+        this.lazyRiver = new LazyRiver(this.scene, this.camera);
     }
 
     //==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//
@@ -77,7 +77,7 @@ export class SpringShow2021 {
         this._updateProjects();
 
         this.addGround();
-        // this.addPortals()
+        this.addPortals();
         // this.addDecals();
         // var signage = new Signage(this.scene);
         // this.addArrowSigns();
@@ -243,43 +243,40 @@ export class SpringShow2021 {
             // log('Number of unique zoom projects: ', numUniqueProjects)
 
             if (numUniqueProjects > 0) {
-                let gallerySpacing = 20;
+                let gallerySpacingX = 20;
+                let gallerySpacingZ = 20;
 
-                this.arrangeMiniGallery(-gallerySpacing,0,10, 0, Math.PI, 0xff00ff);
-                this.arrangeMiniGallery(gallerySpacing,0,10, 0, 0, 0xffffff);
-                this.arrangeMiniGallery(-gallerySpacing,gallerySpacing,10, 0, Math.PI,0x0000ff);
-                this.arrangeMiniGallery(gallerySpacing,gallerySpacing,10, 0, 0, 0x00ffff);
-                
+                this.arrangeMiniGallery(-gallerySpacingX, -gallerySpacingZ, 10, 0, Math.PI, 0xff00ff);
+                this.arrangeMiniGallery(gallerySpacingX, -gallerySpacingZ, 10, 0, 0, 0xffffff);
+                this.arrangeMiniGallery(-gallerySpacingX, gallerySpacingZ, 10, 0, Math.PI, 0x0000ff);
+                this.arrangeMiniGallery(gallerySpacingX, gallerySpacingZ, 10, 0, 0, 0x00ffff);
+
                 // console.log("We've placed ", endIndex, ' projects so far.')
             }
         }
     }
 
-    arrangeMiniGallery(centerX,centerZ, numProjects, projectOffset, yRotation = 0, archCol){
-
+    arrangeMiniGallery(centerX, centerZ, numProjects, projectOffset, yRotation = 0, archCol) {
         let miniGalleryParent = new THREE.Group();
 
         let projectIndex = projectOffset;
         let projectHeight = 1.5;
         let projectSpacing = 4;
 
-        let locX =  0;
-        let locZ =  -1 * projectSpacing;
-
+        let locX = 0;
+        let locZ = -1 * projectSpacing;
 
         // arrange one row
-        for (let i = 0; i < numProjects/2; i++){
+        for (let i = 0; i < numProjects / 2; i++) {
             let proj = this.projects[projectIndex];
             if (!proj) return;
 
             locX += projectSpacing;
 
             let hyperlink = this.createHyperlinkedMesh(locX, projectHeight, locZ, proj);
-            hyperlink.rotateY(-Math.PI/2);
+            hyperlink.rotateY(-Math.PI / 2);
             this.hyperlinkedObjects.push(hyperlink);
             miniGalleryParent.add(hyperlink);
-
-            
 
             projectIndex++;
         }
@@ -288,18 +285,16 @@ export class SpringShow2021 {
         locZ += projectSpacing * 2;
 
         // then the other
-        for (let i = 0; i < numProjects/2; i++){
+        for (let i = 0; i < numProjects / 2; i++) {
             let proj = this.projects[projectIndex];
             if (!proj) return;
 
             locX += projectSpacing;
 
             let hyperlink = this.createHyperlinkedMesh(locX, projectHeight, locZ, proj);
-            hyperlink.rotateY(Math.PI/2);
+            hyperlink.rotateY(Math.PI / 2);
             this.hyperlinkedObjects.push(hyperlink);
             miniGalleryParent.add(hyperlink);
-
-            
 
             projectIndex++;
         }
@@ -308,21 +303,21 @@ export class SpringShow2021 {
         const geometry = new THREE.TorusBufferGeometry(4, 0.5, 16, 24, Math.PI);
         const material = new THREE.MeshBasicMaterial({ color: archCol });
         const torus = new THREE.Mesh(geometry, material);
-        torus.rotateY(Math.PI/2)
+        torus.rotateY(Math.PI / 2);
         miniGalleryParent.add(torus);
 
         // then a floor
         let floorWidth = projectSpacing * 1.5;
-        let floorLength = projectSpacing * ((numProjects / 2) + 1);
+        let floorLength = projectSpacing * (numProjects / 2 + 1);
         let geo = new THREE.BoxGeometry(floorLength, 0.1, floorWidth);
-        let mat = new THREE.MeshLambertMaterial({color: 'hotpink'});
-        let mesh = new THREE.Mesh(geo,mat);
-        mesh.position.set(projectSpacing * ((numProjects/4)),0,0);
+        let mat = new THREE.MeshLambertMaterial({ color: 'hotpink' });
+        let mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(projectSpacing * (numProjects / 4), 0, 0);
         miniGalleryParent.add(mesh);
 
         miniGalleryParent.rotateY(yRotation);
-        miniGalleryParent.position.set(centerX,0,centerZ);
-        
+        miniGalleryParent.position.set(centerX, 0, centerZ);
+
         this.scene.add(miniGalleryParent);
     }
     // this will update the project posters
@@ -354,7 +349,7 @@ export class SpringShow2021 {
         }
 
         xOffset = 0;
-        zOffset = -radius/2;
+        zOffset = -radius / 2;
 
         // make right side projects
         for (let i = numProjects / 2 - 1; i < numProjects - 1; i++) {
@@ -375,13 +370,14 @@ export class SpringShow2021 {
         }
     }
 
-    // addPortals() {
-    //     //goes through all yorblets except 0 (lobby) and makes portal
-    //     for (let i = 1; i < yorbletPortalReference.length; i++) {
-    //         // log(yorbletPortalReference[i])
-    //         this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i));
-    //     }
-    // }
+    addPortals() {
+        this.portals.push(new Portal(this.scene, new THREE.Vector3(0, 0, -60), 0));
+        //goes through all yorblets except 0 (lobby) and makes portal
+        // for (let i = 1; i < yorbletPortalReference.length; i++) {
+        //     // log(yorbletPortalReference[i])
+        //     this.portals.push(new Portal(this.scene, yorbletPortalReference[i].position, i));
+        // }
+    }
 
     // this decodes the text twice because the project database seems to be double wrapped in html...
     // https://stackoverflow.com/questions/3700326/decode-amp-back-to-in-javascript
@@ -701,24 +697,13 @@ export class SpringShow2021 {
             this.highlightHyperlinks();
         }
 
-        // this.lazyRiver.update();
+        this.lazyRiver.update();
     }
 
     onMouseClick(e) {
         this.activateHighlightedProject();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 class LazyRiver {
     constructor(scene, camera) {
@@ -731,6 +716,8 @@ class LazyRiver {
         this.raycaster = new THREE.Raycaster();
         this.downVector = new THREE.Vector3(0, -1, 0);
 
+        this.speedFactor = 0.035;
+
         this.textureOffset = 0;
 
         this.pointsResolution = 256;
@@ -742,77 +729,60 @@ class LazyRiver {
         this.position = new THREE.Vector3();
         this.lookAt = new THREE.Vector3();
 
-        // window.addEventListener('keydown', (e) => this.onKeyDown(e), false);
-
         this.addSpline();
-
-        this.addYorbletEntrance();
-    }
-
-    // onKeyDown(e) {
-    // if (e.keyCode === 32) {
-    //     this.isMoving = !this.isMoving;
-
-    //     if (!this.isMoving) {
-    //         this.hasStarted = false;
-    //     }
-    // }
-    // }
-
-    addYorbletEntrance() {
-        // add entrance:
-        const geometry = new THREE.TorusBufferGeometry(8, 1, 16, 24, Math.PI);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
-        const torus = new THREE.Mesh(geometry, material);
-        this.scene.add(torus);
-        torus.position.set(86, 0, -25);
-        torus.lookAt(78, 0, -20);
-
-        const material2 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const torus2 = new THREE.Mesh(geometry, material2);
-        this.scene.add(torus2);
-        torus2.position.set(25, 0, 27);
-        torus2.lookAt(22, 0, 15);
-
-        const material3 = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-        const torus3 = new THREE.Mesh(geometry, material3);
-        this.scene.add(torus3);
-        torus3.position.set(-5, 0, -15);
-        torus3.lookAt(6, 0, -10);
     }
 
     addSpline() {
-        this.lazyRiverPath = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, 0, -5),
-            new THREE.Vector3(20, 0, -20),
-            new THREE.Vector3(80, 0, -20),
-            new THREE.Vector3(20, 0, 20),
-            new THREE.Vector3(-20, 0, 20),
-        ]);
+        let points = [
+            [-0.02, 0, -66.26],
+            [6.28, 0, -62.53],
+            [20.07, 0, -27.31],
+            [43.46, 0, -26.63],
+            [44.1, 0, -14.43],
+            [23.82, 0, -13.18],
+            [20.64, 0, 11.77],
+            [42.64, 0, 13.81],
+            [43.61, 0, 23.59],
+            [43.63, 0, 26.02],
+            [21.06, 0, 26.88],
+            [16.27, 0, 60.36],
+            [10.6, 0, 70.93],
+            [-5.38, 0, 74.3],
+            [-15.0, 0, 65.78],
+            [-15.62, 0, 58.38],
+            [-20.09, 0, 26.99],
+            [-41.19, 0, 25.74],
+            [-43.89, 0, 20.71],
+            [-43.15, 0, 15.09],
+            [-43.16, 0, 14.18],
+            [-21.57, 0, 13.5],
+            [-20.1, 0, -14.17],
+            [-42.28, 0, -14.1],
+            [-42.67, 0, -24.82],
+            [-42.67, 0, -26.15],
+            [-20.42, 0, -26.14],
+            [-4.26, 0, -60.54],
+        ];
+        let vectors = [];
+        for (let i = 0; i < points.length; i++) {
+            let pt = points[i];
+            console.log(pt);
+            vectors.push(new THREE.Vector3(pt[0], pt[1], pt[2]));
+        }
+        // this.lazyRiverPath = new THREE.CatmullRomCurve3([
+        //     new THREE.Vector3(0, 0, -5),
+        //     new THREE.Vector3(20, 0, -20),
+        //     new THREE.Vector3(80, 0, -20),
+        //     new THREE.Vector3(20, 0, 20),
+        //     new THREE.Vector3(-20, 0, 20),
+        // ]);
+        console.log(vectors);
+        this.lazyRiverPath = new THREE.CatmullRomCurve3(vectors);
 
         this.lazyRiverPath.curveType = 'catmullrom';
         this.lazyRiverPath.closed = true;
 
-        // const material = new THREE.MeshLambertMaterial({ color: 0xff00ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
-
-        // const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, linewidth: 5, opacity: 0.3, wireframe: true, transparent: true });
-
-        // if (this.riverMesh !== undefined) {
-        //     parent.remove(this.riverMesh);
-        //     this.riverMesh.geometry.dispose();
-        // }
-
-        // this.lazyRiverPath = splineCurve;
-
         this.tubeGeometry = new THREE.TubeGeometry(this.lazyRiverPath, 128, 0.25, 12, true);
-
-        // 3D shape
-        // this.riverMesh = new THREE.Mesh(this.tubeGeometry, material);
-        // const wireframe = new THREE.Mesh(this.tubeGeometry, wireframeMaterial);
-
-        // this.riverMesh.add(wireframe);
-
-        // this.scene.add(this.riverMesh);
 
         // Extrusion
         const extrudeSettings1 = {
@@ -874,7 +844,7 @@ class LazyRiver {
         if (intersections[0]) {
             this.positionAlongCurve = this.findClosestPointAlongLazyRiver();
             this.tubeGeometry.parameters.path.getTangent(this.positionAlongCurve, this.direction);
-            this.camera.position.add(this.direction.multiplyScalar(0.1));
+            this.camera.position.add(this.direction.multiplyScalar(this.speedFactor));
         }
     }
 }
