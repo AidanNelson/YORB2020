@@ -31,6 +31,10 @@ const debugModule = require('debug')
 const mediasoup = require('mediasoup')
 const fs = require('fs')
 const https = require('https')
+https.globalAgent.options.ca = require('ssl-root-cas').create();
+
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
+
 
 // HTTP Server setup:
 // https://stackoverflow.com/questions/27393705/how-to-resolve-a-socket-io-404-not-found-error
@@ -208,6 +212,7 @@ main()
 
 async function updateProjects() {
     let url = process.env.PROJECT_DATABASE_URL
+    console.log('Updating Projects from Database...');
 
     https
         .get(url, (res) => {

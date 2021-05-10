@@ -130,7 +130,7 @@ export class Yorb {
 
         this.controls = new Controls(this.scene, this.camera, this.renderer);
 
-        //this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
+        this.projectionScreens = new ProjectionScreens(this.scene, this.camera, this.mouse);
         //console.log("testing logging");
 
         this.show = false;
@@ -198,7 +198,7 @@ export class Yorb {
     // update projects:
     updateProjects(projects) {
         if (this.show) {
-            // log('yorb received', projects.length, 'show projects');
+            log('yorb received', projects.length, 'show projects');
             this.show.updateProjects(projects);
         }
         if (this.yorblet) {
@@ -477,8 +477,8 @@ export class Yorb {
      */
     getStartingPosition() {
         // Elevator bank range: x: 3 to 28, z: -2.5 to 1.5
-        let startX = this.randomRange(6, 20);
-        let startZ = this.randomRange(-2.5, -1.5);
+        let startX = this.randomRange(-5, 5);
+        let startZ = this.randomRange(-5, -5);
 
         // In front of Red Square / ER range: x: -7.4 to - 13.05, z: -16.8 to -8.3
         // let randX = this.randomRange(-7, -16)
@@ -508,10 +508,11 @@ export class Yorb {
 
         if (!this.controls.paused) {
             this.frameCount++;
+            this.show.update();
 
             // things to update 50 times per seconds:
             this.controls.update();
-            // this.projectionScreens.update();
+            this.projectionScreens.update();
             sceneDraw(this.scene);
 
             // things to update 5 x per second
@@ -521,10 +522,10 @@ export class Yorb {
 
             if (this.frameCount % 20 == 0) {
                 this.updateClientVolumes();
-                // this.projectionScreens.updatePositionalAudio();
+                this.projectionScreens.updatePositionalAudio();
                 this.movementCallback();
                 if (this.show) {
-                    this.show.update();
+                    // this.show.update();
                     for (let portal of this.show.portals) {
                         //originally had this in framecount % 50, might want to move there if too slow
                         if (portal.teleportCheck(this.getPlayerPosition()[0])) {
@@ -540,7 +541,7 @@ export class Yorb {
                         hackToRemovePlayerTemporarily();
                     }
                 }
-                // this.projectionScreens.checkProjectionScreenCollisions();
+                this.projectionScreens.checkProjectionScreenCollisions();
             }
             if (this.frameCount % 50 == 0) {
                 this.selectivelyPauseAndResumeConsumers();

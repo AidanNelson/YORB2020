@@ -71,12 +71,15 @@ export class ProjectionScreens {
                 // {
                 //   room: 'classRoom4-right', x: 25.7, y: 1.9, z: 22.123456, rot: Math.PI / 2,
                 // },
+                // {
+                //   room: 'redSquare', x: -23.5, y: 1.9, z: -14.675, rot: Math.PI / 2
+                // },
+                // {
+                //   room: 'back-lawn', x: 74, y: 1.9, z:-77, rot: Math.PI / 2 + Math.PI / 4, scaleFactor: 4, hasStage: true
+                // },
                 {
-                  room: 'redSquare', x: -23.5, y: 1.9, z: -14.675, rot: Math.PI / 2
-                },
-                {
-                  room: 'back-lawn', x: 74, y: 1.9, z:-77, rot: Math.PI / 2 + Math.PI / 4, scaleFactor: 4, hasStage: true
-                },
+                    room: 'spring-show', x: 0, y: 1.9, z:60, rot: 0, scaleFactor: 4, hasStage: true
+                  },
             ],
         }
 
