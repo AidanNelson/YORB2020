@@ -386,6 +386,10 @@ export class Yorb {
 
         let _head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), videoMaterial);
 
+        const ringGeo = new THREE.RingGeometry(1, 1.25, 4);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
+        const _ring = new THREE.Mesh(ringGeo, ringMat);
+
         // set position of head before adding to parent object
         _body.position.set(0, 0, 0);
         _head.position.set(0, 1, 0);
@@ -394,6 +398,7 @@ export class Yorb {
         var group = new THREE.Group();
         group.add(_body);
         group.add(_head);
+        group.add(_ring);
 
         // add group to scene
         this.scene.add(group);
@@ -422,8 +427,9 @@ export class Yorb {
                     // update position
                     this.clients[_id].desiredPosition = new THREE.Vector3(_clientProps[_id].position[0], _clientProps[_id].position[1], _clientProps[_id].position[2]);
                     // update rotation
-                    let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ');
-                    this.clients[_id].group.setRotationFromEuler(euler);
+                    // let euler = new THREE.Euler(0, _clientProps[_id].rotation[1], 0, 'XYZ');
+                    // this.clients[_id].group.setRotationFromEuler(euler);
+                    this.clients[_id].group.lookAt(_clientProps[_id].rotation[0],_clientProps[_id].rotation[1],_clientProps[_id].rotation[2]);
                 }
             }
         }
@@ -465,10 +471,12 @@ export class Yorb {
     // Position Update for Socket
 
     getPlayerPosition() {
+        var lookAtVector = new THREE.Vector3(0,0, -1);
+        lookAtVector.applyQuaternion(this.camera.quaternion);
         // TODO: use quaternion or are euler angles fine here?
         return [
             [this.camera.position.x, this.camera.position.y - (this.cameraHeight - 0.5), this.camera.position.z],
-            [this.camera.rotation.x, this.camera.rotation.y, this.camera.rotation.z],
+            [lookAtVector.x, lookAtVector.y, lookAtVector.z],
         ];
     }
 
