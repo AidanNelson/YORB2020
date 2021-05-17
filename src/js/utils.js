@@ -84,7 +84,7 @@ export function create3DText(text, size, height, curveSegments, bevelThickness, 
 
     var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x)
 
-    textGeo = new THREE.BufferGeometry().fromGeometry(textGeo)
+    // textGeo = new THREE.BufferGeometry().fromGeometry(textGeo)
 
     // geometry.computeBoundingBox();
 

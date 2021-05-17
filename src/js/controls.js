@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-export class YorbControls2 {
+export class Controls {
     constructor(scene, camera, renderer) {
         this.scene = scene
         this.camera = camera
