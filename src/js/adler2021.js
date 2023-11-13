@@ -4,7 +4,7 @@ import { createSimpleText } from './utils'
 import { hackToRemovePlayerTemporarily } from './index.js'
 import { Vector3 } from 'three'
 import { Portal } from './portals'
-import { Signage } from './signage'
+//import { Signage } from './signage'
 
 const project_thumbnails = require('../assets/images/project_thumbnails/winterShow2020/*.png')
 
@@ -29,7 +29,7 @@ const yorbletPortalReference = [
     // { position: new Vector3(-23, 0, -47.5) }
 ]
 
-export class WinterShow2020 {
+export class Adler2021 {
     constructor(scene, camera, controls, mouse) {
         this.scene = scene
         this.camera = camera
@@ -69,11 +69,11 @@ export class WinterShow2020 {
         var loader = new THREE.FontLoader()
         let fontJSON = require('../assets/fonts/helvetiker_bold.json')
         this.font = loader.parse(fontJSON)
-        this._updateProjects()
-        this.addPortals()
-        this.addDecals();
-        var signage = new Signage(this.scene);
-        this.addArrowSigns();
+        //this._updateProjects()
+        //this.addPortals()
+        //this.addDecals();
+        //var signage = new Signage(this.scene);
+        //this.addArrowSigns();
     }
 
 
